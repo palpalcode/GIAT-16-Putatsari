@@ -10,9 +10,9 @@ import Dashboard from "@/pages/dashboard";
 import TimPage from "@/pages/tim";
 import PengumumanPage from "@/pages/pengumuman";
 import DeadlinePage from "@/pages/deadline";
-import InventarisPage from "@/pages/inventaris";
-import KehidupanPage from "@/pages/kehidupan";
-import ProkerPage from "@/pages/proker";
+import OurLifePage from "@/pages/our-life";
+import OurWorkPage from "@/pages/our-work";
+import MasalahPage from "@/pages/masalah";
 
 const queryClient = new QueryClient();
 
@@ -22,12 +22,15 @@ function Router() {
       <Switch>
         <Route path="/" component={Dashboard} />
         <Route path="/tim" component={TimPage} />
-        <Route path="/kehidupan" component={KehidupanPage} />
-        <Route path="/proker" component={ProkerPage} />
-        <Route path="/inventaris" component={InventarisPage} />
+        <Route path="/our-life" component={OurLifePage} />
+        <Route path="/our-work" component={OurWorkPage} />
         <Route path="/pengumuman" component={PengumumanPage} />
         <Route path="/deadline" component={DeadlinePage} />
+        <Route path="/masalah" component={MasalahPage} />
         <Route path="/admin" component={AdminPage} />
+        {/* legacy redirects */}
+        <Route path="/kehidupan" component={OurLifePage} />
+        <Route path="/proker" component={OurWorkPage} />
         <Route component={NotFound} />
       </Switch>
     </Layout>

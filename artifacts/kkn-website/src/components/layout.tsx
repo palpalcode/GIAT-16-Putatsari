@@ -10,11 +10,11 @@ import { useToast } from "@/hooks/use-toast";
 const navItems = [
   { href: "/", label: "Beranda" },
   { href: "/tim", label: "Tim KKN" },
-  { href: "/kehidupan", label: "Kehidupan" },
-  { href: "/proker", label: "Program Kerja" },
-  { href: "/inventaris", label: "Inventaris" },
+  { href: "/our-life", label: "Our Life" },
+  { href: "/our-work", label: "Our Work" },
   { href: "/pengumuman", label: "Pengumuman" },
   { href: "/deadline", label: "Deadline" },
+  { href: "/masalah", label: "Masalah" },
 ];
 
 export function Layout({ children }: { children: React.ReactNode }) {
@@ -23,6 +23,11 @@ export function Layout({ children }: { children: React.ReactNode }) {
   const logout = useAdminLogout();
   const { toast } = useToast();
   const [isOpen, setIsOpen] = React.useState(false);
+
+  function isActive(href: string) {
+    if (href === "/") return location === "/";
+    return location === href || location.startsWith(href + "/");
+  }
 
   const handleLogout = () => {
     logout.mutate(undefined, {
@@ -43,20 +48,20 @@ export function Layout({ children }: { children: React.ReactNode }) {
       </div>
 
       <header className="sticky top-0 z-50 w-full pt-4 px-4 pb-2">
-        <div className="max-w-6xl mx-auto glass-card h-16 flex items-center justify-between px-6">
-          <Link href="/" className="font-bold text-xl bg-gradient-to-r from-rose-500 to-sky-500 bg-clip-text text-transparent">
-            Tim KKN 42
+        <div className="max-w-7xl mx-auto glass-card h-16 flex items-center justify-between px-6">
+          <Link href="/" className="font-bold text-lg bg-gradient-to-r from-rose-500 to-sky-500 bg-clip-text text-transparent shrink-0">
+            Putatsari Wellness
           </Link>
 
           {/* Desktop Nav */}
-          <nav className="hidden md:flex items-center gap-1">
+          <nav className="hidden lg:flex items-center gap-0.5">
             {navItems.map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  "px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 hover:bg-white/50",
-                  location === item.href
+                  "px-3 py-2 rounded-full text-sm font-medium transition-all duration-300 hover:bg-white/50",
+                  isActive(item.href)
                     ? "bg-white/80 text-rose-600 shadow-sm"
                     : "text-gray-600 hover:text-gray-900"
                 )}
@@ -66,21 +71,21 @@ export function Layout({ children }: { children: React.ReactNode }) {
             ))}
           </nav>
 
-          <div className="hidden md:flex items-center gap-4">
+          <div className="hidden lg:flex items-center gap-2">
             {auth?.isAdmin ? (
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={handleLogout}
-                className="text-rose-600 hover:text-rose-700 hover:bg-rose-50 rounded-full"
+                className="text-rose-600 hover:text-rose-700 hover:bg-rose-50 rounded-full text-xs"
               >
-                <LogOut className="w-4 h-4 mr-2" />
+                <LogOut className="w-3.5 h-3.5 mr-1.5" />
                 Keluar
               </Button>
             ) : (
               <Link href="/admin">
-                <Button variant="ghost" size="sm" className="rounded-full">
-                  <UserCircle className="w-4 h-4 mr-2" />
+                <Button variant="ghost" size="sm" className="rounded-full text-xs">
+                  <UserCircle className="w-3.5 h-3.5 mr-1.5" />
                   Admin
                 </Button>
               </Link>
@@ -89,30 +94,32 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
           {/* Mobile Nav */}
           <Sheet open={isOpen} onOpenChange={setIsOpen}>
-            <SheetTrigger asChild className="md:hidden">
+            <SheetTrigger asChild className="lg:hidden">
               <Button variant="ghost" size="icon" className="rounded-full">
                 <Menu className="w-5 h-5" />
               </Button>
             </SheetTrigger>
             <SheetContent side="right" className="glass-panel w-64 p-6 sm:max-w-sm flex flex-col h-full border-l-white/40">
-              <div className="flex justify-between items-center mb-8">
-                <span className="font-bold text-lg text-gray-900">Menu</span>
+              <div className="flex justify-between items-center mb-4">
+                <span className="font-bold text-base bg-gradient-to-r from-rose-500 to-sky-500 bg-clip-text text-transparent">
+                  Putatsari Wellness
+                </span>
                 <SheetTrigger asChild>
                   <Button variant="ghost" size="icon" className="rounded-full">
                     <X className="w-5 h-5" />
                   </Button>
                 </SheetTrigger>
               </div>
-              
-              <nav className="flex flex-col gap-2 flex-1">
+
+              <nav className="flex flex-col gap-1 flex-1">
                 {navItems.map((item) => (
                   <Link
                     key={item.href}
                     href={item.href}
                     onClick={() => setIsOpen(false)}
                     className={cn(
-                      "px-4 py-3 rounded-xl text-sm font-medium transition-all",
-                      location === item.href
+                      "px-4 py-2.5 rounded-xl text-sm font-medium transition-all",
+                      isActive(item.href)
                         ? "bg-white/80 text-rose-600 shadow-sm"
                         : "text-gray-600 hover:text-gray-900 hover:bg-white/40"
                     )}
@@ -122,15 +129,12 @@ export function Layout({ children }: { children: React.ReactNode }) {
                 ))}
               </nav>
 
-              <div className="mt-auto pt-6 border-t border-white/30">
+              <div className="mt-auto pt-4 border-t border-white/30">
                 {auth?.isAdmin ? (
                   <Button
                     variant="outline"
                     className="w-full justify-start rounded-xl text-rose-600"
-                    onClick={() => {
-                      handleLogout();
-                      setIsOpen(false);
-                    }}
+                    onClick={() => { handleLogout(); setIsOpen(false); }}
                   >
                     <LogOut className="w-4 h-4 mr-2" />
                     Keluar Admin
@@ -149,7 +153,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
         </div>
       </header>
 
-      <main className="flex-1 w-full max-w-6xl mx-auto p-4 md:p-6 lg:p-8">
+      <main className="flex-1 w-full max-w-7xl mx-auto p-4 md:p-6 lg:p-8">
         {children}
       </main>
     </div>
