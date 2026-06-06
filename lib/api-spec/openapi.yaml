@@ -1,22 +1,39 @@
 openapi: 3.1.0
 info:
-  # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: KKN Team Website API
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: auth
+    description: Admin authentication
+  - name: announcements
+    description: Pengumuman
+  - name: schedules
+    description: Jadwal piket masak, bersih-bersih, program kejar
+  - name: inventory
+    description: List barang
+  - name: deadlines
+    description: List deadline tugas & kegiatan
+  - name: complaints
+    description: Keluhan kehidupan harian
+  - name: issues
+    description: Masalah proker / urusan KKN
+  - name: templates
+    description: Template pekerjaan
+  - name: dashboard
+    description: Dashboard summary
+
 paths:
   /healthz:
     get:
       operationId: healthCheck
       tags: [health]
       summary: Health check
-      description: Returns server health status
       responses:
         "200":
           description: Healthy
@@ -24,6 +41,693 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /auth/login:
+    post:
+      operationId: adminLogin
+      tags: [auth]
+      summary: Admin login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginInput"
+      responses:
+        "200":
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResult"
+        "401":
+          description: Invalid credentials
+
+  /auth/logout:
+    post:
+      operationId: adminLogout
+      tags: [auth]
+      summary: Admin logout
+      responses:
+        "200":
+          description: Logged out
+
+  /auth/me:
+    get:
+      operationId: getAuthMe
+      tags: [auth]
+      summary: Get current auth status
+      responses:
+        "200":
+          description: Auth status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthStatus"
+
+  /announcements:
+    get:
+      operationId: getAnnouncements
+      tags: [announcements]
+      summary: Get all announcements
+      responses:
+        "200":
+          description: List of announcements
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Announcement"
+    post:
+      operationId: createAnnouncement
+      tags: [announcements]
+      summary: Create announcement (admin)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AnnouncementInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Announcement"
+
+  /announcements/{id}:
+    patch:
+      operationId: updateAnnouncement
+      tags: [announcements]
+      summary: Update announcement (admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AnnouncementUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Announcement"
+    delete:
+      operationId: deleteAnnouncement
+      tags: [announcements]
+      summary: Delete announcement (admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /schedules/cooking:
+    get:
+      operationId: getCookingSchedules
+      tags: [schedules]
+      summary: Get cooking schedules (jadwal piket masak)
+      responses:
+        "200":
+          description: Cooking schedules
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CookingSchedule"
+    post:
+      operationId: createCookingSchedule
+      tags: [schedules]
+      summary: Create cooking schedule (admin)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CookingScheduleInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CookingSchedule"
+
+  /schedules/cooking/{id}:
+    patch:
+      operationId: updateCookingSchedule
+      tags: [schedules]
+      summary: Update cooking schedule (admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CookingScheduleUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CookingSchedule"
+    delete:
+      operationId: deleteCookingSchedule
+      tags: [schedules]
+      summary: Delete cooking schedule (admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /schedules/cleaning:
+    get:
+      operationId: getCleaningSchedules
+      tags: [schedules]
+      summary: Get cleaning schedules (jadwal bersih-bersih)
+      responses:
+        "200":
+          description: Cleaning schedules
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CleaningSchedule"
+    post:
+      operationId: createCleaningSchedule
+      tags: [schedules]
+      summary: Create cleaning schedule (admin)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CleaningScheduleInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CleaningSchedule"
+
+  /schedules/cleaning/{id}:
+    patch:
+      operationId: updateCleaningSchedule
+      tags: [schedules]
+      summary: Update cleaning schedule (admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CleaningScheduleUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CleaningSchedule"
+    delete:
+      operationId: deleteCleaningSchedule
+      tags: [schedules]
+      summary: Delete cleaning schedule (admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /schedules/programs:
+    get:
+      operationId: getProgramSchedules
+      tags: [schedules]
+      summary: Get program kejar schedules
+      responses:
+        "200":
+          description: Program schedules
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ProgramSchedule"
+    post:
+      operationId: createProgramSchedule
+      tags: [schedules]
+      summary: Create program kejar schedule (admin)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProgramScheduleInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProgramSchedule"
+
+  /schedules/programs/{id}:
+    patch:
+      operationId: updateProgramSchedule
+      tags: [schedules]
+      summary: Update program schedule (admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProgramScheduleUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProgramSchedule"
+    delete:
+      operationId: deleteProgramSchedule
+      tags: [schedules]
+      summary: Delete program schedule (admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /inventory:
+    get:
+      operationId: getInventory
+      tags: [inventory]
+      summary: Get inventory list (list barang)
+      responses:
+        "200":
+          description: Inventory items
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/InventoryItem"
+    post:
+      operationId: createInventoryItem
+      tags: [inventory]
+      summary: Add inventory item (admin)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/InventoryItemInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InventoryItem"
+
+  /inventory/{id}:
+    patch:
+      operationId: updateInventoryItem
+      tags: [inventory]
+      summary: Update inventory item (admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/InventoryItemUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InventoryItem"
+    delete:
+      operationId: deleteInventoryItem
+      tags: [inventory]
+      summary: Delete inventory item (admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /deadlines:
+    get:
+      operationId: getDeadlines
+      tags: [deadlines]
+      summary: Get deadlines list
+      responses:
+        "200":
+          description: Deadlines
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Deadline"
+    post:
+      operationId: createDeadline
+      tags: [deadlines]
+      summary: Create deadline (admin)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DeadlineInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Deadline"
+
+  /deadlines/{id}:
+    patch:
+      operationId: updateDeadline
+      tags: [deadlines]
+      summary: Update deadline (admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DeadlineUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Deadline"
+    delete:
+      operationId: deleteDeadline
+      tags: [deadlines]
+      summary: Delete deadline (admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /complaints:
+    get:
+      operationId: getComplaints
+      tags: [complaints]
+      summary: Get daily life complaints (keluhan)
+      responses:
+        "200":
+          description: Complaints
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Complaint"
+    post:
+      operationId: createComplaint
+      tags: [complaints]
+      summary: Create complaint (admin)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ComplaintInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Complaint"
+
+  /complaints/{id}:
+    patch:
+      operationId: updateComplaint
+      tags: [complaints]
+      summary: Update complaint (admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ComplaintUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Complaint"
+    delete:
+      operationId: deleteComplaint
+      tags: [complaints]
+      summary: Delete complaint (admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /issues:
+    get:
+      operationId: getIssues
+      tags: [issues]
+      summary: Get KKN program issues (masalah proker)
+      responses:
+        "200":
+          description: Issues
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Issue"
+    post:
+      operationId: createIssue
+      tags: [issues]
+      summary: Create issue (admin)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/IssueInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Issue"
+
+  /issues/{id}:
+    patch:
+      operationId: updateIssue
+      tags: [issues]
+      summary: Update issue (admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/IssueUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Issue"
+    delete:
+      operationId: deleteIssue
+      tags: [issues]
+      summary: Delete issue (admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /templates:
+    get:
+      operationId: getTemplates
+      tags: [templates]
+      summary: Get work templates
+      responses:
+        "200":
+          description: Templates
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Template"
+    post:
+      operationId: createTemplate
+      tags: [templates]
+      summary: Create template (admin)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TemplateInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Template"
+
+  /templates/{id}:
+    patch:
+      operationId: updateTemplate
+      tags: [templates]
+      summary: Update template (admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TemplateUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Template"
+    delete:
+      operationId: deleteTemplate
+      tags: [templates]
+      summary: Delete template (admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /dashboard/summary:
+    get:
+      operationId: getDashboardSummary
+      tags: [dashboard]
+      summary: Get dashboard summary counts and upcoming items
+      responses:
+        "200":
+          description: Dashboard summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardSummary"
+
 components:
   schemas:
     HealthStatus:
@@ -34,3 +738,507 @@ components:
       required:
         - status
 
+    LoginInput:
+      type: object
+      required: [password]
+      properties:
+        password:
+          type: string
+
+    AuthResult:
+      type: object
+      required: [isAdmin, message]
+      properties:
+        isAdmin:
+          type: boolean
+        message:
+          type: string
+
+    AuthStatus:
+      type: object
+      required: [isAdmin]
+      properties:
+        isAdmin:
+          type: boolean
+
+    Announcement:
+      type: object
+      required: [id, title, content, priority, createdAt]
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        content:
+          type: string
+        priority:
+          type: string
+          enum: [low, medium, high]
+        createdAt:
+          type: string
+
+    AnnouncementInput:
+      type: object
+      required: [title, content, priority]
+      properties:
+        title:
+          type: string
+        content:
+          type: string
+        priority:
+          type: string
+          enum: [low, medium, high]
+
+    AnnouncementUpdate:
+      type: object
+      properties:
+        title:
+          type: string
+        content:
+          type: string
+        priority:
+          type: string
+          enum: [low, medium, high]
+
+    CookingSchedule:
+      type: object
+      required: [id, date, persons, menu, createdAt]
+      properties:
+        id:
+          type: integer
+        date:
+          type: string
+        persons:
+          type: array
+          items:
+            type: string
+        menu:
+          type: ["string", "null"]
+        notes:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+
+    CookingScheduleInput:
+      type: object
+      required: [date, persons]
+      properties:
+        date:
+          type: string
+        persons:
+          type: array
+          items:
+            type: string
+        menu:
+          type: string
+        notes:
+          type: string
+
+    CookingScheduleUpdate:
+      type: object
+      properties:
+        date:
+          type: string
+        persons:
+          type: array
+          items:
+            type: string
+        menu:
+          type: string
+        notes:
+          type: string
+
+    CleaningSchedule:
+      type: object
+      required: [id, date, persons, area, createdAt]
+      properties:
+        id:
+          type: integer
+        date:
+          type: string
+        persons:
+          type: array
+          items:
+            type: string
+        area:
+          type: ["string", "null"]
+        notes:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+
+    CleaningScheduleInput:
+      type: object
+      required: [date, persons]
+      properties:
+        date:
+          type: string
+        persons:
+          type: array
+          items:
+            type: string
+        area:
+          type: string
+        notes:
+          type: string
+
+    CleaningScheduleUpdate:
+      type: object
+      properties:
+        date:
+          type: string
+        persons:
+          type: array
+          items:
+            type: string
+        area:
+          type: string
+        notes:
+          type: string
+
+    ProgramSchedule:
+      type: object
+      required: [id, programName, date, leader, members, status, createdAt]
+      properties:
+        id:
+          type: integer
+        programName:
+          type: string
+        date:
+          type: string
+        leader:
+          type: string
+        members:
+          type: array
+          items:
+            type: string
+        status:
+          type: string
+          enum: [planned, ongoing, done]
+        notes:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+
+    ProgramScheduleInput:
+      type: object
+      required: [programName, date, leader, members, status]
+      properties:
+        programName:
+          type: string
+        date:
+          type: string
+        leader:
+          type: string
+        members:
+          type: array
+          items:
+            type: string
+        status:
+          type: string
+          enum: [planned, ongoing, done]
+        notes:
+          type: string
+
+    ProgramScheduleUpdate:
+      type: object
+      properties:
+        programName:
+          type: string
+        date:
+          type: string
+        leader:
+          type: string
+        members:
+          type: array
+          items:
+            type: string
+        status:
+          type: string
+          enum: [planned, ongoing, done]
+        notes:
+          type: string
+
+    InventoryItem:
+      type: object
+      required: [id, name, category, quantity, unit, createdAt]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        category:
+          type: string
+          enum: [p3k, obat, alkes, umum]
+        quantity:
+          type: integer
+        unit:
+          type: string
+        notes:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+
+    InventoryItemInput:
+      type: object
+      required: [name, category, quantity, unit]
+      properties:
+        name:
+          type: string
+        category:
+          type: string
+          enum: [p3k, obat, alkes, umum]
+        quantity:
+          type: integer
+        unit:
+          type: string
+        notes:
+          type: string
+
+    InventoryItemUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+        category:
+          type: string
+          enum: [p3k, obat, alkes, umum]
+        quantity:
+          type: integer
+        unit:
+          type: string
+        notes:
+          type: string
+
+    Deadline:
+      type: object
+      required: [id, title, type, dueDate, status, assignedTo, createdAt]
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        type:
+          type: string
+          enum: [tugas, kegiatan]
+        dueDate:
+          type: string
+        status:
+          type: string
+          enum: [pending, done]
+        assignedTo:
+          type: array
+          items:
+            type: string
+        notes:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+
+    DeadlineInput:
+      type: object
+      required: [title, type, dueDate, status, assignedTo]
+      properties:
+        title:
+          type: string
+        type:
+          type: string
+          enum: [tugas, kegiatan]
+        dueDate:
+          type: string
+        status:
+          type: string
+          enum: [pending, done]
+        assignedTo:
+          type: array
+          items:
+            type: string
+        notes:
+          type: string
+
+    DeadlineUpdate:
+      type: object
+      properties:
+        title:
+          type: string
+        type:
+          type: string
+          enum: [tugas, kegiatan]
+        dueDate:
+          type: string
+        status:
+          type: string
+          enum: [pending, done]
+        assignedTo:
+          type: array
+          items:
+            type: string
+        notes:
+          type: string
+
+    Complaint:
+      type: object
+      required: [id, title, description, reportedBy, status, createdAt]
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        description:
+          type: string
+        reportedBy:
+          type: string
+        status:
+          type: string
+          enum: [open, resolved]
+        createdAt:
+          type: string
+
+    ComplaintInput:
+      type: object
+      required: [title, description, reportedBy, status]
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        reportedBy:
+          type: string
+        status:
+          type: string
+          enum: [open, resolved]
+
+    ComplaintUpdate:
+      type: object
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        reportedBy:
+          type: string
+        status:
+          type: string
+          enum: [open, resolved]
+
+    Issue:
+      type: object
+      required: [id, title, description, category, priority, status, createdAt]
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        description:
+          type: string
+        category:
+          type: string
+          enum: [proker, administrasi, logistik, lainnya]
+        priority:
+          type: string
+          enum: [low, medium, high]
+        status:
+          type: string
+          enum: [open, in_progress, resolved]
+        createdAt:
+          type: string
+
+    IssueInput:
+      type: object
+      required: [title, description, category, priority, status]
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        category:
+          type: string
+          enum: [proker, administrasi, logistik, lainnya]
+        priority:
+          type: string
+          enum: [low, medium, high]
+        status:
+          type: string
+          enum: [open, in_progress, resolved]
+
+    IssueUpdate:
+      type: object
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        category:
+          type: string
+          enum: [proker, administrasi, logistik, lainnya]
+        priority:
+          type: string
+          enum: [low, medium, high]
+        status:
+          type: string
+          enum: [open, in_progress, resolved]
+
+    Template:
+      type: object
+      required: [id, title, category, content, createdAt]
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        category:
+          type: string
+        content:
+          type: string
+        createdAt:
+          type: string
+
+    TemplateInput:
+      type: object
+      required: [title, category, content]
+      properties:
+        title:
+          type: string
+        category:
+          type: string
+        content:
+          type: string
+
+    TemplateUpdate:
+      type: object
+      properties:
+        title:
+          type: string
+        category:
+          type: string
+        content:
+          type: string
+
+    DashboardSummary:
+      type: object
+      required: [totalAnnouncements, upcomingDeadlines, openIssues, openComplaints, todayCooking, todayCleaning, ongoingPrograms, totalInventoryItems]
+      properties:
+        totalAnnouncements:
+          type: integer
+        upcomingDeadlines:
+          type: integer
+        openIssues:
+          type: integer
+        openComplaints:
+          type: integer
+        todayCooking:
+          type: ["string", "null"]
+        todayCleaning:
+          type: ["string", "null"]
+        ongoingPrograms:
+          type: integer
+        totalInventoryItems:
+          type: integer
+        recentAnnouncements:
+          type: array
+          items:
+            $ref: "#/components/schemas/Announcement"
+        urgentDeadlines:
+          type: array
+          items:
+            $ref: "#/components/schemas/Deadline"

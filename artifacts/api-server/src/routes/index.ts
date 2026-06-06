@@ -1,8 +1,26 @@
 import { Router, type IRouter } from "express";
 import healthRouter from "./health";
+import authRouter from "./auth";
+import announcementsRouter from "./announcements";
+import schedulesRouter from "./schedules";
+import inventoryRouter from "./inventory";
+import deadlinesRouter from "./deadlines";
+import complaintsRouter from "./complaints";
+import issuesRouter from "./issues";
+import templatesRouter from "./templates";
+import dashboardRouter from "./dashboard";
 
 const router: IRouter = Router();
 
 router.use(healthRouter);
+router.use(authRouter);
+router.use(announcementsRouter);
+router.use(schedulesRouter);
+router.use(inventoryRouter);
+router.use(deadlinesRouter);
+router.use(complaintsRouter);
+router.use(issuesRouter);
+router.use(templatesRouter);
+router.use(dashboardRouter);
 
 export default router;

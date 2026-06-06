@@ -1,0 +1,157 @@
+import React from "react";
+import { Link, useLocation } from "wouter";
+import { useGetAuthMe, useAdminLogout } from "@workspace/api-client-react";
+import { Button } from "@/components/ui/button";
+import { LogOut, Menu, UserCircle, X } from "lucide-react";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { cn } from "@/lib/utils";
+import { useToast } from "@/hooks/use-toast";
+
+const navItems = [
+  { href: "/", label: "Beranda" },
+  { href: "/tim", label: "Tim KKN" },
+  { href: "/kehidupan", label: "Kehidupan" },
+  { href: "/proker", label: "Program Kerja" },
+  { href: "/inventaris", label: "Inventaris" },
+  { href: "/pengumuman", label: "Pengumuman" },
+  { href: "/deadline", label: "Deadline" },
+];
+
+export function Layout({ children }: { children: React.ReactNode }) {
+  const [location] = useLocation();
+  const { data: auth, refetch } = useGetAuthMe();
+  const logout = useAdminLogout();
+  const { toast } = useToast();
+  const [isOpen, setIsOpen] = React.useState(false);
+
+  const handleLogout = () => {
+    logout.mutate(undefined, {
+      onSuccess: () => {
+        refetch();
+        toast({ title: "Berhasil logout" });
+      },
+    });
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-rose-50 via-sky-50 to-white relative flex flex-col">
+      {/* Decorative Orbs */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none -z-10">
+        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-rose-300/30 mix-blend-multiply filter blur-3xl opacity-70 animate-blob" />
+        <div className="absolute top-[20%] right-[-10%] w-[35%] h-[35%] rounded-full bg-sky-300/30 mix-blend-multiply filter blur-3xl opacity-70 animate-blob animation-delay-2000" />
+        <div className="absolute bottom-[-10%] left-[20%] w-[45%] h-[45%] rounded-full bg-pink-300/30 mix-blend-multiply filter blur-3xl opacity-70 animate-blob animation-delay-4000" />
+      </div>
+
+      <header className="sticky top-0 z-50 w-full pt-4 px-4 pb-2">
+        <div className="max-w-6xl mx-auto glass-card h-16 flex items-center justify-between px-6">
+          <Link href="/" className="font-bold text-xl bg-gradient-to-r from-rose-500 to-sky-500 bg-clip-text text-transparent">
+            Tim KKN 42
+          </Link>
+
+          {/* Desktop Nav */}
+          <nav className="hidden md:flex items-center gap-1">
+            {navItems.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={cn(
+                  "px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 hover:bg-white/50",
+                  location === item.href
+                    ? "bg-white/80 text-rose-600 shadow-sm"
+                    : "text-gray-600 hover:text-gray-900"
+                )}
+              >
+                {item.label}
+              </Link>
+            ))}
+          </nav>
+
+          <div className="hidden md:flex items-center gap-4">
+            {auth?.isAdmin ? (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleLogout}
+                className="text-rose-600 hover:text-rose-700 hover:bg-rose-50 rounded-full"
+              >
+                <LogOut className="w-4 h-4 mr-2" />
+                Keluar
+              </Button>
+            ) : (
+              <Link href="/admin">
+                <Button variant="ghost" size="sm" className="rounded-full">
+                  <UserCircle className="w-4 h-4 mr-2" />
+                  Admin
+                </Button>
+              </Link>
+            )}
+          </div>
+
+          {/* Mobile Nav */}
+          <Sheet open={isOpen} onOpenChange={setIsOpen}>
+            <SheetTrigger asChild className="md:hidden">
+              <Button variant="ghost" size="icon" className="rounded-full">
+                <Menu className="w-5 h-5" />
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="right" className="glass-panel w-64 p-6 sm:max-w-sm flex flex-col h-full border-l-white/40">
+              <div className="flex justify-between items-center mb-8">
+                <span className="font-bold text-lg text-gray-900">Menu</span>
+                <SheetTrigger asChild>
+                  <Button variant="ghost" size="icon" className="rounded-full">
+                    <X className="w-5 h-5" />
+                  </Button>
+                </SheetTrigger>
+              </div>
+              
+              <nav className="flex flex-col gap-2 flex-1">
+                {navItems.map((item) => (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    onClick={() => setIsOpen(false)}
+                    className={cn(
+                      "px-4 py-3 rounded-xl text-sm font-medium transition-all",
+                      location === item.href
+                        ? "bg-white/80 text-rose-600 shadow-sm"
+                        : "text-gray-600 hover:text-gray-900 hover:bg-white/40"
+                    )}
+                  >
+                    {item.label}
+                  </Link>
+                ))}
+              </nav>
+
+              <div className="mt-auto pt-6 border-t border-white/30">
+                {auth?.isAdmin ? (
+                  <Button
+                    variant="outline"
+                    className="w-full justify-start rounded-xl text-rose-600"
+                    onClick={() => {
+                      handleLogout();
+                      setIsOpen(false);
+                    }}
+                  >
+                    <LogOut className="w-4 h-4 mr-2" />
+                    Keluar Admin
+                  </Button>
+                ) : (
+                  <Link href="/admin" onClick={() => setIsOpen(false)}>
+                    <Button variant="outline" className="w-full justify-start rounded-xl">
+                      <UserCircle className="w-4 h-4 mr-2" />
+                      Login Admin
+                    </Button>
+                  </Link>
+                )}
+              </div>
+            </SheetContent>
+          </Sheet>
+        </div>
+      </header>
+
+      <main className="flex-1 w-full max-w-6xl mx-auto p-4 md:p-6 lg:p-8">
+        {children}
+      </main>
+    </div>
+  );
+}
