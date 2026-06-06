@@ -338,7 +338,7 @@ export default function MasalahPage() {
         <p className="text-gray-500 text-sm mt-1">Kendala dan keluhan dari kehidupan maupun program kerja</p>
       </div>
 
-      <div className="flex gap-2 p-1 bg-white/40 backdrop-blur-sm rounded-2xl border border-white/40 w-fit">
+      <div className="flex gap-2 p-1 bg-white/40 backdrop-blur-sm rounded-2xl border border-white/40">
         {tabs.map(tab => {
           const Icon = tab.icon;
           const count = tab.id === "life" ? lifeCount : workCount;
@@ -347,17 +347,17 @@ export default function MasalahPage() {
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
               className={cn(
-                "flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium transition-all",
+                "flex flex-1 items-center justify-center gap-2 px-6 py-2.5 rounded-xl text-sm font-medium transition-all",
                 activeTab === tab.id
                   ? "bg-gradient-to-r from-rose-400 to-sky-400 text-white shadow-sm"
                   : "text-gray-600 hover:text-gray-900 hover:bg-white/50"
               )}
             >
-              <Icon className="w-4 h-4" />
-              {tab.label}
+              <Icon className="w-4 h-4 shrink-0" />
+              <span>{tab.label}</span>
               {count > 0 && (
                 <span className={cn(
-                  "text-xs px-1.5 py-0.5 rounded-full font-semibold",
+                  "text-xs px-1.5 py-0.5 rounded-full font-semibold shrink-0",
                   activeTab === tab.id ? "bg-white/30 text-white" : "bg-rose-100 text-rose-600"
                 )}>
                   {count}

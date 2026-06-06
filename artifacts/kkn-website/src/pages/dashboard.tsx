@@ -68,7 +68,7 @@ export default function Dashboard() {
             ) : (
               summary.recentAnnouncements.map((a: any) => (
                 <Link href="/pengumuman" key={a.id}>
-                  <div className="glass-card p-4 hover:-translate-y-0.5 transition-all cursor-pointer group">
+                  <div className="glass-card p-5 hover:-translate-y-0.5 transition-all cursor-pointer group">
                     <div className="flex items-start gap-3">
                       <Badge className={cn(
                         "text-xs shrink-0 border mt-0.5",
@@ -120,7 +120,7 @@ export default function Dashboard() {
                 return (
                   <Link href="/deadline" key={d.id}>
                     <div className={cn(
-                      "glass-card p-4 hover:-translate-y-0.5 transition-all cursor-pointer group",
+                      "glass-card p-5 hover:-translate-y-0.5 transition-all cursor-pointer group",
                       days <= 3 && days >= 0 && "ring-2 ring-amber-200/70"
                     )}>
                       <div className="flex items-start justify-between gap-3">
