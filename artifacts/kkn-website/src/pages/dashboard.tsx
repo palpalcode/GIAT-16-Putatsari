@@ -238,7 +238,7 @@ export default function Dashboard() {
         <h2 className="font-bold text-gray-700 mb-3 text-sm uppercase tracking-wide">Jelajahi</h2>
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
           {[
-            { href: "/tim", label: "Tim KKN", emoji: "👥", from: "from-rose-400", to: "to-pink-400" },
+            { href: "/tim", label: "Tim Putatsari Wellness", emoji: "👥", from: "from-rose-400", to: "to-pink-400" },
             { href: "/our-life", label: "Our Life", emoji: "🏠", from: "from-sky-400", to: "to-blue-400" },
             { href: "/our-work", label: "Our Work", emoji: "📋", from: "from-violet-400", to: "to-purple-400" },
             { href: "/pengumuman", label: "Pengumuman", emoji: "📢", from: "from-rose-400", to: "to-orange-400" },

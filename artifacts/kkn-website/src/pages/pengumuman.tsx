@@ -138,7 +138,7 @@ export default function PengumumanPage() {
           <h1 className="text-3xl font-bold bg-gradient-to-r from-rose-500 to-sky-500 bg-clip-text text-transparent">
             Pengumuman
           </h1>
-          <p className="text-gray-500 text-sm mt-1">Informasi penting untuk Tim KKN</p>
+          <p className="text-gray-500 text-sm mt-1">Informasi penting untuk Tim Putatsari Wellness</p>
         </div>
         {isAdmin && (
           <Button

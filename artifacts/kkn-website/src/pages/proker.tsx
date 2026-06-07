@@ -431,7 +431,7 @@ export default function ProkerPage() {
         <h1 className="text-3xl font-bold bg-gradient-to-r from-rose-500 to-sky-500 bg-clip-text text-transparent">
           Program Kerja
         </h1>
-        <p className="text-gray-500 text-sm mt-1">Jadwal, masalah, dan template proker KKN</p>
+        <p className="text-gray-500 text-sm mt-1">Jadwal, masalah, dan template proker Putatsari Wellness</p>
       </div>
 
       <div className="flex gap-2 p-1 bg-white/40 backdrop-blur-sm rounded-2xl border border-white/40 w-fit flex-wrap">

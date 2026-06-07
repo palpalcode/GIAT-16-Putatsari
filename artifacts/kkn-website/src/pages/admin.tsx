@@ -43,7 +43,7 @@ export default function AdminPage() {
             Admin Login
           </CardTitle>
           <CardDescription className="text-gray-600">
-            Masuk untuk mengelola data Tim KKN 42
+            Masuk untuk mengelola data Tim Putatsari Wellness
           </CardDescription>
         </CardHeader>
         <CardContent>

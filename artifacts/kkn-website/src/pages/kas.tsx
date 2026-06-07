@@ -194,7 +194,7 @@ export default function KasPage() {
       <div className="flex items-start justify-between gap-4 flex-wrap">
         <div>
           <h1 className="text-3xl font-bold bg-gradient-to-r from-emerald-500 to-sky-500 bg-clip-text text-transparent">Kas Tim</h1>
-          <p className="text-gray-500 text-sm mt-1">Pencatatan pemasukan dan pengeluaran kas tim KKN</p>
+          <p className="text-gray-500 text-sm mt-1">Pencatatan pemasukan dan pengeluaran kas tim Putatsari Wellness</p>
         </div>
         {isAdmin && (
           <Button onClick={openAdd} className="bg-gradient-to-r from-emerald-400 to-teal-500 text-white border-0 rounded-full gap-2">

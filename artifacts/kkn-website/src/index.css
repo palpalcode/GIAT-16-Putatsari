@@ -207,6 +207,11 @@
   body {
     @apply font-sans antialiased bg-background text-foreground min-h-screen relative overflow-x-hidden;
   }
+
+  /* Interactive elements use pointer cursor */
+  button, a, input[type="button"], input[type="submit"], input[type="reset"], label, select, summary, [role="button"], [role="link"], [role="tab"] {
+    cursor: pointer;
+  }
 }
 
 /* Background blob animations */

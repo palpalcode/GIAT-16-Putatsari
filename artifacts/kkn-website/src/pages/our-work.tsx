@@ -209,7 +209,7 @@ export default function OurWorkPage() {
       <div className="flex items-start justify-between gap-4 flex-wrap">
         <div>
           <h1 className="text-3xl font-bold bg-gradient-to-r from-rose-500 to-sky-500 bg-clip-text text-transparent">Our Work</h1>
-          <p className="text-gray-500 text-sm mt-1">Jadwal program kerja KKN tim Putatsari Wellness</p>
+          <p className="text-gray-500 text-sm mt-1">Jadwal program kerja Putatsari Wellness</p>
         </div>
         {isAdmin && (
           <Button onClick={openAdd} className="bg-gradient-to-r from-rose-400 to-sky-400 text-white border-0 rounded-full gap-2">

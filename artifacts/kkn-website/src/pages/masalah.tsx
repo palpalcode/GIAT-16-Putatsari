@@ -46,7 +46,7 @@ function getInitials(name: string) {
 
 const tabs = [
   { id: "life", label: "Our Life", icon: Home, desc: "Keluhan kehidupan sehari-hari di posko" },
-  { id: "work", label: "Our Work", icon: Briefcase, desc: "Masalah dalam program kerja KKN" },
+  { id: "work", label: "Our Work", icon: Briefcase, desc: "Masalah dalam program kerja Putatsari Wellness" },
 ];
 
 // ─── COMPLAINTS (Our Life) ────────────────────────────────────────────────────
