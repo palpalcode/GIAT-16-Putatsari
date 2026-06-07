@@ -14,12 +14,30 @@ export interface LoginInput {
 }
 
 export interface AuthResult {
-  isAdmin: boolean;
+  authenticated: boolean;
+  role: string | null;
+  canManage: boolean;
+  permissions: string[];
   message: string;
 }
 
 export interface AuthStatus {
-  isAdmin: boolean;
+  authenticated: boolean;
+  role: string | null;
+  canManage: boolean;
+  permissions: string[];
+}
+
+export interface Permission {
+  role: string;
+  resource: string;
+  canEdit: boolean;
+}
+
+export interface PermissionInput {
+  role: string;
+  resource: string;
+  canEdit: boolean;
 }
 
 export type AnnouncementPriority = typeof AnnouncementPriority[keyof typeof AnnouncementPriority];

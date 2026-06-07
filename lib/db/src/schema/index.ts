@@ -1,4 +1,4 @@
-import { pgTable, serial, text, integer, timestamp, jsonb } from "drizzle-orm/pg-core";
+import { pgTable, serial, text, integer, timestamp, jsonb, boolean } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 
@@ -137,3 +137,14 @@ export const kasTable = pgTable("kas", {
 export const insertKasSchema = createInsertSchema(kasTable).omit({ id: true, createdAt: true });
 export type InsertKas = z.infer<typeof insertKasSchema>;
 export type Kas = typeof kasTable.$inferSelect;
+
+export const permissionsTable = pgTable("permissions", {
+  id: serial("id").primaryKey(),
+  role: text("role").notNull(),
+  resource: text("resource").notNull(),
+  canEdit: boolean("can_edit").notNull().default(false),
+});
+
+export const insertPermissionSchema = createInsertSchema(permissionsTable).omit({ id: true });
+export type InsertPermission = z.infer<typeof insertPermissionSchema>;
+export type Permission = typeof permissionsTable.$inferSelect;

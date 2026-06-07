@@ -10,6 +10,7 @@ import issuesRouter from "./issues";
 import templatesRouter from "./templates";
 import dashboardRouter from "./dashboard";
 import kasRouter from "./kas";
+import permissionsRouter from "./permissions";
 
 const router: IRouter = Router();
 
@@ -24,5 +25,6 @@ router.use(issuesRouter);
 router.use(templatesRouter);
 router.use(dashboardRouter);
 router.use(kasRouter);
+router.use(permissionsRouter);
 
 export default router;

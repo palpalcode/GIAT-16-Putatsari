@@ -4,7 +4,6 @@ import {
   useGetCookingSchedules,
   useGetCleaningSchedules,
   useGetInventory,
-  useGetAuthMe,
   useCreateCookingSchedule,
   useUpdateCookingSchedule,
   useDeleteCookingSchedule,
@@ -12,6 +11,7 @@ import {
   useUpdateCleaningSchedule,
   useDeleteCleaningSchedule,
   useCreateInventoryItem,
+  type InventoryItemInputCategory,
   useUpdateInventoryItem,
   useDeleteInventoryItem,
   getGetCookingSchedulesQueryKey,
@@ -19,11 +19,12 @@ import {
   getGetInventoryQueryKey,
   getGetDashboardSummaryQueryKey,
 } from "@workspace/api-client-react";
+import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Plus, Pencil, Trash2, ChefHat, SprayCan, Package } from "lucide-react";
+import { Plus, Pencil, Trash2, ChefHat, SprayCan, Package, User } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 
@@ -42,10 +43,6 @@ const MEMBER_COLORS = [
 function getMemberColor(name: string) {
   const idx = MEMBERS.indexOf(name);
   return MEMBER_COLORS[idx >= 0 ? idx : 0];
-}
-
-function getInitials(name: string) {
-  return name.split(" ").slice(0, 2).map(w => w[0]).join("").toUpperCase();
 }
 
 const tabs = [
@@ -75,7 +72,7 @@ function MemberPicker({ selected, onChange }: { selected: string[]; onChange: (v
         )}>
           <div className={cn("w-4 h-4 rounded-full bg-gradient-to-br flex items-center justify-center text-white text-[8px] font-bold shrink-0",
             selected.includes(m) ? "bg-white/30" : getMemberColor(m))}>
-            {getInitials(m)[0]}
+            <User className="w-2.5 h-2.5" />
           </div>
           {m}
         </button>
@@ -148,7 +145,7 @@ function CookingTab({ isAdmin }: { isAdmin?: boolean }) {
                   <div className="flex flex-wrap gap-1.5 mb-1">
                     {(s.persons as string[]).map(p => (
                       <span key={p} className={cn("flex items-center gap-1 text-xs text-white px-2 py-0.5 rounded-full bg-gradient-to-r", getMemberColor(p))}>
-                        <span className="font-bold text-[9px]">{getInitials(p)}</span>
+                        <User className="w-3 h-3" />
                         {p}
                       </span>
                     ))}
@@ -278,7 +275,7 @@ function CleaningTab({ isAdmin }: { isAdmin?: boolean }) {
                   <div className="flex flex-wrap gap-1.5 mb-1">
                     {(s.persons as string[]).map(p => (
                       <span key={p} className={cn("flex items-center gap-1 text-xs text-white px-2 py-0.5 rounded-full bg-gradient-to-r", getMemberColor(p))}>
-                        <span className="font-bold text-[9px]">{getInitials(p)}</span>
+                        <User className="w-3 h-3" />
                         {p}
                       </span>
                     ))}
@@ -368,7 +365,7 @@ function InventarisTab({ isAdmin }: { isAdmin?: boolean }) {
 
   const [open, setOpen] = useState(false);
   const [editId, setEditId] = useState<number | null>(null);
-  const [form, setForm] = useState({ name: "", category: "umum", quantity: 1, unit: "", notes: "" });
+  const [form, setForm] = useState<{ name: string; category: InventoryItemInputCategory; quantity: number; unit: string; notes: string }>({ name: "", category: "umum", quantity: 1, unit: "", notes: "" });
   const [filterCat, setFilterCat] = useState("all");
 
   function invalidate() {
@@ -467,7 +464,7 @@ function InventarisTab({ isAdmin }: { isAdmin?: boolean }) {
               <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2 block">Kategori</label>
               <div className="grid grid-cols-2 gap-2">
                 {invCategories.map(cat => (
-                  <button key={cat.id} type="button" onClick={() => setForm(f => ({ ...f, category: cat.id }))} className={cn(
+                  <button key={cat.id} type="button" onClick={() => setForm(f => ({ ...f, category: cat.id as InventoryItemInputCategory }))} className={cn(
                     "flex items-center gap-2 px-3 py-2.5 rounded-xl border-2 text-sm transition-all",
                     form.category === cat.id ? cat.color + " border-current shadow-sm" : "bg-white/40 text-gray-500 border-white/40 hover:bg-white/70"
                   )}>
@@ -505,8 +502,8 @@ function InventarisTab({ isAdmin }: { isAdmin?: boolean }) {
 // ─── MAIN PAGE ────────────────────────────────────────────────────────────────
 export default function OurLifePage() {
   const [activeTab, setActiveTab] = useState("masak");
-  const { data: auth } = useGetAuthMe();
-  const isAdmin = auth?.isAdmin;
+  const { can } = useAuth();
+  const isAdmin = can("our-life");
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">

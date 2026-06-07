@@ -1,17 +1,25 @@
 import { Router } from "express";
+import { roleForPassword, getRole, permissionsForRole, ensureSeeded } from "../lib/auth";
 
 const router = Router();
 
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "kkn2025";
-
-router.post("/auth/login", (req, res) => {
+router.post("/auth/login", async (req, res) => {
   const { password } = req.body;
-  if (!password || password !== ADMIN_PASSWORD) {
+  const role = roleForPassword(password || "");
+  if (!role) {
     res.status(401).json({ error: "Password salah" });
     return;
   }
-  (req.session as any).isAdmin = true;
-  res.json({ isAdmin: true, message: "Login berhasil" });
+  await ensureSeeded();
+  (req.session as any).role = role;
+  const permissions = await permissionsForRole(role);
+  res.json({
+    authenticated: true,
+    role,
+    canManage: role === "ketua",
+    permissions,
+    message: "Login berhasil",
+  });
 });
 
 router.post("/auth/logout", (req, res) => {
@@ -20,9 +28,15 @@ router.post("/auth/logout", (req, res) => {
   });
 });
 
-router.get("/auth/me", (req, res) => {
-  const isAdmin = !!(req.session as any).isAdmin;
-  res.json({ isAdmin });
+router.get("/auth/me", async (req, res) => {
+  const role = getRole(req);
+  if (!role) {
+    res.json({ authenticated: false, role: null, canManage: false, permissions: [] });
+    return;
+  }
+  await ensureSeeded();
+  const permissions = await permissionsForRole(role);
+  res.json({ authenticated: true, role, canManage: role === "ketua", permissions });
 });
 
 export default router;

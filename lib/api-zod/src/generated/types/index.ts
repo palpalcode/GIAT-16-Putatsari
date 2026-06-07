@@ -65,6 +65,8 @@ export * from './kasUpdate';
 export * from './kasUpdateCategory';
 export * from './kasUpdateType';
 export * from './loginInput';
+export * from './permission';
+export * from './permissionInput';
 export * from './programSchedule';
 export * from './programScheduleInput';
 export * from './programScheduleInputStatus';

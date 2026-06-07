@@ -3,8 +3,11 @@ import { useQueryClient } from "@tanstack/react-query";
 import {
   useGetComplaints,
   useGetIssues,
-  useGetAuthMe,
   useCreateComplaint,
+  type ComplaintInputStatus,
+  type IssueInputCategory,
+  type IssueInputPriority,
+  type IssueInputStatus,
   useUpdateComplaint,
   useDeleteComplaint,
   useCreateIssue,
@@ -14,12 +17,13 @@ import {
   getGetIssuesQueryKey,
   getGetDashboardSummaryQueryKey,
 } from "@workspace/api-client-react";
+import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Plus, Pencil, Trash2, Home, Briefcase, CheckCircle2 } from "lucide-react";
+import { Plus, Pencil, Trash2, Home, Briefcase, CheckCircle2, User } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 
@@ -40,10 +44,6 @@ function getMemberColor(name: string) {
   return MEMBER_COLORS[idx >= 0 ? idx : 0];
 }
 
-function getInitials(name: string) {
-  return name.split(" ").slice(0, 2).map(w => w[0]).join("").toUpperCase();
-}
-
 const tabs = [
   { id: "life", label: "Our Life", icon: Home, desc: "Keluhan kehidupan sehari-hari di posko" },
   { id: "work", label: "Our Work", icon: Briefcase, desc: "Masalah dalam program kerja Putatsari Wellness" },
@@ -60,7 +60,7 @@ function LifeTab({ isAdmin }: { isAdmin?: boolean }) {
 
   const [open, setOpen] = useState(false);
   const [editId, setEditId] = useState<number | null>(null);
-  const [form, setForm] = useState({ title: "", description: "", reportedBy: "", status: "open" });
+  const [form, setForm] = useState<{ title: string; description: string; reportedBy: string; status: ComplaintInputStatus }>({ title: "", description: "", reportedBy: "", status: "open" });
 
   function invalidate() {
     qc.invalidateQueries({ queryKey: getGetComplaintsQueryKey() });
@@ -122,7 +122,7 @@ function LifeTab({ isAdmin }: { isAdmin?: boolean }) {
                       {c.status === "open" ? "Terbuka" : "Selesai"}
                     </Badge>
                     <div className={cn("w-4 h-4 rounded-full bg-gradient-to-br flex items-center justify-center text-white text-[8px] font-bold shrink-0", getMemberColor(c.reportedBy))}>
-                      {getInitials(c.reportedBy)[0]}
+                      <User className="w-2.5 h-2.5" />
                     </div>
                     <span className="text-xs text-gray-400">{c.reportedBy}</span>
                   </div>
@@ -177,7 +177,7 @@ function LifeTab({ isAdmin }: { isAdmin?: boolean }) {
                     form.reportedBy === m ? "border-rose-400 bg-rose-50 shadow-sm" : "border-white/40 bg-white/30 hover:bg-white/60"
                   )}>
                     <div className={cn("w-7 h-7 rounded-full bg-gradient-to-br flex items-center justify-center text-white text-[9px] font-bold", getMemberColor(m))}>
-                      {getInitials(m)}
+                      <User className="w-3.5 h-3.5" />
                     </div>
                     <span className="text-center leading-tight text-gray-700 line-clamp-2 text-[10px]">{m}</span>
                   </button>
@@ -188,7 +188,7 @@ function LifeTab({ isAdmin }: { isAdmin?: boolean }) {
               <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 block">Status</label>
               <div className="flex gap-2">
                 {[{ id: "open", label: "Terbuka" }, { id: "resolved", label: "Selesai" }].map(s => (
-                  <button key={s.id} onClick={() => setForm(f => ({ ...f, status: s.id }))} className={cn(
+                  <button key={s.id} onClick={() => setForm(f => ({ ...f, status: s.id as ComplaintInputStatus }))} className={cn(
                     "flex-1 py-2 rounded-xl text-sm font-medium border-2 transition-all",
                     form.status === s.id
                       ? s.id === "open" ? "bg-amber-400 text-white border-amber-400 shadow" : "bg-emerald-500 text-white border-emerald-500 shadow"
@@ -241,7 +241,7 @@ function WorkTab({ isAdmin }: { isAdmin?: boolean }) {
 
   const [open, setOpen] = useState(false);
   const [editId, setEditId] = useState<number | null>(null);
-  const [form, setForm] = useState({ title: "", description: "", category: "proker", priority: "medium", status: "open" });
+  const [form, setForm] = useState<{ title: string; description: string; category: IssueInputCategory; priority: IssueInputPriority; status: IssueInputStatus }>({ title: "", description: "", category: "proker", priority: "medium", status: "open" });
 
   function invalidate() {
     qc.invalidateQueries({ queryKey: getGetIssuesQueryKey() });
@@ -357,7 +357,7 @@ function WorkTab({ isAdmin }: { isAdmin?: boolean }) {
               <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 block">Kategori</label>
               <div className="grid grid-cols-2 gap-2">
                 {ISSUE_CATEGORIES.map(cat => (
-                  <button key={cat.id} onClick={() => setForm(f => ({ ...f, category: cat.id }))} className={cn(
+                  <button key={cat.id} onClick={() => setForm(f => ({ ...f, category: cat.id as IssueInputCategory }))} className={cn(
                     "flex items-center gap-2 px-3 py-2 rounded-xl border-2 text-sm transition-all",
                     form.category === cat.id ? cat.color + " border-current shadow-sm" : "bg-white/40 text-gray-500 border-white/40 hover:bg-white/70"
                   )}>
@@ -370,7 +370,7 @@ function WorkTab({ isAdmin }: { isAdmin?: boolean }) {
               <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 block">Prioritas</label>
               <div className="flex gap-2">
                 {[{ id: "high", label: "🔴 Tinggi" }, { id: "medium", label: "🟡 Sedang" }, { id: "low", label: "🟢 Rendah" }].map(p => (
-                  <button key={p.id} onClick={() => setForm(f => ({ ...f, priority: p.id }))} className={cn(
+                  <button key={p.id} onClick={() => setForm(f => ({ ...f, priority: p.id as IssueInputPriority }))} className={cn(
                     "flex-1 py-2 rounded-xl text-xs font-semibold border-2 transition-all",
                     form.priority === p.id
                       ? p.id === "high" ? "bg-rose-500 text-white border-rose-500 shadow"
@@ -385,7 +385,7 @@ function WorkTab({ isAdmin }: { isAdmin?: boolean }) {
               <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 block">Status</label>
               <div className="flex gap-2">
                 {[{ id: "open", label: "Terbuka" }, { id: "in_progress", label: "Diproses" }, { id: "resolved", label: "Selesai" }].map(s => (
-                  <button key={s.id} onClick={() => setForm(f => ({ ...f, status: s.id }))} className={cn(
+                  <button key={s.id} onClick={() => setForm(f => ({ ...f, status: s.id as IssueInputStatus }))} className={cn(
                     "flex-1 py-2 rounded-xl text-xs font-semibold border-2 transition-all",
                     form.status === s.id
                       ? s.id === "open" ? "bg-rose-500 text-white border-rose-500 shadow"
@@ -410,8 +410,8 @@ function WorkTab({ isAdmin }: { isAdmin?: boolean }) {
 // ─── MAIN PAGE ────────────────────────────────────────────────────────────────
 export default function MasalahPage() {
   const [activeTab, setActiveTab] = useState("life");
-  const { data: auth } = useGetAuthMe();
-  const isAdmin = auth?.isAdmin;
+  const { can } = useAuth();
+  const isAdmin = can("masalah");
   const { data: complaints } = useGetComplaints();
   const { data: issues } = useGetIssues();
 

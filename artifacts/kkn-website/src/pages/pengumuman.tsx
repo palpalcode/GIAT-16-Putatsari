@@ -2,13 +2,13 @@ import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   useGetAnnouncements,
-  useGetAuthMe,
   useCreateAnnouncement,
   useUpdateAnnouncement,
   useDeleteAnnouncement,
   getGetAnnouncementsQueryKey,
   getGetDashboardSummaryQueryKey,
 } from "@workspace/api-client-react";
+import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -66,7 +66,7 @@ const defaultForm: FormState = { title: "", content: "", priority: "medium" };
 export default function PengumumanPage() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
-  const { data: auth } = useGetAuthMe();
+  const { can } = useAuth();
   const { data: announcements, isLoading } = useGetAnnouncements();
   const createMutation = useCreateAnnouncement();
   const updateMutation = useUpdateAnnouncement();
@@ -76,7 +76,7 @@ export default function PengumumanPage() {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [form, setForm] = useState<FormState>(defaultForm);
 
-  const isAdmin = auth?.isAdmin;
+  const isAdmin = can("pengumuman");
 
   function invalidate() {
     queryClient.invalidateQueries({ queryKey: getGetAnnouncementsQueryKey() });

@@ -6,9 +6,8 @@
  * OpenAPI spec version: 0.1.0
  */
 
-export interface AuthStatus {
-  authenticated: boolean;
-  role: string | null;
-  canManage: boolean;
-  permissions: string[];
+export interface Permission {
+  role: string;
+  resource: string;
+  canEdit: boolean;
 }

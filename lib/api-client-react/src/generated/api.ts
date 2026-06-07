@@ -49,6 +49,8 @@ import type {
   KasInput,
   KasUpdate,
   LoginInput,
+  Permission,
+  PermissionInput,
   ProgramSchedule,
   ProgramScheduleInput,
   ProgramScheduleUpdate,
@@ -363,6 +365,154 @@ export function useGetAuthMe<TData = Awaited<ReturnType<typeof getAuthMe>>, TErr
 
 
 
+
+export const getGetPermissionsUrl = () => {
+
+
+
+
+  return `/api/permissions`
+}
+
+/**
+ * @summary Get all managed role permissions (ketua only)
+ */
+export const getPermissions = async ( options?: RequestInit): Promise<Permission[]> => {
+
+  return customFetch<Permission[]>(getGetPermissionsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetPermissionsQueryKey = () => {
+    return [
+    `/api/permissions`
+    ] as const;
+    }
+
+
+export const getGetPermissionsQueryOptions = <TData = Awaited<ReturnType<typeof getPermissions>>, TError = ErrorType<void>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getPermissions>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetPermissionsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getPermissions>>> = ({ signal }) => getPermissions({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getPermissions>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetPermissionsQueryResult = NonNullable<Awaited<ReturnType<typeof getPermissions>>>
+export type GetPermissionsQueryError = ErrorType<void>
+
+
+/**
+ * @summary Get all managed role permissions (ketua only)
+ */
+
+export function useGetPermissions<TData = Awaited<ReturnType<typeof getPermissions>>, TError = ErrorType<void>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getPermissions>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetPermissionsQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getSetPermissionUrl = () => {
+
+
+
+
+  return `/api/permissions`
+}
+
+/**
+ * @summary Grant or revoke a role's edit access to a resource (ketua only)
+ */
+export const setPermission = async (permissionInput: PermissionInput, options?: RequestInit): Promise<Permission> => {
+
+  return customFetch<Permission>(getSetPermissionUrl(),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      permissionInput,)
+  }
+);}
+
+
+
+
+export const getSetPermissionMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof setPermission>>, TError,{data: BodyType<PermissionInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof setPermission>>, TError,{data: BodyType<PermissionInput>}, TContext> => {
+
+const mutationKey = ['setPermission'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof setPermission>>, {data: BodyType<PermissionInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  setPermission(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SetPermissionMutationResult = NonNullable<Awaited<ReturnType<typeof setPermission>>>
+    export type SetPermissionMutationBody = BodyType<PermissionInput>
+    export type SetPermissionMutationError = ErrorType<void>
+
+    /**
+ * @summary Grant or revoke a role's edit access to a resource (ketua only)
+ */
+export const useSetPermission = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof setPermission>>, TError,{data: BodyType<PermissionInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof setPermission>>,
+        TError,
+        {data: BodyType<PermissionInput>},
+        TContext
+      > => {
+      return useMutation(getSetPermissionMutationOptions(options));
+    }
 
 export const getGetAnnouncementsUrl = () => {
 

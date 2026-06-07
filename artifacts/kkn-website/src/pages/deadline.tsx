@@ -1,14 +1,16 @@
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import {
+  type DeadlineInputType,
+  type DeadlineInputStatus,
   useGetDeadlines,
-  useGetAuthMe,
   useCreateDeadline,
   useUpdateDeadline,
   useDeleteDeadline,
   getGetDeadlinesQueryKey,
   getGetDashboardSummaryQueryKey,
 } from "@workspace/api-client-react";
+import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -85,7 +87,7 @@ function MemberCheckbox({ members, selected, onChange }: { members: string[]; se
 export default function DeadlinePage() {
   const qc = useQueryClient();
   const { toast } = useToast();
-  const { data: auth } = useGetAuthMe();
+  const { can } = useAuth();
   const { data: deadlines, isLoading } = useGetDeadlines();
   const create = useCreateDeadline();
   const update = useUpdateDeadline();
@@ -93,12 +95,12 @@ export default function DeadlinePage() {
 
   const [open, setOpen] = useState(false);
   const [editId, setEditId] = useState<number | null>(null);
-  const [form, setForm] = useState({ title: "", type: "tugas", dueDate: today(), status: "pending", assignedTo: [] as string[], notes: "" });
+  const [form, setForm] = useState<{ title: string; type: DeadlineInputType; dueDate: string; status: DeadlineInputStatus; assignedTo: string[]; notes: string }>({ title: "", type: "tugas", dueDate: today(), status: "pending", assignedTo: [] as string[], notes: "" });
 
   const [filterType, setFilterType] = useState("all");
   const [filterStatus, setFilterStatus] = useState("all");
 
-  const isAdmin = auth?.isAdmin;
+  const isAdmin = can("deadline");
 
   function invalidate() {
     qc.invalidateQueries({ queryKey: getGetDeadlinesQueryKey() });
@@ -240,7 +242,7 @@ export default function DeadlinePage() {
           <DialogHeader><DialogTitle>{editId ? "Edit Deadline" : "Tambah Deadline"}</DialogTitle></DialogHeader>
           <div className="space-y-4 mt-2">
             <Input placeholder="Judul deadline" value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} className="bg-white/50" />
-            <Select value={form.type} onValueChange={v => setForm(f => ({ ...f, type: v }))}>
+            <Select value={form.type} onValueChange={v => setForm(f => ({ ...f, type: v as DeadlineInputType }))}>
               <SelectTrigger className="bg-white/50"><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="tugas">Tugas</SelectItem>
@@ -250,7 +252,7 @@ export default function DeadlinePage() {
             <div><label className="text-sm font-medium text-gray-700 mb-1 block">Batas Waktu</label>
               <Input type="date" value={form.dueDate} onChange={e => setForm(f => ({ ...f, dueDate: e.target.value }))} className="bg-white/50" />
             </div>
-            <Select value={form.status} onValueChange={v => setForm(f => ({ ...f, status: v }))}>
+            <Select value={form.status} onValueChange={v => setForm(f => ({ ...f, status: v as DeadlineInputStatus }))}>
               <SelectTrigger className="bg-white/50"><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="pending">Belum Selesai</SelectItem>

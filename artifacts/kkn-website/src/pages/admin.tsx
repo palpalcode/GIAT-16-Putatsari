@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
-import { useGetAuthMe, useAdminLogin } from "@workspace/api-client-react";
+import { useAdminLogin } from "@workspace/api-client-react";
+import { useAuth, ROLE_LABELS } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,11 +11,11 @@ import { Loader2 } from "lucide-react";
 export default function AdminPage() {
   const [password, setPassword] = useState("");
   const [, setLocation] = useLocation();
-  const { data: auth, refetch } = useGetAuthMe();
+  const { isLoggedIn, refetch } = useAuth();
   const login = useAdminLogin();
   const { toast } = useToast();
 
-  if (auth?.isAdmin) {
+  if (isLoggedIn) {
     setLocation("/");
     return null;
   }
@@ -24,9 +25,10 @@ export default function AdminPage() {
     if (!password) return;
 
     login.mutate({ data: { password } }, {
-      onSuccess: () => {
+      onSuccess: (result) => {
         refetch();
-        toast({ title: "Berhasil masuk sebagai admin" });
+        const roleLabel = result?.role ? ROLE_LABELS[result.role] ?? result.role : "pengguna";
+        toast({ title: `Berhasil masuk sebagai ${roleLabel}` });
         setLocation("/");
       },
       onError: () => {
@@ -40,10 +42,10 @@ export default function AdminPage() {
       <Card className="w-full max-w-md glass-card">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl font-bold bg-gradient-to-r from-rose-500 to-sky-500 bg-clip-text text-transparent">
-            Admin Login
+            Login Pengurus
           </CardTitle>
           <CardDescription className="text-gray-600">
-            Masuk untuk mengelola data Tim Putatsari Wellness
+            Masuk sebagai Ketua, Sekretaris, atau Bendahara untuk mengelola data Tim Putatsari Wellness
           </CardDescription>
         </CardHeader>
         <CardContent>

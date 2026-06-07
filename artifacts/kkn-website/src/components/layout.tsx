@@ -1,8 +1,9 @@
 import React from "react";
 import { Link, useLocation } from "wouter";
-import { useGetAuthMe, useAdminLogout } from "@workspace/api-client-react";
+import { useAdminLogout } from "@workspace/api-client-react";
+import { useAuth, ROLE_LABELS } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
-import { LogOut, Menu, UserCircle, X } from "lucide-react";
+import { LogOut, Menu, ShieldCheck, UserCircle, X } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
@@ -20,7 +21,7 @@ const navItems = [
 
 export function Layout({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
-  const { data: auth, refetch } = useGetAuthMe();
+  const { isLoggedIn, role, canManage, refetch } = useAuth();
   const logout = useAdminLogout();
   const { toast } = useToast();
   const [isOpen, setIsOpen] = React.useState(false);
@@ -73,21 +74,43 @@ export function Layout({ children }: { children: React.ReactNode }) {
           </nav>
 
           <div className="hidden lg:flex items-center gap-2">
-            {auth?.isAdmin ? (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleLogout}
-                className="text-rose-600 hover:text-rose-700 hover:bg-rose-50 rounded-full text-xs"
-              >
-                <LogOut className="w-3.5 h-3.5 mr-1.5" />
-                Keluar
-              </Button>
+            {isLoggedIn ? (
+              <>
+                {role && (
+                  <span className="text-xs font-medium text-gray-500 px-2 py-1 rounded-full bg-white/60">
+                    {ROLE_LABELS[role] ?? role}
+                  </span>
+                )}
+                {canManage && (
+                  <Link href="/kelola-akses">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className={cn(
+                        "rounded-full text-xs",
+                        isActive("/kelola-akses") && "bg-white/80 text-rose-600"
+                      )}
+                    >
+                      <ShieldCheck className="w-3.5 h-3.5 mr-1.5" />
+                      Kelola Akses
+                    </Button>
+                  </Link>
+                )}
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleLogout}
+                  className="text-rose-600 hover:text-rose-700 hover:bg-rose-50 rounded-full text-xs"
+                >
+                  <LogOut className="w-3.5 h-3.5 mr-1.5" />
+                  Keluar
+                </Button>
+              </>
             ) : (
               <Link href="/admin">
                 <Button variant="ghost" size="sm" className="rounded-full text-xs">
                   <UserCircle className="w-3.5 h-3.5 mr-1.5" />
-                  Admin
+                  Login
                 </Button>
               </Link>
             )}
@@ -130,21 +153,36 @@ export function Layout({ children }: { children: React.ReactNode }) {
                 ))}
               </nav>
 
-              <div className="mt-auto pt-4 border-t border-white/30">
-                {auth?.isAdmin ? (
-                  <Button
-                    variant="outline"
-                    className="w-full justify-start rounded-xl text-rose-600"
-                    onClick={() => { handleLogout(); setIsOpen(false); }}
-                  >
-                    <LogOut className="w-4 h-4 mr-2" />
-                    Keluar Admin
-                  </Button>
+              <div className="mt-auto pt-4 border-t border-white/30 space-y-2">
+                {isLoggedIn ? (
+                  <>
+                    {role && (
+                      <p className="text-xs text-gray-500 px-1">
+                        Masuk sebagai <span className="font-semibold">{ROLE_LABELS[role] ?? role}</span>
+                      </p>
+                    )}
+                    {canManage && (
+                      <Link href="/kelola-akses" onClick={() => setIsOpen(false)}>
+                        <Button variant="outline" className="w-full justify-start rounded-xl">
+                          <ShieldCheck className="w-4 h-4 mr-2" />
+                          Kelola Akses
+                        </Button>
+                      </Link>
+                    )}
+                    <Button
+                      variant="outline"
+                      className="w-full justify-start rounded-xl text-rose-600"
+                      onClick={() => { handleLogout(); setIsOpen(false); }}
+                    >
+                      <LogOut className="w-4 h-4 mr-2" />
+                      Keluar
+                    </Button>
+                  </>
                 ) : (
                   <Link href="/admin" onClick={() => setIsOpen(false)}>
                     <Button variant="outline" className="w-full justify-start rounded-xl">
                       <UserCircle className="w-4 h-4 mr-2" />
-                      Login Admin
+                      Login
                     </Button>
                   </Link>
                 )}

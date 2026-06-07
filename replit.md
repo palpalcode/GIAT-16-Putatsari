@@ -38,7 +38,8 @@ _Populate as you build — explicit user instructions worth remembering across s
 
 ## Gotchas
 
-_Populate as you build — sharp edges, "always run X before Y" rules._
+- Form state in the website pages must use the generated union types (e.g. `KasInputType`, `IssueInputStatus`) for enum-like fields, not plain `string`. Option arrays (`{ id: "..." }`) infer `id` as `string`, so cast at the setter call site (`cat.id as KasInputCategory`). Plain `string` form fields fail `tsc` against the Orval-generated `*Input`/`*Update` types.
+- Auth is role-based: passwords map to roles in `api-server/src/lib/auth.ts`. ketua/sekretaris always have full edit access; managed roles (bendahara) start with NO access and the ketua grants per-resource edit rights via `/kelola-akses`. `ensureSeeded()` only inserts missing rows (defaulting `canEdit: false`); it never overwrites existing grants.
 
 ## Pointers
 

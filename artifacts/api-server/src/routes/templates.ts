@@ -2,16 +2,9 @@ import { Router } from "express";
 import { db } from "@workspace/db";
 import { templatesTable } from "@workspace/db";
 import { eq, desc } from "drizzle-orm";
+import { requireEdit } from "../lib/auth";
 
 const router = Router();
-
-function requireAdmin(req: any, res: any, next: any) {
-  if (!(req.session as any).isAdmin) {
-    res.status(403).json({ error: "Akses ditolak" });
-    return;
-  }
-  next();
-}
 
 function mapRow(row: any) {
   return { ...row, createdAt: row.createdAt.toISOString() };
@@ -27,7 +20,7 @@ router.get("/templates", async (req, res) => {
   }
 });
 
-router.post("/templates", requireAdmin, async (req, res) => {
+router.post("/templates", requireEdit("our-work"), async (req, res) => {
   try {
     const { title, category, content } = req.body;
     const [row] = await db.insert(templatesTable).values({ title, category, content }).returning();
@@ -38,7 +31,7 @@ router.post("/templates", requireAdmin, async (req, res) => {
   }
 });
 
-router.patch("/templates/:id", requireAdmin, async (req, res) => {
+router.patch("/templates/:id", requireEdit("our-work"), async (req, res) => {
   try {
     const id = Number(req.params.id);
     const { title, category, content } = req.body;
@@ -55,7 +48,7 @@ router.patch("/templates/:id", requireAdmin, async (req, res) => {
   }
 });
 
-router.delete("/templates/:id", requireAdmin, async (req, res) => {
+router.delete("/templates/:id", requireEdit("our-work"), async (req, res) => {
   try {
     await db.delete(templatesTable).where(eq(templatesTable.id, Number(req.params.id)));
     res.status(204).send();

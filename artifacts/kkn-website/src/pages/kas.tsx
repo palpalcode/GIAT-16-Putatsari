@@ -1,13 +1,15 @@
 import { useState, useMemo } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import {
+  type KasInputType,
+  type KasInputCategory,
   useGetKas,
-  useGetAuthMe,
   useCreateKas,
   useUpdateKas,
   useDeleteKas,
   getGetKasQueryKey,
 } from "@workspace/api-client-react";
+import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -38,7 +40,7 @@ function getCatInfo(cat: string) {
   return KAS_CATEGORIES.find(c => c.id === cat) ?? KAS_CATEGORIES[4];
 }
 
-type KasForm = { type: string; amount: string; description: string; category: string; date: string; notes: string };
+type KasForm = { type: KasInputType; amount: string; description: string; category: KasInputCategory; date: string; notes: string };
 
 function AddEditDialog({
   open, onClose, editId, initial, onSave, isPending
@@ -47,7 +49,7 @@ function AddEditDialog({
   onSave: (f: KasForm) => void; isPending: boolean;
 }) {
   const [form, setForm] = useState<KasForm>(initial);
-  const set = (k: keyof KasForm, v: string) => setForm(f => ({ ...f, [k]: v }));
+  const set = <K extends keyof KasForm>(k: K, v: KasForm[K]) => setForm(f => ({ ...f, [k]: v }));
 
   return (
     <Dialog open={open} onOpenChange={v => !v && onClose()}>
@@ -61,7 +63,7 @@ function AddEditDialog({
 
           <div className="flex gap-2 mt-4">
             {["pemasukan", "pengeluaran"].map(t => (
-              <button key={t} onClick={() => set("type", t)} className={cn(
+              <button key={t} onClick={() => set("type", t as KasInputType)} className={cn(
                 "flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold border-2 transition-all",
                 form.type === t
                   ? t === "pemasukan" ? "bg-emerald-500 text-white border-emerald-500 shadow-md" : "bg-rose-500 text-white border-rose-500 shadow-md"
@@ -97,7 +99,7 @@ function AddEditDialog({
             <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 block">Kategori</label>
             <div className="flex flex-wrap gap-2">
               {KAS_CATEGORIES.map(cat => (
-                <button key={cat.id} onClick={() => set("category", cat.id)} className={cn(
+                <button key={cat.id} onClick={() => set("category", cat.id as KasInputCategory)} className={cn(
                   "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border-2 transition-all",
                   form.category === cat.id ? cat.color + " border-current shadow-sm scale-105" : "bg-white/40 text-gray-500 border-white/40 hover:bg-white/60"
                 )}>
@@ -136,13 +138,13 @@ function AddEditDialog({
 export default function KasPage() {
   const qc = useQueryClient();
   const { toast } = useToast();
-  const { data: auth } = useGetAuthMe();
+  const { can } = useAuth();
   const { data: kas, isLoading } = useGetKas();
   const create = useCreateKas();
   const update = useUpdateKas();
   const del = useDeleteKas();
 
-  const isAdmin = auth?.isAdmin;
+  const isAdmin = can("kas");
 
   const [open, setOpen] = useState(false);
   const [editId, setEditId] = useState<number | null>(null);

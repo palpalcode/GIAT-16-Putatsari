@@ -2,18 +2,19 @@ import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   useGetProgramSchedules,
-  useGetAuthMe,
   useCreateProgramSchedule,
   useUpdateProgramSchedule,
   useDeleteProgramSchedule,
   getGetProgramSchedulesQueryKey,
   getGetDashboardSummaryQueryKey,
+  type ProgramScheduleInputStatus,
 } from "@workspace/api-client-react";
+import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Plus, Pencil, Trash2, CalendarDays, CheckCircle2, Clock, Loader2 } from "lucide-react";
+import { Plus, Pencil, Trash2, CalendarDays, CheckCircle2, Clock, Loader2, User } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 
@@ -34,10 +35,6 @@ function getMemberColor(name: string) {
   return MEMBER_COLORS[idx >= 0 ? idx : 0];
 }
 
-function getInitials(name: string) {
-  return name.split(" ").slice(0, 2).map(w => w[0]).join("").toUpperCase();
-}
-
 function today() { return new Date().toISOString().split("T")[0]; }
 function formatDate(d: string) {
   return new Date(d).toLocaleDateString("id-ID", { weekday: "long", day: "numeric", month: "long" });
@@ -53,7 +50,7 @@ function getStatus(id: string) {
   return STATUS_OPTIONS.find(s => s.id === id) ?? STATUS_OPTIONS[0];
 }
 
-type ProgramForm = { programName: string; date: string; leader: string; members: string[]; status: string; notes: string };
+type ProgramForm = { programName: string; date: string; leader: string; members: string[]; status: ProgramScheduleInputStatus; notes: string };
 
 function ProgramDialog({ open, onClose, editId, initial, onSave, isPending }: {
   open: boolean; onClose: () => void; editId: number | null; initial: ProgramForm;
@@ -114,7 +111,7 @@ function ProgramDialog({ open, onClose, editId, initial, onSave, isPending }: {
                   form.leader === m ? "border-rose-400 bg-rose-50 shadow-sm" : "border-white/40 bg-white/30 hover:bg-white/60"
                 )}>
                   <div className={cn("w-8 h-8 rounded-full bg-gradient-to-br flex items-center justify-center text-white text-xs font-bold", getMemberColor(m))}>
-                    {getInitials(m)}
+                    <User className="w-4 h-4" />
                   </div>
                   <span className="text-center leading-tight line-clamp-2 text-gray-700">{m}</span>
                 </button>
@@ -131,7 +128,7 @@ function ProgramDialog({ open, onClose, editId, initial, onSave, isPending }: {
                   form.members.includes(m) ? "bg-sky-500 text-white border-sky-500 shadow-sm" : "bg-white/40 text-gray-600 border-white/40 hover:bg-white/60"
                 )}>
                   <div className={cn("w-4 h-4 rounded-full bg-gradient-to-br flex items-center justify-center text-white text-[8px] font-bold shrink-0", getMemberColor(m))}>
-                    {getInitials(m)[0]}
+                    <User className="w-2.5 h-2.5" />
                   </div>
                   {m}
                 </button>
@@ -160,12 +157,12 @@ function ProgramDialog({ open, onClose, editId, initial, onSave, isPending }: {
 export default function OurWorkPage() {
   const qc = useQueryClient();
   const { toast } = useToast();
-  const { data: auth } = useGetAuthMe();
+  const { can } = useAuth();
   const { data: schedules, isLoading } = useGetProgramSchedules();
   const create = useCreateProgramSchedule();
   const update = useUpdateProgramSchedule();
   const del = useDeleteProgramSchedule();
-  const isAdmin = auth?.isAdmin;
+  const isAdmin = can("our-work");
 
   const [open, setOpen] = useState(false);
   const [editId, setEditId] = useState<number | null>(null);
@@ -268,7 +265,7 @@ export default function OurWorkPage() {
                     <h3 className={cn("font-bold text-gray-900 text-base", s.status === "done" && "line-through")}>{s.programName}</h3>
                     <div className="flex items-center gap-2 mt-1.5">
                       <div className={cn("w-5 h-5 rounded-full bg-gradient-to-br flex items-center justify-center text-white text-[8px] font-bold shrink-0", getMemberColor(s.leader))}>
-                        {getInitials(s.leader)}
+                        <User className="w-3 h-3" />
                       </div>
                       <p className="text-sm text-gray-600">PJ: <span className="font-medium">{s.leader}</span></p>
                     </div>

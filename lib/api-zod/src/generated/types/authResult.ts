@@ -7,6 +7,9 @@
  */
 
 export interface AuthResult {
-  isAdmin: boolean;
+  authenticated: boolean;
+  role: string | null;
+  canManage: boolean;
+  permissions: string[];
   message: string;
 }

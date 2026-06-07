@@ -24,7 +24,10 @@ export const AdminLoginBody = zod.object({
 })
 
 export const AdminLoginResponse = zod.object({
-  "isAdmin": zod.boolean(),
+  "authenticated": zod.boolean(),
+  "role": zod.string().nullable(),
+  "canManage": zod.boolean(),
+  "permissions": zod.array(zod.string()),
   "message": zod.string()
 })
 
@@ -33,7 +36,37 @@ export const AdminLoginResponse = zod.object({
  * @summary Get current auth status
  */
 export const GetAuthMeResponse = zod.object({
-  "isAdmin": zod.boolean()
+  "authenticated": zod.boolean(),
+  "role": zod.string().nullable(),
+  "canManage": zod.boolean(),
+  "permissions": zod.array(zod.string())
+})
+
+
+/**
+ * @summary Get all managed role permissions (ketua only)
+ */
+export const GetPermissionsResponseItem = zod.object({
+  "role": zod.string(),
+  "resource": zod.string(),
+  "canEdit": zod.boolean()
+})
+export const GetPermissionsResponse = zod.array(GetPermissionsResponseItem)
+
+
+/**
+ * @summary Grant or revoke a role's edit access to a resource (ketua only)
+ */
+export const SetPermissionBody = zod.object({
+  "role": zod.string(),
+  "resource": zod.string(),
+  "canEdit": zod.boolean()
+})
+
+export const SetPermissionResponse = zod.object({
+  "role": zod.string(),
+  "resource": zod.string(),
+  "canEdit": zod.boolean()
 })
 
 

@@ -2,16 +2,9 @@ import { Router } from "express";
 import { db } from "@workspace/db";
 import { cookingSchedulesTable, cleaningSchedulesTable, programSchedulesTable } from "@workspace/db";
 import { eq, desc } from "drizzle-orm";
+import { requireEdit } from "../lib/auth";
 
 const router = Router();
-
-function requireAdmin(req: any, res: any, next: any) {
-  if (!(req.session as any).isAdmin) {
-    res.status(403).json({ error: "Akses ditolak" });
-    return;
-  }
-  next();
-}
 
 function mapRow(row: any) {
   return { ...row, createdAt: row.createdAt.toISOString() };
@@ -28,7 +21,7 @@ router.get("/schedules/cooking", async (req, res) => {
   }
 });
 
-router.post("/schedules/cooking", requireAdmin, async (req, res) => {
+router.post("/schedules/cooking", requireEdit("our-life"), async (req, res) => {
   try {
     const { date, persons, menu, notes } = req.body;
     const [row] = await db.insert(cookingSchedulesTable).values({ date, persons, menu, notes }).returning();
@@ -39,7 +32,7 @@ router.post("/schedules/cooking", requireAdmin, async (req, res) => {
   }
 });
 
-router.patch("/schedules/cooking/:id", requireAdmin, async (req, res) => {
+router.patch("/schedules/cooking/:id", requireEdit("our-life"), async (req, res) => {
   try {
     const id = Number(req.params.id);
     const { date, persons, menu, notes } = req.body;
@@ -57,7 +50,7 @@ router.patch("/schedules/cooking/:id", requireAdmin, async (req, res) => {
   }
 });
 
-router.delete("/schedules/cooking/:id", requireAdmin, async (req, res) => {
+router.delete("/schedules/cooking/:id", requireEdit("our-life"), async (req, res) => {
   try {
     await db.delete(cookingSchedulesTable).where(eq(cookingSchedulesTable.id, Number(req.params.id)));
     res.status(204).send();
@@ -78,7 +71,7 @@ router.get("/schedules/cleaning", async (req, res) => {
   }
 });
 
-router.post("/schedules/cleaning", requireAdmin, async (req, res) => {
+router.post("/schedules/cleaning", requireEdit("our-life"), async (req, res) => {
   try {
     const { date, persons, area, notes } = req.body;
     const [row] = await db.insert(cleaningSchedulesTable).values({ date, persons, area, notes }).returning();
@@ -89,7 +82,7 @@ router.post("/schedules/cleaning", requireAdmin, async (req, res) => {
   }
 });
 
-router.patch("/schedules/cleaning/:id", requireAdmin, async (req, res) => {
+router.patch("/schedules/cleaning/:id", requireEdit("our-life"), async (req, res) => {
   try {
     const id = Number(req.params.id);
     const { date, persons, area, notes } = req.body;
@@ -107,7 +100,7 @@ router.patch("/schedules/cleaning/:id", requireAdmin, async (req, res) => {
   }
 });
 
-router.delete("/schedules/cleaning/:id", requireAdmin, async (req, res) => {
+router.delete("/schedules/cleaning/:id", requireEdit("our-life"), async (req, res) => {
   try {
     await db.delete(cleaningSchedulesTable).where(eq(cleaningSchedulesTable.id, Number(req.params.id)));
     res.status(204).send();
@@ -128,7 +121,7 @@ router.get("/schedules/programs", async (req, res) => {
   }
 });
 
-router.post("/schedules/programs", requireAdmin, async (req, res) => {
+router.post("/schedules/programs", requireEdit("our-work"), async (req, res) => {
   try {
     const { programName, date, leader, members, status, notes } = req.body;
     const [row] = await db.insert(programSchedulesTable).values({ programName, date, leader, members, status, notes }).returning();
@@ -139,7 +132,7 @@ router.post("/schedules/programs", requireAdmin, async (req, res) => {
   }
 });
 
-router.patch("/schedules/programs/:id", requireAdmin, async (req, res) => {
+router.patch("/schedules/programs/:id", requireEdit("our-work"), async (req, res) => {
   try {
     const id = Number(req.params.id);
     const { programName, date, leader, members, status, notes } = req.body;
@@ -159,7 +152,7 @@ router.patch("/schedules/programs/:id", requireAdmin, async (req, res) => {
   }
 });
 
-router.delete("/schedules/programs/:id", requireAdmin, async (req, res) => {
+router.delete("/schedules/programs/:id", requireEdit("our-work"), async (req, res) => {
   try {
     await db.delete(programSchedulesTable).where(eq(programSchedulesTable.id, Number(req.params.id)));
     res.status(204).send();
