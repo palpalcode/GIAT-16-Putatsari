@@ -60,14 +60,14 @@ export default function Dashboard() {
             </Link>
           </div>
 
-          <div className="space-y-5">
+          <div className="flex flex-col gap-5">
             {isLoading ? (
               [1, 2, 3].map(i => <SkeletonBlock key={i} className="h-20" />)
             ) : !summary?.recentAnnouncements?.length ? (
               <div className="glass-card p-6 text-center text-gray-400 text-sm">Belum ada pengumuman.</div>
             ) : (
               summary.recentAnnouncements.map((a: any) => (
-                <Link href="/pengumuman" key={a.id}>
+                <Link href="/pengumuman" key={a.id} className="block">
                   <div className="glass-card p-5 hover:-translate-y-0.5 transition-all cursor-pointer group">
                     <div className="flex items-start gap-3">
                       <Badge className={cn(
@@ -109,7 +109,7 @@ export default function Dashboard() {
             </Link>
           </div>
 
-          <div className="space-y-5">
+          <div className="flex flex-col gap-5">
             {isLoading ? (
               [1, 2, 3].map(i => <SkeletonBlock key={i} className="h-20" />)
             ) : !summary?.urgentDeadlines?.length ? (
@@ -118,7 +118,7 @@ export default function Dashboard() {
               summary.urgentDeadlines.map((d: any) => {
                 const days = daysLeft(d.dueDate);
                 return (
-                  <Link href="/deadline" key={d.id}>
+                  <Link href="/deadline" key={d.id} className="block">
                     <div className={cn(
                       "glass-card p-5 hover:-translate-y-0.5 transition-all cursor-pointer group",
                       days <= 3 && days >= 0 && "ring-2 ring-amber-200/70"
