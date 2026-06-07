@@ -77,7 +77,7 @@ function MemberPicker({ selected, onChange }: { selected: string[]; onChange: (v
             selected.includes(m) ? "bg-white/30" : getMemberColor(m))}>
             {getInitials(m)[0]}
           </div>
-          {m.split(" ")[0]}
+          {m}
         </button>
       ))}
     </div>
@@ -149,7 +149,7 @@ function CookingTab({ isAdmin }: { isAdmin?: boolean }) {
                     {(s.persons as string[]).map(p => (
                       <span key={p} className={cn("flex items-center gap-1 text-xs text-white px-2 py-0.5 rounded-full bg-gradient-to-r", getMemberColor(p))}>
                         <span className="font-bold text-[9px]">{getInitials(p)}</span>
-                        {p.split(" ")[0]}
+                        {p}
                       </span>
                     ))}
                   </div>
@@ -279,7 +279,7 @@ function CleaningTab({ isAdmin }: { isAdmin?: boolean }) {
                     {(s.persons as string[]).map(p => (
                       <span key={p} className={cn("flex items-center gap-1 text-xs text-white px-2 py-0.5 rounded-full bg-gradient-to-r", getMemberColor(p))}>
                         <span className="font-bold text-[9px]">{getInitials(p)}</span>
-                        {p.split(" ")[0]}
+                        {p}
                       </span>
                     ))}
                   </div>

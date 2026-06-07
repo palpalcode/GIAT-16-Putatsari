@@ -116,7 +116,7 @@ function ProgramDialog({ open, onClose, editId, initial, onSave, isPending }: {
                   <div className={cn("w-8 h-8 rounded-full bg-gradient-to-br flex items-center justify-center text-white text-xs font-bold", getMemberColor(m))}>
                     {getInitials(m)}
                   </div>
-                  <span className="text-center leading-tight line-clamp-2 text-gray-700">{m.split(" ")[0]}</span>
+                  <span className="text-center leading-tight line-clamp-2 text-gray-700">{m}</span>
                 </button>
               ))}
             </div>
@@ -133,7 +133,7 @@ function ProgramDialog({ open, onClose, editId, initial, onSave, isPending }: {
                   <div className={cn("w-4 h-4 rounded-full bg-gradient-to-br flex items-center justify-center text-white text-[8px] font-bold shrink-0", getMemberColor(m))}>
                     {getInitials(m)[0]}
                   </div>
-                  {m.split(" ")[0]}
+                  {m}
                 </button>
               ))}
             </div>
@@ -169,6 +169,7 @@ export default function OurWorkPage() {
 
   const [open, setOpen] = useState(false);
   const [editId, setEditId] = useState<number | null>(null);
+  const [filterStatus, setFilterStatus] = useState<string | null>(null);
   const defaultForm: ProgramForm = { programName: "", date: today(), leader: "", members: [], status: "planned", notes: "" };
   const [initForm, setInitForm] = useState<ProgramForm>(defaultForm);
 
@@ -194,7 +195,8 @@ export default function OurWorkPage() {
   }
 
   const all = schedules ?? [];
-  const ordered = [...all.filter(s => s.status === "ongoing"), ...all.filter(s => s.status === "planned"), ...all.filter(s => s.status === "done")];
+  const filtered = filterStatus ? all.filter(s => s.status === filterStatus) : all;
+  const ordered = [...filtered.filter(s => s.status === "ongoing"), ...filtered.filter(s => s.status === "planned"), ...filtered.filter(s => s.status === "done")];
 
   const counts = {
     ongoing: all.filter(s => s.status === "ongoing").length,
@@ -216,20 +218,27 @@ export default function OurWorkPage() {
         )}
       </div>
 
-      {/* Status summary */}
+      {/* Status summary — clickable filters */}
       <div className="flex flex-wrap gap-3">
-        <div className="glass-card px-4 py-2 flex items-center gap-2">
-          <div className="w-2 h-2 rounded-full bg-amber-400" />
-          <span className="text-sm text-gray-600">{counts.ongoing} Berjalan</span>
-        </div>
-        <div className="glass-card px-4 py-2 flex items-center gap-2">
-          <div className="w-2 h-2 rounded-full bg-violet-400" />
-          <span className="text-sm text-gray-600">{counts.planned} Direncanakan</span>
-        </div>
-        <div className="glass-card px-4 py-2 flex items-center gap-2">
-          <div className="w-2 h-2 rounded-full bg-emerald-400" />
-          <span className="text-sm text-gray-600">{counts.done} Selesai</span>
-        </div>
+        {[
+          { id: "ongoing", label: "Berjalan", dot: "bg-amber-400", active: "bg-amber-50 border-amber-300 text-amber-700", count: counts.ongoing },
+          { id: "planned", label: "Direncanakan", dot: "bg-violet-400", active: "bg-violet-50 border-violet-300 text-violet-700", count: counts.planned },
+          { id: "done", label: "Selesai", dot: "bg-emerald-400", active: "bg-emerald-50 border-emerald-300 text-emerald-700", count: counts.done },
+        ].map(f => (
+          <button key={f.id} onClick={() => setFilterStatus(filterStatus === f.id ? null : f.id)}
+            className={cn(
+              "px-4 py-2 flex items-center gap-2 rounded-2xl border transition-all text-sm font-medium",
+              filterStatus === f.id ? f.active + " shadow-sm" : "glass-card hover:shadow-sm text-gray-600"
+            )}>
+            <div className={cn("w-2 h-2 rounded-full shrink-0", f.dot)} />
+            <span>{f.count} {f.label}</span>
+          </button>
+        ))}
+        {filterStatus && (
+          <button onClick={() => setFilterStatus(null)} className="px-3 py-2 text-xs text-gray-400 hover:text-gray-600 transition-colors">
+            × Hapus filter
+          </button>
+        )}
       </div>
 
       {isLoading ? (
@@ -268,7 +277,7 @@ export default function OurWorkPage() {
                         {(s.members as string[]).map(m => (
                           <span key={m} className="flex items-center gap-1 text-xs bg-sky-50 text-sky-700 px-2 py-0.5 rounded-full border border-sky-100">
                             <span className={cn("w-3 h-3 rounded-full bg-gradient-to-br inline-block shrink-0", getMemberColor(m))} />
-                            {m.split(" ")[0]}
+                            {m}
                           </span>
                         ))}
                       </div>

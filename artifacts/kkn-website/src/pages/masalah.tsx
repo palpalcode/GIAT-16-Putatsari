@@ -179,7 +179,7 @@ function LifeTab({ isAdmin }: { isAdmin?: boolean }) {
                     <div className={cn("w-7 h-7 rounded-full bg-gradient-to-br flex items-center justify-center text-white text-[9px] font-bold", getMemberColor(m))}>
                       {getInitials(m)}
                     </div>
-                    <span className="text-center leading-tight text-gray-700 line-clamp-1">{m.split(" ")[0]}</span>
+                    <span className="text-center leading-tight text-gray-700 line-clamp-2 text-[10px]">{m}</span>
                   </button>
                 ))}
               </div>
