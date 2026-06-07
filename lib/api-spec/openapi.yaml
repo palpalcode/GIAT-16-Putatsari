@@ -29,6 +29,8 @@ tags:
     description: Kas dan keuangan tim
   - name: dashboard
     description: Dashboard summary
+  - name: notulensi
+    description: Notulensi rapat tim
 
 paths:
   /healthz:
@@ -838,6 +840,103 @@ paths:
               schema:
                 $ref: "#/components/schemas/DashboardSummary"
 
+  /notulensi:
+    get:
+      operationId: getNotulensiList
+      tags: [notulensi]
+      summary: Get all notulensi
+      responses:
+        "200":
+          description: List of notulensi
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Notulensi"
+    post:
+      operationId: createNotulensi
+      tags: [notulensi]
+      summary: Create notulensi (ketua/sekretaris)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/NotulensiInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Notulensi"
+        "403":
+          description: Forbidden
+
+  /notulensi/{id}:
+    get:
+      operationId: getNotulensi
+      tags: [notulensi]
+      summary: Get a single notulensi
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Notulensi detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Notulensi"
+        "404":
+          description: Not found
+    patch:
+      operationId: updateNotulensi
+      tags: [notulensi]
+      summary: Update notulensi (ketua/sekretaris)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/NotulensiUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Notulensi"
+        "403":
+          description: Forbidden
+        "404":
+          description: Not found
+    delete:
+      operationId: deleteNotulensi
+      tags: [notulensi]
+      summary: Delete notulensi (ketua/sekretaris)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+        "403":
+          description: Forbidden
+
 components:
   schemas:
     HealthStatus:
@@ -1452,3 +1551,63 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/Deadline"
+
+    Notulensi:
+      type: object
+      required: [id, title, meetingDate, attendees, content, author, createdAt]
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        meetingDate:
+          type: string
+        attendees:
+          type: array
+          items:
+            type: string
+        agenda:
+          type: ["string", "null"]
+        content:
+          type: string
+        author:
+          type: string
+        createdAt:
+          type: string
+
+    NotulensiInput:
+      type: object
+      required: [title, meetingDate, attendees, content, author]
+      properties:
+        title:
+          type: string
+        meetingDate:
+          type: string
+        attendees:
+          type: array
+          items:
+            type: string
+        agenda:
+          type: string
+        content:
+          type: string
+        author:
+          type: string
+
+    NotulensiUpdate:
+      type: object
+      properties:
+        title:
+          type: string
+        meetingDate:
+          type: string
+        attendees:
+          type: array
+          items:
+            type: string
+        agenda:
+          type: string
+        content:
+          type: string
+        author:
+          type: string

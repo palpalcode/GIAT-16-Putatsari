@@ -49,6 +49,9 @@ import type {
   KasInput,
   KasUpdate,
   LoginInput,
+  Notulensi,
+  NotulensiInput,
+  NotulensiUpdate,
   Permission,
   PermissionInput,
   ProgramSchedule,
@@ -3490,4 +3493,371 @@ export function useGetDashboardSummary<TData = Awaited<ReturnType<typeof getDash
 
 
 
+
+export const getGetNotulensiListUrl = () => {
+
+
+
+
+  return `/api/notulensi`
+}
+
+/**
+ * @summary Get all notulensi
+ */
+export const getNotulensiList = async ( options?: RequestInit): Promise<Notulensi[]> => {
+
+  return customFetch<Notulensi[]>(getGetNotulensiListUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetNotulensiListQueryKey = () => {
+    return [
+    `/api/notulensi`
+    ] as const;
+    }
+
+
+export const getGetNotulensiListQueryOptions = <TData = Awaited<ReturnType<typeof getNotulensiList>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getNotulensiList>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetNotulensiListQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getNotulensiList>>> = ({ signal }) => getNotulensiList({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getNotulensiList>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetNotulensiListQueryResult = NonNullable<Awaited<ReturnType<typeof getNotulensiList>>>
+export type GetNotulensiListQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Get all notulensi
+ */
+
+export function useGetNotulensiList<TData = Awaited<ReturnType<typeof getNotulensiList>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getNotulensiList>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetNotulensiListQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getCreateNotulensiUrl = () => {
+
+
+
+
+  return `/api/notulensi`
+}
+
+/**
+ * @summary Create notulensi (ketua/sekretaris)
+ */
+export const createNotulensi = async (notulensiInput: NotulensiInput, options?: RequestInit): Promise<Notulensi> => {
+
+  return customFetch<Notulensi>(getCreateNotulensiUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      notulensiInput,)
+  }
+);}
+
+
+
+
+export const getCreateNotulensiMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createNotulensi>>, TError,{data: BodyType<NotulensiInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createNotulensi>>, TError,{data: BodyType<NotulensiInput>}, TContext> => {
+
+const mutationKey = ['createNotulensi'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createNotulensi>>, {data: BodyType<NotulensiInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  createNotulensi(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateNotulensiMutationResult = NonNullable<Awaited<ReturnType<typeof createNotulensi>>>
+    export type CreateNotulensiMutationBody = BodyType<NotulensiInput>
+    export type CreateNotulensiMutationError = ErrorType<void>
+
+    /**
+ * @summary Create notulensi (ketua/sekretaris)
+ */
+export const useCreateNotulensi = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createNotulensi>>, TError,{data: BodyType<NotulensiInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createNotulensi>>,
+        TError,
+        {data: BodyType<NotulensiInput>},
+        TContext
+      > => {
+      return useMutation(getCreateNotulensiMutationOptions(options));
+    }
+
+export const getGetNotulensiUrl = (id: number,) => {
+
+
+
+
+  return `/api/notulensi/${id}`
+}
+
+/**
+ * @summary Get a single notulensi
+ */
+export const getNotulensi = async (id: number, options?: RequestInit): Promise<Notulensi> => {
+
+  return customFetch<Notulensi>(getGetNotulensiUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetNotulensiQueryKey = (id: number,) => {
+    return [
+    `/api/notulensi/${id}`
+    ] as const;
+    }
+
+
+export const getGetNotulensiQueryOptions = <TData = Awaited<ReturnType<typeof getNotulensi>>, TError = ErrorType<void>>(id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getNotulensi>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetNotulensiQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getNotulensi>>> = ({ signal }) => getNotulensi(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getNotulensi>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetNotulensiQueryResult = NonNullable<Awaited<ReturnType<typeof getNotulensi>>>
+export type GetNotulensiQueryError = ErrorType<void>
+
+
+/**
+ * @summary Get a single notulensi
+ */
+
+export function useGetNotulensi<TData = Awaited<ReturnType<typeof getNotulensi>>, TError = ErrorType<void>>(
+ id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getNotulensi>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetNotulensiQueryOptions(id,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getUpdateNotulensiUrl = (id: number,) => {
+
+
+
+
+  return `/api/notulensi/${id}`
+}
+
+/**
+ * @summary Update notulensi (ketua/sekretaris)
+ */
+export const updateNotulensi = async (id: number,
+    notulensiUpdate: NotulensiUpdate, options?: RequestInit): Promise<Notulensi> => {
+
+  return customFetch<Notulensi>(getUpdateNotulensiUrl(id),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      notulensiUpdate,)
+  }
+);}
+
+
+
+
+export const getUpdateNotulensiMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateNotulensi>>, TError,{id: number;data: BodyType<NotulensiUpdate>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateNotulensi>>, TError,{id: number;data: BodyType<NotulensiUpdate>}, TContext> => {
+
+const mutationKey = ['updateNotulensi'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateNotulensi>>, {id: number;data: BodyType<NotulensiUpdate>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  updateNotulensi(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateNotulensiMutationResult = NonNullable<Awaited<ReturnType<typeof updateNotulensi>>>
+    export type UpdateNotulensiMutationBody = BodyType<NotulensiUpdate>
+    export type UpdateNotulensiMutationError = ErrorType<void>
+
+    /**
+ * @summary Update notulensi (ketua/sekretaris)
+ */
+export const useUpdateNotulensi = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateNotulensi>>, TError,{id: number;data: BodyType<NotulensiUpdate>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateNotulensi>>,
+        TError,
+        {id: number;data: BodyType<NotulensiUpdate>},
+        TContext
+      > => {
+      return useMutation(getUpdateNotulensiMutationOptions(options));
+    }
+
+export const getDeleteNotulensiUrl = (id: number,) => {
+
+
+
+
+  return `/api/notulensi/${id}`
+}
+
+/**
+ * @summary Delete notulensi (ketua/sekretaris)
+ */
+export const deleteNotulensi = async (id: number, options?: RequestInit): Promise<void> => {
+
+  return customFetch<void>(getDeleteNotulensiUrl(id),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+export const getDeleteNotulensiMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteNotulensi>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteNotulensi>>, TError,{id: number}, TContext> => {
+
+const mutationKey = ['deleteNotulensi'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteNotulensi>>, {id: number}> = (props) => {
+          const {id} = props ?? {};
+
+          return  deleteNotulensi(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteNotulensiMutationResult = NonNullable<Awaited<ReturnType<typeof deleteNotulensi>>>
+
+    export type DeleteNotulensiMutationError = ErrorType<void>
+
+    /**
+ * @summary Delete notulensi (ketua/sekretaris)
+ */
+export const useDeleteNotulensi = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteNotulensi>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof deleteNotulensi>>,
+        TError,
+        {id: number},
+        TContext
+      > => {
+      return useMutation(getDeleteNotulensiMutationOptions(options));
+    }
 

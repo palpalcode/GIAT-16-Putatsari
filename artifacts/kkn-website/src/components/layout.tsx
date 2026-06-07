@@ -13,6 +13,7 @@ const navItems = [
   { href: "/our-life", label: "Our Life" },
   { href: "/our-work", label: "Our Work" },
   { href: "/kas", label: "Kas" },
+  { href: "/notulensi", label: "Notulensi" },
   { href: "/pengumuman", label: "Pengumuman" },
   { href: "/deadline", label: "Deadline" },
   { href: "/masalah", label: "Masalah" },

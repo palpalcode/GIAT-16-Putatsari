@@ -11,6 +11,7 @@ import templatesRouter from "./templates";
 import dashboardRouter from "./dashboard";
 import kasRouter from "./kas";
 import permissionsRouter from "./permissions";
+import notulensiRouter from "./notulensi";
 
 const router: IRouter = Router();
 
@@ -26,5 +27,6 @@ router.use(templatesRouter);
 router.use(dashboardRouter);
 router.use(kasRouter);
 router.use(permissionsRouter);
+router.use(notulensiRouter);
 
 export default router;

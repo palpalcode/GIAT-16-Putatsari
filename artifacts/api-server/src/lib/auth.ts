@@ -11,6 +11,7 @@ export const RESOURCES = [
   "our-work",
   "masalah",
   "kas",
+  "notulensi",
 ] as const;
 export type Resource = (typeof RESOURCES)[number];
 
@@ -21,6 +22,7 @@ export const RESOURCE_LABELS: Record<Resource, string> = {
   "our-work": "Our Work",
   masalah: "Masalah",
   kas: "Kas",
+  notulensi: "Notulensi",
 };
 
 export const ROLE_LABELS: Record<Role, string> = {

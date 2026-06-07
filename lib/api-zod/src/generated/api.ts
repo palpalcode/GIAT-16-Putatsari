@@ -696,3 +696,87 @@ export const GetDashboardSummaryResponse = zod.object({
 })
 
 
+/**
+ * @summary Get all notulensi
+ */
+export const GetNotulensiListResponseItem = zod.object({
+  "id": zod.number(),
+  "title": zod.string(),
+  "meetingDate": zod.string(),
+  "attendees": zod.array(zod.string()),
+  "agenda": zod.string().nullish(),
+  "content": zod.string(),
+  "author": zod.string(),
+  "createdAt": zod.string()
+})
+export const GetNotulensiListResponse = zod.array(GetNotulensiListResponseItem)
+
+
+/**
+ * @summary Create notulensi (ketua/sekretaris)
+ */
+export const CreateNotulensiBody = zod.object({
+  "title": zod.string(),
+  "meetingDate": zod.string(),
+  "attendees": zod.array(zod.string()),
+  "agenda": zod.string().optional(),
+  "content": zod.string(),
+  "author": zod.string()
+})
+
+
+/**
+ * @summary Get a single notulensi
+ */
+export const GetNotulensiParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const GetNotulensiResponse = zod.object({
+  "id": zod.number(),
+  "title": zod.string(),
+  "meetingDate": zod.string(),
+  "attendees": zod.array(zod.string()),
+  "agenda": zod.string().nullish(),
+  "content": zod.string(),
+  "author": zod.string(),
+  "createdAt": zod.string()
+})
+
+
+/**
+ * @summary Update notulensi (ketua/sekretaris)
+ */
+export const UpdateNotulensiParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const UpdateNotulensiBody = zod.object({
+  "title": zod.string().optional(),
+  "meetingDate": zod.string().optional(),
+  "attendees": zod.array(zod.string()).optional(),
+  "agenda": zod.string().optional(),
+  "content": zod.string().optional(),
+  "author": zod.string().optional()
+})
+
+export const UpdateNotulensiResponse = zod.object({
+  "id": zod.number(),
+  "title": zod.string(),
+  "meetingDate": zod.string(),
+  "attendees": zod.array(zod.string()),
+  "agenda": zod.string().nullish(),
+  "content": zod.string(),
+  "author": zod.string(),
+  "createdAt": zod.string()
+})
+
+
+/**
+ * @summary Delete notulensi (ketua/sekretaris)
+ */
+export const DeleteNotulensiParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+

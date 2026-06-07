@@ -138,6 +138,21 @@ export const insertKasSchema = createInsertSchema(kasTable).omit({ id: true, cre
 export type InsertKas = z.infer<typeof insertKasSchema>;
 export type Kas = typeof kasTable.$inferSelect;
 
+export const notulensiTable = pgTable("notulensi", {
+  id: serial("id").primaryKey(),
+  title: text("title").notNull(),
+  meetingDate: text("meeting_date").notNull(),
+  attendees: jsonb("attendees").notNull().$type<string[]>(),
+  agenda: text("agenda"),
+  content: text("content").notNull(),
+  author: text("author").notNull(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const insertNotulensiSchema = createInsertSchema(notulensiTable).omit({ id: true, createdAt: true });
+export type InsertNotulensi = z.infer<typeof insertNotulensiSchema>;
+export type Notulensi = typeof notulensiTable.$inferSelect;
+
 export const permissionsTable = pgTable("permissions", {
   id: serial("id").primaryKey(),
   role: text("role").notNull(),

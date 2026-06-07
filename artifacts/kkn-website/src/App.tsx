@@ -15,6 +15,8 @@ import OurWorkPage from "@/pages/our-work";
 import MasalahPage from "@/pages/masalah";
 import KasPage from "@/pages/kas";
 import KelolaAksesPage from "@/pages/kelola-akses";
+import NotulensiPage from "@/pages/notulensi";
+import NotulensiDetailPage from "@/pages/notulensi-detail";
 
 const queryClient = new QueryClient();
 
@@ -32,6 +34,8 @@ function Router() {
         <Route path="/kas" component={KasPage} />
         <Route path="/admin" component={AdminPage} />
         <Route path="/kelola-akses" component={KelolaAksesPage} />
+        <Route path="/notulensi" component={NotulensiPage} />
+        <Route path="/notulensi/:id" component={NotulensiDetailPage} />
         {/* legacy redirects */}
         <Route path="/kehidupan" component={OurLifePage} />
         <Route path="/proker" component={OurWorkPage} />

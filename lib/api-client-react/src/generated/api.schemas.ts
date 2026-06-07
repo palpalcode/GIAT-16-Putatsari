@@ -608,3 +608,33 @@ export interface DashboardSummary {
   urgentDeadlines?: Deadline[];
 }
 
+export interface Notulensi {
+  id: number;
+  title: string;
+  meetingDate: string;
+  attendees: string[];
+  /** @nullable */
+  agenda?: string | null;
+  content: string;
+  author: string;
+  createdAt: string;
+}
+
+export interface NotulensiInput {
+  title: string;
+  meetingDate: string;
+  attendees: string[];
+  agenda?: string;
+  content: string;
+  author: string;
+}
+
+export interface NotulensiUpdate {
+  title?: string;
+  meetingDate?: string;
+  attendees?: string[];
+  agenda?: string;
+  content?: string;
+  author?: string;
+}
+

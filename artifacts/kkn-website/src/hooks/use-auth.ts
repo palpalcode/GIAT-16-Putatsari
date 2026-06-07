@@ -7,9 +7,10 @@ export const RESOURCE_LABELS: Record<string, string> = {
   "our-work": "Our Work",
   masalah: "Masalah",
   kas: "Kas",
+  notulensi: "Notulensi",
 };
 
-export const RESOURCES = ["pengumuman", "deadline", "our-life", "our-work", "masalah", "kas"];
+export const RESOURCES = ["pengumuman", "deadline", "our-life", "our-work", "masalah", "kas", "notulensi"];
 
 export const ROLE_LABELS: Record<string, string> = {
   ketua: "Ketua",
