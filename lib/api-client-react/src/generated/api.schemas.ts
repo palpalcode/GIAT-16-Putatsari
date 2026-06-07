@@ -488,6 +488,93 @@ export interface TemplateUpdate {
   content?: string;
 }
 
+export type KasType = typeof KasType[keyof typeof KasType];
+
+
+export const KasType = {
+  pemasukan: 'pemasukan',
+  pengeluaran: 'pengeluaran',
+} as const;
+
+export type KasCategory = typeof KasCategory[keyof typeof KasCategory];
+
+
+export const KasCategory = {
+  makan: 'makan',
+  transport: 'transport',
+  perlengkapan: 'perlengkapan',
+  administrasi: 'administrasi',
+  lainnya: 'lainnya',
+} as const;
+
+export interface Kas {
+  id: number;
+  type: KasType;
+  amount: number;
+  description: string;
+  category: KasCategory;
+  date: string;
+  /** @nullable */
+  notes?: string | null;
+  createdAt: string;
+}
+
+export type KasInputType = typeof KasInputType[keyof typeof KasInputType];
+
+
+export const KasInputType = {
+  pemasukan: 'pemasukan',
+  pengeluaran: 'pengeluaran',
+} as const;
+
+export type KasInputCategory = typeof KasInputCategory[keyof typeof KasInputCategory];
+
+
+export const KasInputCategory = {
+  makan: 'makan',
+  transport: 'transport',
+  perlengkapan: 'perlengkapan',
+  administrasi: 'administrasi',
+  lainnya: 'lainnya',
+} as const;
+
+export interface KasInput {
+  type: KasInputType;
+  amount: number;
+  description: string;
+  category: KasInputCategory;
+  date: string;
+  notes?: string;
+}
+
+export type KasUpdateType = typeof KasUpdateType[keyof typeof KasUpdateType];
+
+
+export const KasUpdateType = {
+  pemasukan: 'pemasukan',
+  pengeluaran: 'pengeluaran',
+} as const;
+
+export type KasUpdateCategory = typeof KasUpdateCategory[keyof typeof KasUpdateCategory];
+
+
+export const KasUpdateCategory = {
+  makan: 'makan',
+  transport: 'transport',
+  perlengkapan: 'perlengkapan',
+  administrasi: 'administrasi',
+  lainnya: 'lainnya',
+} as const;
+
+export interface KasUpdate {
+  type?: KasUpdateType;
+  amount?: number;
+  description?: string;
+  category?: KasUpdateCategory;
+  date?: string;
+  notes?: string;
+}
+
 export interface DashboardSummary {
   totalAnnouncements: number;
   upcomingDeadlines: number;

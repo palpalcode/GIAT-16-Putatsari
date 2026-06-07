@@ -25,6 +25,8 @@ tags:
     description: Masalah proker / urusan KKN
   - name: templates
     description: Template pekerjaan
+  - name: kas
+    description: Kas dan keuangan tim
   - name: dashboard
     description: Dashboard summary
 
@@ -715,6 +717,76 @@ paths:
         "204":
           description: Deleted
 
+  /kas:
+    get:
+      operationId: getKas
+      tags: [kas]
+      summary: Get all kas transactions
+      responses:
+        "200":
+          description: Kas list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Kas"
+    post:
+      operationId: createKas
+      tags: [kas]
+      summary: Create kas entry (admin)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/KasInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Kas"
+
+  /kas/{id}:
+    patch:
+      operationId: updateKas
+      tags: [kas]
+      summary: Update kas entry (admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/KasUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Kas"
+    delete:
+      operationId: deleteKas
+      tags: [kas]
+      summary: Delete kas entry (admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
   /dashboard/summary:
     get:
       operationId: getDashboardSummary
@@ -1212,6 +1284,66 @@ components:
         category:
           type: string
         content:
+          type: string
+
+    Kas:
+      type: object
+      required: [id, type, amount, description, category, date, createdAt]
+      properties:
+        id:
+          type: integer
+        type:
+          type: string
+          enum: [pemasukan, pengeluaran]
+        amount:
+          type: integer
+        description:
+          type: string
+        category:
+          type: string
+          enum: [makan, transport, perlengkapan, administrasi, lainnya]
+        date:
+          type: string
+        notes:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+
+    KasInput:
+      type: object
+      required: [type, amount, description, category, date]
+      properties:
+        type:
+          type: string
+          enum: [pemasukan, pengeluaran]
+        amount:
+          type: integer
+        description:
+          type: string
+        category:
+          type: string
+          enum: [makan, transport, perlengkapan, administrasi, lainnya]
+        date:
+          type: string
+        notes:
+          type: string
+
+    KasUpdate:
+      type: object
+      properties:
+        type:
+          type: string
+          enum: [pemasukan, pengeluaran]
+        amount:
+          type: integer
+        description:
+          type: string
+        category:
+          type: string
+          enum: [makan, transport, perlengkapan, administrasi, lainnya]
+        date:
+          type: string
+        notes:
           type: string
 
     DashboardSummary:

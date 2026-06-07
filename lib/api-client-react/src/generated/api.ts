@@ -45,6 +45,9 @@ import type {
   Issue,
   IssueInput,
   IssueUpdate,
+  Kas,
+  KasInput,
+  KasUpdate,
   LoginInput,
   ProgramSchedule,
   ProgramScheduleInput,
@@ -2969,6 +2972,296 @@ export const useDeleteTemplate = <TError = ErrorType<unknown>,
         TContext
       > => {
       return useMutation(getDeleteTemplateMutationOptions(options));
+    }
+
+export const getGetKasUrl = () => {
+
+
+
+
+  return `/api/kas`
+}
+
+/**
+ * @summary Get all kas transactions
+ */
+export const getKas = async ( options?: RequestInit): Promise<Kas[]> => {
+
+  return customFetch<Kas[]>(getGetKasUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetKasQueryKey = () => {
+    return [
+    `/api/kas`
+    ] as const;
+    }
+
+
+export const getGetKasQueryOptions = <TData = Awaited<ReturnType<typeof getKas>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getKas>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetKasQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getKas>>> = ({ signal }) => getKas({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getKas>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetKasQueryResult = NonNullable<Awaited<ReturnType<typeof getKas>>>
+export type GetKasQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Get all kas transactions
+ */
+
+export function useGetKas<TData = Awaited<ReturnType<typeof getKas>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getKas>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetKasQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getCreateKasUrl = () => {
+
+
+
+
+  return `/api/kas`
+}
+
+/**
+ * @summary Create kas entry (admin)
+ */
+export const createKas = async (kasInput: KasInput, options?: RequestInit): Promise<Kas> => {
+
+  return customFetch<Kas>(getCreateKasUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      kasInput,)
+  }
+);}
+
+
+
+
+export const getCreateKasMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createKas>>, TError,{data: BodyType<KasInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createKas>>, TError,{data: BodyType<KasInput>}, TContext> => {
+
+const mutationKey = ['createKas'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createKas>>, {data: BodyType<KasInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  createKas(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateKasMutationResult = NonNullable<Awaited<ReturnType<typeof createKas>>>
+    export type CreateKasMutationBody = BodyType<KasInput>
+    export type CreateKasMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Create kas entry (admin)
+ */
+export const useCreateKas = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createKas>>, TError,{data: BodyType<KasInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createKas>>,
+        TError,
+        {data: BodyType<KasInput>},
+        TContext
+      > => {
+      return useMutation(getCreateKasMutationOptions(options));
+    }
+
+export const getUpdateKasUrl = (id: number,) => {
+
+
+
+
+  return `/api/kas/${id}`
+}
+
+/**
+ * @summary Update kas entry (admin)
+ */
+export const updateKas = async (id: number,
+    kasUpdate: KasUpdate, options?: RequestInit): Promise<Kas> => {
+
+  return customFetch<Kas>(getUpdateKasUrl(id),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      kasUpdate,)
+  }
+);}
+
+
+
+
+export const getUpdateKasMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateKas>>, TError,{id: number;data: BodyType<KasUpdate>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateKas>>, TError,{id: number;data: BodyType<KasUpdate>}, TContext> => {
+
+const mutationKey = ['updateKas'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateKas>>, {id: number;data: BodyType<KasUpdate>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  updateKas(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateKasMutationResult = NonNullable<Awaited<ReturnType<typeof updateKas>>>
+    export type UpdateKasMutationBody = BodyType<KasUpdate>
+    export type UpdateKasMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Update kas entry (admin)
+ */
+export const useUpdateKas = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateKas>>, TError,{id: number;data: BodyType<KasUpdate>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateKas>>,
+        TError,
+        {id: number;data: BodyType<KasUpdate>},
+        TContext
+      > => {
+      return useMutation(getUpdateKasMutationOptions(options));
+    }
+
+export const getDeleteKasUrl = (id: number,) => {
+
+
+
+
+  return `/api/kas/${id}`
+}
+
+/**
+ * @summary Delete kas entry (admin)
+ */
+export const deleteKas = async (id: number, options?: RequestInit): Promise<void> => {
+
+  return customFetch<void>(getDeleteKasUrl(id),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+export const getDeleteKasMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteKas>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteKas>>, TError,{id: number}, TContext> => {
+
+const mutationKey = ['deleteKas'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteKas>>, {id: number}> = (props) => {
+          const {id} = props ?? {};
+
+          return  deleteKas(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteKasMutationResult = NonNullable<Awaited<ReturnType<typeof deleteKas>>>
+
+    export type DeleteKasMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Delete kas entry (admin)
+ */
+export const useDeleteKas = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteKas>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof deleteKas>>,
+        TError,
+        {id: number},
+        TContext
+      > => {
+      return useMutation(getDeleteKasMutationOptions(options));
     }
 
 export const getGetDashboardSummaryUrl = () => {

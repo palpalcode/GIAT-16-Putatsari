@@ -9,6 +9,7 @@ import complaintsRouter from "./complaints";
 import issuesRouter from "./issues";
 import templatesRouter from "./templates";
 import dashboardRouter from "./dashboard";
+import kasRouter from "./kas";
 
 const router: IRouter = Router();
 
@@ -22,5 +23,6 @@ router.use(complaintsRouter);
 router.use(issuesRouter);
 router.use(templatesRouter);
 router.use(dashboardRouter);
+router.use(kasRouter);
 
 export default router;

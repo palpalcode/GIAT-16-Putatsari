@@ -122,3 +122,18 @@ export const templatesTable = pgTable("templates", {
 export const insertTemplateSchema = createInsertSchema(templatesTable).omit({ id: true, createdAt: true });
 export type InsertTemplate = z.infer<typeof insertTemplateSchema>;
 export type Template = typeof templatesTable.$inferSelect;
+
+export const kasTable = pgTable("kas", {
+  id: serial("id").primaryKey(),
+  type: text("type").notNull(),
+  amount: integer("amount").notNull(),
+  description: text("description").notNull(),
+  category: text("category").notNull().default("lainnya"),
+  date: text("date").notNull(),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const insertKasSchema = createInsertSchema(kasTable).omit({ id: true, createdAt: true });
+export type InsertKas = z.infer<typeof insertKasSchema>;
+export type Kas = typeof kasTable.$inferSelect;

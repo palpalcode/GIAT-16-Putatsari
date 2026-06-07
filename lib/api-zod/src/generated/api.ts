@@ -567,6 +567,71 @@ export const DeleteTemplateParams = zod.object({
 
 
 /**
+ * @summary Get all kas transactions
+ */
+export const GetKasResponseItem = zod.object({
+  "id": zod.number(),
+  "type": zod.enum(['pemasukan', 'pengeluaran']),
+  "amount": zod.number(),
+  "description": zod.string(),
+  "category": zod.enum(['makan', 'transport', 'perlengkapan', 'administrasi', 'lainnya']),
+  "date": zod.string(),
+  "notes": zod.string().nullish(),
+  "createdAt": zod.string()
+})
+export const GetKasResponse = zod.array(GetKasResponseItem)
+
+
+/**
+ * @summary Create kas entry (admin)
+ */
+export const CreateKasBody = zod.object({
+  "type": zod.enum(['pemasukan', 'pengeluaran']),
+  "amount": zod.number(),
+  "description": zod.string(),
+  "category": zod.enum(['makan', 'transport', 'perlengkapan', 'administrasi', 'lainnya']),
+  "date": zod.string(),
+  "notes": zod.string().optional()
+})
+
+
+/**
+ * @summary Update kas entry (admin)
+ */
+export const UpdateKasParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const UpdateKasBody = zod.object({
+  "type": zod.enum(['pemasukan', 'pengeluaran']).optional(),
+  "amount": zod.number().optional(),
+  "description": zod.string().optional(),
+  "category": zod.enum(['makan', 'transport', 'perlengkapan', 'administrasi', 'lainnya']).optional(),
+  "date": zod.string().optional(),
+  "notes": zod.string().optional()
+})
+
+export const UpdateKasResponse = zod.object({
+  "id": zod.number(),
+  "type": zod.enum(['pemasukan', 'pengeluaran']),
+  "amount": zod.number(),
+  "description": zod.string(),
+  "category": zod.enum(['makan', 'transport', 'perlengkapan', 'administrasi', 'lainnya']),
+  "date": zod.string(),
+  "notes": zod.string().nullish(),
+  "createdAt": zod.string()
+})
+
+
+/**
+ * @summary Delete kas entry (admin)
+ */
+export const DeleteKasParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+
+/**
  * @summary Get dashboard summary counts and upcoming items
  */
 export const GetDashboardSummaryResponse = zod.object({

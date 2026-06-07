@@ -22,34 +22,31 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Plus, Pencil, Trash2, ChefHat, SprayCan, Package } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 
 const MEMBERS = [
-  "Muhamad Naufal",
-  "Fadhilah Apta Nur Safitri",
-  "Lutfia Tri Rahmacahyani",
-  "Navida Fitria",
-  "Miftakhul Jannah",
-  "Vrizcka Aullia Asmara",
-  "Quro'atul A'ini",
-  "Dewi Anita Sari",
-  "Tiara Nuril Safitri",
+  "Muhamad Naufal", "Fadhilah Apta Nur Safitri", "Lutfia Tri Rahmacahyani",
+  "Navida Fitria", "Miftakhul Jannah", "Vrizcka Aullia Asmara",
+  "Quro'atul A'ini", "Dewi Anita Sari", "Tiara Nuril Safitri",
 ];
+
+const MEMBER_COLORS = [
+  "from-rose-400 to-pink-400", "from-sky-400 to-blue-400", "from-violet-400 to-purple-400",
+  "from-amber-400 to-orange-400", "from-emerald-400 to-teal-400", "from-fuchsia-400 to-pink-400",
+  "from-cyan-400 to-sky-400", "from-lime-400 to-green-400", "from-indigo-400 to-violet-400",
+];
+
+function getMemberColor(name: string) {
+  const idx = MEMBERS.indexOf(name);
+  return MEMBER_COLORS[idx >= 0 ? idx : 0];
+}
+
+function getInitials(name: string) {
+  return name.split(" ").slice(0, 2).map(w => w[0]).join("").toUpperCase();
+}
 
 const tabs = [
   { id: "masak", label: "Jadwal Masak", icon: ChefHat },
@@ -58,28 +55,30 @@ const tabs = [
 ];
 
 function today() { return new Date().toISOString().split("T")[0]; }
-
 function formatDate(d: string) {
   return new Date(d).toLocaleDateString("id-ID", { weekday: "long", day: "numeric", month: "long" });
 }
 
-function MemberCheckbox({ members, selected, onChange }: { members: string[]; selected: string[]; onChange: (v: string[]) => void }) {
+// Modern member picker — replaces checkbox grid
+function MemberPicker({ selected, onChange }: { selected: string[]; onChange: (v: string[]) => void }) {
   function toggle(m: string) {
     onChange(selected.includes(m) ? selected.filter(x => x !== m) : [...selected, m]);
   }
   return (
-    <div className="grid grid-cols-2 gap-2">
-      {members.map(m => (
-        <label key={m} className={cn(
-          "flex items-center gap-2 text-sm rounded-xl p-2 cursor-pointer border transition-colors",
-          selected.includes(m) ? "bg-rose-50 border-rose-200 text-rose-700" : "bg-white/40 border-white/40 text-gray-700 hover:bg-white/60"
+    <div className="flex flex-wrap gap-2">
+      {MEMBERS.map(m => (
+        <button key={m} onClick={() => toggle(m)} type="button" className={cn(
+          "flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-xs font-medium border-2 transition-all",
+          selected.includes(m)
+            ? "bg-gradient-to-r " + getMemberColor(m) + " text-white border-transparent shadow-sm"
+            : "bg-white/40 text-gray-600 border-white/40 hover:bg-white/60"
         )}>
-          <input type="checkbox" checked={selected.includes(m)} onChange={() => toggle(m)} className="hidden" />
-          <span className={cn("w-4 h-4 rounded border-2 shrink-0 flex items-center justify-center", selected.includes(m) ? "bg-rose-400 border-rose-400" : "border-gray-300")}>
-            {selected.includes(m) && <span className="text-white text-[10px] font-bold">v</span>}
-          </span>
-          {m}
-        </label>
+          <div className={cn("w-4 h-4 rounded-full bg-gradient-to-br flex items-center justify-center text-white text-[8px] font-bold shrink-0",
+            selected.includes(m) ? "bg-white/30" : getMemberColor(m))}>
+            {getInitials(m)[0]}
+          </div>
+          {m.split(" ")[0]}
+        </button>
       ))}
     </div>
   );
@@ -122,35 +121,43 @@ function CookingTab({ isAdmin }: { isAdmin?: boolean }) {
       <div className="flex justify-between items-center">
         <h2 className="text-lg font-semibold text-gray-700">Jadwal Masak</h2>
         {isAdmin && (
-          <Button size="sm" onClick={openAdd} className="bg-gradient-to-r from-rose-400 to-sky-400 text-white border-0 rounded-full gap-1">
+          <Button size="sm" onClick={openAdd} className="bg-gradient-to-r from-orange-400 to-rose-400 text-white border-0 rounded-full gap-1">
             <Plus className="w-4 h-4" />Tambah
           </Button>
         )}
       </div>
       {isLoading ? (
-        <div className="animate-pulse space-y-3">{[1, 2, 3].map(i => <div key={i} className="bg-gray-100 rounded-xl h-20" />)}</div>
+        <div className="animate-pulse space-y-3">{[1,2,3].map(i => <div key={i} className="glass-card h-20" />)}</div>
       ) : !schedules?.length ? (
-        <div className="text-center py-12 text-gray-400 text-sm">Belum ada jadwal masak.</div>
+        <div className="flex flex-col items-center py-12 gap-3">
+          <div className="w-16 h-16 rounded-full bg-gradient-to-br from-orange-100 to-rose-100 flex items-center justify-center">
+            <ChefHat className="w-6 h-6 text-orange-400" />
+          </div>
+          <p className="text-center text-gray-400 text-sm">Belum ada jadwal masak.</p>
+        </div>
       ) : (
         <div className="space-y-3">
           {schedules.map(s => (
-            <div key={s.id} className={cn("glass-card p-4 group transition-all hover:-translate-y-0.5", s.date === todayStr && "ring-2 ring-rose-300/50")}>
+            <div key={s.id} className={cn("glass-card p-4 group transition-all hover:-translate-y-0.5", s.date === todayStr && "ring-2 ring-orange-300/60")}>
               <div className="flex justify-between items-start gap-4">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-1 flex-wrap">
-                    {s.date === todayStr && <Badge className="bg-rose-100 text-rose-700 border-rose-200 border text-xs">Hari Ini</Badge>}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-2 flex-wrap">
+                    {s.date === todayStr && <Badge className="bg-orange-100 text-orange-700 border-orange-200 border text-xs">🍳 Hari Ini</Badge>}
                     <span className="text-sm font-semibold text-gray-800">{formatDate(s.date)}</span>
                   </div>
-                  <div className="flex flex-wrap gap-1 mb-2">
+                  <div className="flex flex-wrap gap-1.5 mb-1">
                     {(s.persons as string[]).map(p => (
-                      <span key={p} className="text-xs bg-sky-100/80 text-sky-700 px-2 py-0.5 rounded-full">{p}</span>
+                      <span key={p} className={cn("flex items-center gap-1 text-xs text-white px-2 py-0.5 rounded-full bg-gradient-to-r", getMemberColor(p))}>
+                        <span className="font-bold text-[9px]">{getInitials(p)}</span>
+                        {p.split(" ")[0]}
+                      </span>
                     ))}
                   </div>
-                  {s.menu && <p className="text-sm text-gray-600"><span className="font-medium">Menu:</span> {s.menu}</p>}
+                  {s.menu && <p className="text-sm text-gray-600 mt-1">🍽️ <span className="font-medium">{s.menu}</span></p>}
                   {s.notes && <p className="text-xs text-gray-400 mt-1">{s.notes}</p>}
                 </div>
                 {isAdmin && (
-                  <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
                     <Button variant="ghost" size="icon" className="h-7 w-7 rounded-full" onClick={() => openEdit(s)}><Pencil className="w-3.5 h-3.5 text-sky-500" /></Button>
                     <Button variant="ghost" size="icon" className="h-7 w-7 rounded-full"
                       onClick={() => del.mutate({ id: s.id }, { onSuccess: () => { invalidate(); toast({ title: "Jadwal dihapus" }); } })}>
@@ -163,23 +170,33 @@ function CookingTab({ isAdmin }: { isAdmin?: boolean }) {
           ))}
         </div>
       )}
+
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="glass-panel border-white/50">
-          <DialogHeader><DialogTitle>{editId ? "Edit Jadwal Masak" : "Tambah Jadwal Masak"}</DialogTitle></DialogHeader>
-          <div className="space-y-4 mt-2">
+        <DialogContent className="glass-panel border-white/50 max-w-md p-0 overflow-hidden max-h-[90vh] overflow-y-auto">
+          <div className="px-6 pt-6 pb-4 bg-gradient-to-r from-orange-400/20 to-rose-400/20">
+            <DialogHeader><DialogTitle className="flex items-center gap-2"><ChefHat className="w-5 h-5 text-orange-500" />{editId ? "Edit Jadwal Masak" : "Tambah Jadwal Masak"}</DialogTitle></DialogHeader>
+          </div>
+          <div className="px-6 pb-6 pt-4 space-y-5">
             <div>
-              <label className="text-sm font-medium text-gray-700 mb-1 block">Tanggal</label>
-              <Input type="date" value={form.date} onChange={e => setForm(f => ({ ...f, date: e.target.value }))} className="bg-white/50" />
+              <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 block">Tanggal</label>
+              <Input type="date" value={form.date} onChange={e => setForm(f => ({ ...f, date: e.target.value }))} className="bg-white/60" />
             </div>
             <div>
-              <label className="text-sm font-medium text-gray-700 mb-1 block">Petugas</label>
-              <MemberCheckbox members={MEMBERS} selected={form.persons} onChange={p => setForm(f => ({ ...f, persons: p }))} />
+              <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2 block">Petugas Masak</label>
+              <MemberPicker selected={form.persons} onChange={p => setForm(f => ({ ...f, persons: p }))} />
+              {form.persons.length > 0 && <p className="text-xs text-gray-400 mt-1.5">{form.persons.length} orang dipilih</p>}
             </div>
-            <Input placeholder="Menu (opsional)" value={form.menu} onChange={e => setForm(f => ({ ...f, menu: e.target.value }))} className="bg-white/50" />
-            <Input placeholder="Catatan (opsional)" value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} className="bg-white/50" />
-            <div className="flex gap-3 justify-end">
-              <Button variant="outline" onClick={() => setOpen(false)}>Batal</Button>
-              <Button onClick={handleSave} className="bg-gradient-to-r from-rose-400 to-sky-400 text-white border-0" disabled={create.isPending || update.isPending}>Simpan</Button>
+            <div>
+              <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 block">Menu (opsional)</label>
+              <Input placeholder="Menu hari ini..." value={form.menu} onChange={e => setForm(f => ({ ...f, menu: e.target.value }))} className="bg-white/60" />
+            </div>
+            <div>
+              <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 block">Catatan (opsional)</label>
+              <Input placeholder="Catatan tambahan..." value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} className="bg-white/60" />
+            </div>
+            <div className="flex gap-3 justify-end pt-1">
+              <Button variant="outline" onClick={() => setOpen(false)} className="rounded-full">Batal</Button>
+              <Button onClick={handleSave} className="bg-gradient-to-r from-orange-400 to-rose-400 text-white border-0 rounded-full" disabled={create.isPending || update.isPending}>Simpan</Button>
             </div>
           </div>
         </DialogContent>
@@ -189,6 +206,15 @@ function CookingTab({ isAdmin }: { isAdmin?: boolean }) {
 }
 
 // ─── CLEANING TAB ─────────────────────────────────────────────────────────────
+const AREA_OPTIONS = [
+  { id: "kamar", label: "Kamar", emoji: "🛏️" },
+  { id: "dapur", label: "Dapur", emoji: "🍳" },
+  { id: "kamar_mandi", label: "Kamar Mandi", emoji: "🚿" },
+  { id: "ruang_tamu", label: "Ruang Tamu", emoji: "🛋️" },
+  { id: "halaman", label: "Halaman", emoji: "🌿" },
+  { id: "semua", label: "Semua Area", emoji: "🏠" },
+];
+
 function CleaningTab({ isAdmin }: { isAdmin?: boolean }) {
   const qc = useQueryClient();
   const { toast } = useToast();
@@ -225,35 +251,43 @@ function CleaningTab({ isAdmin }: { isAdmin?: boolean }) {
       <div className="flex justify-between items-center">
         <h2 className="text-lg font-semibold text-gray-700">Jadwal Bersih-Bersih</h2>
         {isAdmin && (
-          <Button size="sm" onClick={openAdd} className="bg-gradient-to-r from-rose-400 to-sky-400 text-white border-0 rounded-full gap-1">
+          <Button size="sm" onClick={openAdd} className="bg-gradient-to-r from-sky-400 to-blue-400 text-white border-0 rounded-full gap-1">
             <Plus className="w-4 h-4" />Tambah
           </Button>
         )}
       </div>
       {isLoading ? (
-        <div className="animate-pulse space-y-3">{[1, 2, 3].map(i => <div key={i} className="bg-gray-100 rounded-xl h-20" />)}</div>
+        <div className="animate-pulse space-y-3">{[1,2,3].map(i => <div key={i} className="glass-card h-20" />)}</div>
       ) : !schedules?.length ? (
-        <div className="text-center py-12 text-gray-400 text-sm">Belum ada jadwal bersih-bersih.</div>
+        <div className="flex flex-col items-center py-12 gap-3">
+          <div className="w-16 h-16 rounded-full bg-gradient-to-br from-sky-100 to-blue-100 flex items-center justify-center">
+            <SprayCan className="w-6 h-6 text-sky-400" />
+          </div>
+          <p className="text-center text-gray-400 text-sm">Belum ada jadwal bersih-bersih.</p>
+        </div>
       ) : (
         <div className="space-y-3">
           {schedules.map(s => (
-            <div key={s.id} className={cn("glass-card p-4 group transition-all hover:-translate-y-0.5", s.date === todayStr && "ring-2 ring-sky-300/50")}>
+            <div key={s.id} className={cn("glass-card p-4 group transition-all hover:-translate-y-0.5", s.date === todayStr && "ring-2 ring-sky-300/60")}>
               <div className="flex justify-between items-start gap-4">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-1 flex-wrap">
-                    {s.date === todayStr && <Badge className="bg-sky-100 text-sky-700 border-sky-200 border text-xs">Hari Ini</Badge>}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-2 flex-wrap">
+                    {s.date === todayStr && <Badge className="bg-sky-100 text-sky-700 border-sky-200 border text-xs">🧹 Hari Ini</Badge>}
                     <span className="text-sm font-semibold text-gray-800">{formatDate(s.date)}</span>
                   </div>
-                  <div className="flex flex-wrap gap-1 mb-2">
+                  <div className="flex flex-wrap gap-1.5 mb-1">
                     {(s.persons as string[]).map(p => (
-                      <span key={p} className="text-xs bg-rose-100/80 text-rose-700 px-2 py-0.5 rounded-full">{p}</span>
+                      <span key={p} className={cn("flex items-center gap-1 text-xs text-white px-2 py-0.5 rounded-full bg-gradient-to-r", getMemberColor(p))}>
+                        <span className="font-bold text-[9px]">{getInitials(p)}</span>
+                        {p.split(" ")[0]}
+                      </span>
                     ))}
                   </div>
-                  {s.area && <p className="text-sm text-gray-600"><span className="font-medium">Area:</span> {s.area}</p>}
+                  {s.area && <p className="text-sm text-gray-600 mt-1">🧹 Area: <span className="font-medium">{s.area}</span></p>}
                   {s.notes && <p className="text-xs text-gray-400 mt-1">{s.notes}</p>}
                 </div>
                 {isAdmin && (
-                  <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
                     <Button variant="ghost" size="icon" className="h-7 w-7 rounded-full" onClick={() => openEdit(s)}><Pencil className="w-3.5 h-3.5 text-sky-500" /></Button>
                     <Button variant="ghost" size="icon" className="h-7 w-7 rounded-full"
                       onClick={() => del.mutate({ id: s.id }, { onSuccess: () => { invalidate(); toast({ title: "Jadwal dihapus" }); } })}>
@@ -266,23 +300,44 @@ function CleaningTab({ isAdmin }: { isAdmin?: boolean }) {
           ))}
         </div>
       )}
+
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="glass-panel border-white/50">
-          <DialogHeader><DialogTitle>{editId ? "Edit Jadwal Bersih" : "Tambah Jadwal Bersih"}</DialogTitle></DialogHeader>
-          <div className="space-y-4 mt-2">
+        <DialogContent className="glass-panel border-white/50 max-w-md p-0 overflow-hidden max-h-[90vh] overflow-y-auto">
+          <div className="px-6 pt-6 pb-4 bg-gradient-to-r from-sky-400/20 to-blue-400/20">
+            <DialogHeader><DialogTitle className="flex items-center gap-2"><SprayCan className="w-5 h-5 text-sky-500" />{editId ? "Edit Jadwal Bersih" : "Tambah Jadwal Bersih"}</DialogTitle></DialogHeader>
+          </div>
+          <div className="px-6 pb-6 pt-4 space-y-5">
             <div>
-              <label className="text-sm font-medium text-gray-700 mb-1 block">Tanggal</label>
-              <Input type="date" value={form.date} onChange={e => setForm(f => ({ ...f, date: e.target.value }))} className="bg-white/50" />
+              <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 block">Tanggal</label>
+              <Input type="date" value={form.date} onChange={e => setForm(f => ({ ...f, date: e.target.value }))} className="bg-white/60" />
             </div>
             <div>
-              <label className="text-sm font-medium text-gray-700 mb-1 block">Petugas</label>
-              <MemberCheckbox members={MEMBERS} selected={form.persons} onChange={p => setForm(f => ({ ...f, persons: p }))} />
+              <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2 block">Petugas</label>
+              <MemberPicker selected={form.persons} onChange={p => setForm(f => ({ ...f, persons: p }))} />
+              {form.persons.length > 0 && <p className="text-xs text-gray-400 mt-1.5">{form.persons.length} orang dipilih</p>}
             </div>
-            <Input placeholder="Area (opsional)" value={form.area} onChange={e => setForm(f => ({ ...f, area: e.target.value }))} className="bg-white/50" />
-            <Input placeholder="Catatan (opsional)" value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} className="bg-white/50" />
-            <div className="flex gap-3 justify-end">
-              <Button variant="outline" onClick={() => setOpen(false)}>Batal</Button>
-              <Button onClick={handleSave} className="bg-gradient-to-r from-rose-400 to-sky-400 text-white border-0" disabled={create.isPending || update.isPending}>Simpan</Button>
+            <div>
+              <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2 block">Area Bersih (opsional)</label>
+              <div className="grid grid-cols-3 gap-2">
+                {AREA_OPTIONS.map(a => (
+                  <button key={a.id} type="button" onClick={() => setForm(f => ({ ...f, area: f.area === a.label ? "" : a.label }))} className={cn(
+                    "flex flex-col items-center gap-1 p-2 rounded-xl border-2 text-xs transition-all",
+                    form.area === a.label ? "border-sky-400 bg-sky-50 shadow-sm text-sky-700" : "border-white/40 bg-white/30 hover:bg-white/60 text-gray-600"
+                  )}>
+                    <span className="text-xl">{a.emoji}</span>
+                    <span className="font-medium text-center leading-tight">{a.label}</span>
+                  </button>
+                ))}
+              </div>
+              <Input placeholder="Atau ketik area lain..." value={form.area} onChange={e => setForm(f => ({ ...f, area: e.target.value }))} className="bg-white/60 mt-2" />
+            </div>
+            <div>
+              <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 block">Catatan (opsional)</label>
+              <Input placeholder="Catatan tambahan..." value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} className="bg-white/60" />
+            </div>
+            <div className="flex gap-3 justify-end pt-1">
+              <Button variant="outline" onClick={() => setOpen(false)} className="rounded-full">Batal</Button>
+              <Button onClick={handleSave} className="bg-gradient-to-r from-sky-400 to-blue-400 text-white border-0 rounded-full" disabled={create.isPending || update.isPending}>Simpan</Button>
             </div>
           </div>
         </DialogContent>
@@ -293,14 +348,15 @@ function CleaningTab({ isAdmin }: { isAdmin?: boolean }) {
 
 // ─── INVENTARIS TAB ───────────────────────────────────────────────────────────
 const invCategories = [
-  { id: "p3k", label: "P3K", color: "bg-rose-100 text-rose-700 border-rose-200" },
-  { id: "obat", label: "Obat", color: "bg-amber-100 text-amber-700 border-amber-200" },
-  { id: "alkes", label: "Alkes", color: "bg-sky-100 text-sky-700 border-sky-200" },
-  { id: "umum", label: "Umum", color: "bg-emerald-100 text-emerald-700 border-emerald-200" },
+  { id: "p3k", label: "P3K", emoji: "🩹", color: "bg-rose-100 text-rose-700 border-rose-200" },
+  { id: "obat", label: "Obat", emoji: "💊", color: "bg-amber-100 text-amber-700 border-amber-200" },
+  { id: "alkes", label: "Alkes", emoji: "🩺", color: "bg-sky-100 text-sky-700 border-sky-200" },
+  { id: "umum", label: "Umum", emoji: "📦", color: "bg-emerald-100 text-emerald-700 border-emerald-200" },
 ];
 
 function getCatColor(cat: string) { return invCategories.find(c => c.id === cat)?.color ?? "bg-gray-100 text-gray-700 border-gray-200"; }
 function getCatLabel(cat: string) { return invCategories.find(c => c.id === cat)?.label ?? cat; }
+function getCatEmoji(cat: string) { return invCategories.find(c => c.id === cat)?.emoji ?? "📦"; }
 
 function InventarisTab({ isAdmin }: { isAdmin?: boolean }) {
   const qc = useQueryClient();
@@ -345,21 +401,23 @@ function InventarisTab({ isAdmin }: { isAdmin?: boolean }) {
       <div className="flex items-center justify-between flex-wrap gap-2">
         <h2 className="text-lg font-semibold text-gray-700">Inventaris Posko</h2>
         {isAdmin && (
-          <Button size="sm" onClick={openAdd} className="bg-gradient-to-r from-rose-400 to-sky-400 text-white border-0 rounded-full gap-1">
+          <Button size="sm" onClick={openAdd} className="bg-gradient-to-r from-emerald-400 to-teal-400 text-white border-0 rounded-full gap-1">
             <Plus className="w-4 h-4" />Tambah Barang
           </Button>
         )}
       </div>
 
       <div className="flex gap-2 flex-wrap">
-        <button onClick={() => setFilterCat("all")} className={cn("px-3 py-1 rounded-full text-xs font-medium border transition-all", filterCat === "all" ? "bg-gradient-to-r from-rose-400 to-sky-400 text-white border-transparent" : "bg-white/50 text-gray-600 border-white/50 hover:bg-white/80")}>Semua</button>
+        <button onClick={() => setFilterCat("all")} className={cn("px-3 py-1 rounded-full text-xs font-medium border transition-all", filterCat === "all" ? "bg-gradient-to-r from-emerald-400 to-teal-400 text-white border-transparent" : "bg-white/50 text-gray-600 border-white/50 hover:bg-white/80")}>Semua</button>
         {invCategories.map(c => (
-          <button key={c.id} onClick={() => setFilterCat(c.id)} className={cn("px-3 py-1 rounded-full text-xs font-medium border transition-all", filterCat === c.id ? "bg-gradient-to-r from-rose-400 to-sky-400 text-white border-transparent" : "bg-white/50 text-gray-600 border-white/50 hover:bg-white/80")}>{c.label}</button>
+          <button key={c.id} onClick={() => setFilterCat(c.id)} className={cn("flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium border transition-all", filterCat === c.id ? "bg-gradient-to-r from-emerald-400 to-teal-400 text-white border-transparent" : "bg-white/50 text-gray-600 border-white/50 hover:bg-white/80")}>
+            <span>{c.emoji}</span>{c.label}
+          </button>
         ))}
       </div>
 
       {isLoading ? (
-        <div className="animate-pulse space-y-3">{[1,2].map(i => <div key={i} className="bg-gray-100 rounded-xl h-24" />)}</div>
+        <div className="animate-pulse space-y-3">{[1,2].map(i => <div key={i} className="glass-card h-24" />)}</div>
       ) : filtered.length === 0 ? (
         <div className="text-center py-10 text-gray-400 text-sm">Belum ada barang inventaris.</div>
       ) : (
@@ -367,7 +425,9 @@ function InventarisTab({ isAdmin }: { isAdmin?: boolean }) {
           {Object.entries(grouped).map(([catId, items]) => (
             <div key={catId}>
               <div className="flex items-center gap-2 mb-2">
-                <Badge className={cn("text-xs px-2.5 py-0.5 border", getCatColor(catId))}>{getCatLabel(catId)}</Badge>
+                <Badge className={cn("text-xs px-2.5 py-0.5 border flex items-center gap-1", getCatColor(catId))}>
+                  <span>{getCatEmoji(catId)}</span>{getCatLabel(catId)}
+                </Badge>
                 <span className="text-xs text-gray-400">{items.length} item</span>
               </div>
               <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
@@ -376,7 +436,7 @@ function InventarisTab({ isAdmin }: { isAdmin?: boolean }) {
                     <div className="flex justify-between items-center gap-2">
                       <div className="min-w-0">
                         <p className="font-semibold text-sm text-gray-900 truncate">{item.name}</p>
-                        <p className="text-xs text-gray-500"><span className="text-lg font-bold text-gray-800">{item.quantity}</span> {item.unit}</p>
+                        <p className="text-xs text-gray-500"><span className="text-xl font-bold text-gray-800">{item.quantity}</span> {item.unit}</p>
                       </div>
                       {isAdmin && (
                         <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
@@ -394,27 +454,46 @@ function InventarisTab({ isAdmin }: { isAdmin?: boolean }) {
       )}
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="glass-panel border-white/50">
-          <DialogHeader><DialogTitle>{editId ? "Edit Barang" : "Tambah Barang"}</DialogTitle></DialogHeader>
-          <div className="space-y-4 mt-2">
-            <Input placeholder="Nama barang" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} className="bg-white/50" />
-            <Select value={form.category} onValueChange={v => setForm(f => ({ ...f, category: v }))}>
-              <SelectTrigger className="bg-white/50"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="p3k">P3K</SelectItem>
-                <SelectItem value="obat">Obat</SelectItem>
-                <SelectItem value="alkes">Alkes</SelectItem>
-                <SelectItem value="umum">Umum</SelectItem>
-              </SelectContent>
-            </Select>
-            <div className="flex gap-3">
-              <Input type="number" min={0} placeholder="Jumlah" value={form.quantity} onChange={e => setForm(f => ({ ...f, quantity: Number(e.target.value) }))} className="bg-white/50 w-24" />
-              <Input placeholder="Satuan (pcs, tablet...)" value={form.unit} onChange={e => setForm(f => ({ ...f, unit: e.target.value }))} className="bg-white/50 flex-1" />
+        <DialogContent className="glass-panel border-white/50 max-w-md p-0 overflow-hidden">
+          <div className="px-6 pt-6 pb-4 bg-gradient-to-r from-emerald-400/20 to-teal-400/20">
+            <DialogHeader><DialogTitle className="flex items-center gap-2"><Package className="w-5 h-5 text-emerald-500" />{editId ? "Edit Barang" : "Tambah Barang"}</DialogTitle></DialogHeader>
+          </div>
+          <div className="px-6 pb-6 pt-4 space-y-4">
+            <div>
+              <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 block">Nama Barang</label>
+              <Input placeholder="Nama barang..." value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} className="bg-white/60" />
             </div>
-            <Input placeholder="Catatan (opsional)" value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} className="bg-white/50" />
-            <div className="flex gap-3 justify-end">
-              <Button variant="outline" onClick={() => setOpen(false)}>Batal</Button>
-              <Button onClick={handleSave} className="bg-gradient-to-r from-rose-400 to-sky-400 text-white border-0" disabled={create.isPending || update.isPending}>Simpan</Button>
+            <div>
+              <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2 block">Kategori</label>
+              <div className="grid grid-cols-2 gap-2">
+                {invCategories.map(cat => (
+                  <button key={cat.id} type="button" onClick={() => setForm(f => ({ ...f, category: cat.id }))} className={cn(
+                    "flex items-center gap-2 px-3 py-2.5 rounded-xl border-2 text-sm transition-all",
+                    form.category === cat.id ? cat.color + " border-current shadow-sm" : "bg-white/40 text-gray-500 border-white/40 hover:bg-white/70"
+                  )}>
+                    <span className="text-lg">{cat.emoji}</span>
+                    <span className="font-medium">{cat.label}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="flex gap-3">
+              <div className="w-28">
+                <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 block">Jumlah</label>
+                <Input type="number" min={0} placeholder="0" value={form.quantity} onChange={e => setForm(f => ({ ...f, quantity: Number(e.target.value) }))} className="bg-white/60" />
+              </div>
+              <div className="flex-1">
+                <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 block">Satuan</label>
+                <Input placeholder="pcs, tablet, botol..." value={form.unit} onChange={e => setForm(f => ({ ...f, unit: e.target.value }))} className="bg-white/60" />
+              </div>
+            </div>
+            <div>
+              <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 block">Catatan (opsional)</label>
+              <Input placeholder="Catatan..." value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} className="bg-white/60" />
+            </div>
+            <div className="flex gap-3 justify-end pt-1">
+              <Button variant="outline" onClick={() => setOpen(false)} className="rounded-full">Batal</Button>
+              <Button onClick={handleSave} className="bg-gradient-to-r from-emerald-400 to-teal-400 text-white border-0 rounded-full" disabled={create.isPending || update.isPending}>Simpan</Button>
             </div>
           </div>
         </DialogContent>
@@ -432,9 +511,7 @@ export default function OurLifePage() {
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
       <div>
-        <h1 className="text-3xl font-bold bg-gradient-to-r from-rose-500 to-sky-500 bg-clip-text text-transparent">
-          Our Life
-        </h1>
+        <h1 className="text-3xl font-bold bg-gradient-to-r from-rose-500 to-sky-500 bg-clip-text text-transparent">Our Life</h1>
         <p className="text-gray-500 text-sm mt-1">Kehidupan sehari-hari, jadwal piket, dan inventaris posko</p>
       </div>
 

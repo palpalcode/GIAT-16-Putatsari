@@ -13,6 +13,7 @@ import DeadlinePage from "@/pages/deadline";
 import OurLifePage from "@/pages/our-life";
 import OurWorkPage from "@/pages/our-work";
 import MasalahPage from "@/pages/masalah";
+import KasPage from "@/pages/kas";
 
 const queryClient = new QueryClient();
 
@@ -27,6 +28,7 @@ function Router() {
         <Route path="/pengumuman" component={PengumumanPage} />
         <Route path="/deadline" component={DeadlinePage} />
         <Route path="/masalah" component={MasalahPage} />
+        <Route path="/kas" component={KasPage} />
         <Route path="/admin" component={AdminPage} />
         {/* legacy redirects */}
         <Route path="/kehidupan" component={OurLifePage} />
