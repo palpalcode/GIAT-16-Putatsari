@@ -60,7 +60,7 @@ export default function Dashboard() {
             </Link>
           </div>
 
-          <div className="space-y-4">
+          <div className="space-y-5">
             {isLoading ? (
               [1, 2, 3].map(i => <SkeletonBlock key={i} className="h-20" />)
             ) : !summary?.recentAnnouncements?.length ? (
@@ -109,7 +109,7 @@ export default function Dashboard() {
             </Link>
           </div>
 
-          <div className="space-y-4">
+          <div className="space-y-5">
             {isLoading ? (
               [1, 2, 3].map(i => <SkeletonBlock key={i} className="h-20" />)
             ) : !summary?.urgentDeadlines?.length ? (
