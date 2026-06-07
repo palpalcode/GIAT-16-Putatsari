@@ -1,8 +1,9 @@
 import { useGetDashboardSummary } from "@workspace/api-client-react";
 import { Badge } from "@/components/ui/badge";
-import { Megaphone, Calendar, AlertTriangle, CheckCircle2, ChefHat, SprayCan, Package, ClipboardList } from "lucide-react";
+import { Megaphone, Calendar, AlertTriangle, CheckCircle2, ChefHat, SprayCan, Package } from "lucide-react";
 import { Link } from "wouter";
 import { cn } from "@/lib/utils";
+import { TEAM_MEMBERS, TEAM_ROLES } from "@/lib/utils";
 
 function daysLeft(dueDate: string): number {
   const now = new Date();
@@ -233,26 +234,26 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Quick navigation */}
+      {/* ── About Us (Team) — menggantikan Jelajahi ─────────────────────────── */}
       <div>
-        <h2 className="font-bold text-gray-700 mb-3 text-sm uppercase tracking-wide">Jelajahi</h2>
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
-          {[
-            { href: "/tim", label: "Tim Putatsari Wellness", emoji: "👥", from: "from-rose-400", to: "to-pink-400" },
-            { href: "/our-life", label: "Our Life", emoji: "🏠", from: "from-sky-400", to: "to-blue-400" },
-            { href: "/our-work", label: "Our Work", emoji: "📋", from: "from-violet-400", to: "to-purple-400" },
-            { href: "/pengumuman", label: "Pengumuman", emoji: "📢", from: "from-rose-400", to: "to-orange-400" },
-            { href: "/deadline", label: "Deadline", emoji: "⏰", from: "from-amber-400", to: "to-yellow-400" },
-            { href: "/masalah", label: "Masalah", emoji: "🔧", from: "from-emerald-400", to: "to-teal-400" },
-          ].map(nav => (
-            <Link key={nav.href} href={nav.href}>
-              <div className="glass-card p-4 text-center hover:-translate-y-1 transition-all cursor-pointer group">
-                <div className={cn("w-9 h-9 rounded-xl bg-gradient-to-br mx-auto mb-2 flex items-center justify-center text-lg", nav.from, nav.to)}>
-                  {nav.emoji}
-                </div>
-                <p className="text-xs font-medium text-gray-600 group-hover:text-gray-900">{nav.label}</p>
+        <div className="flex items-center gap-2 mb-4">
+          <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-rose-100 to-sky-100 flex items-center justify-center">
+            <span className="text-sm">👥</span>
+          </div>
+          <h2 className="font-bold text-gray-700 text-sm uppercase tracking-wide">Tim Putatsari Wellness</h2>
+          <span className="text-xs text-gray-400">{TEAM_MEMBERS.length} anggota</span>
+        </div>
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
+          {TEAM_MEMBERS.map((member) => (
+            <div key={member} className="glass-card p-4 text-center hover:-translate-y-1 transition-all group">
+              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-rose-200 to-sky-200 mx-auto mb-2 flex items-center justify-center text-rose-600 font-bold text-sm">
+                <span>👤</span>
               </div>
-            </Link>
+              <p className="text-sm font-semibold text-gray-800 leading-tight">{member}</p>
+              <p className="text-xs text-sky-600 mt-1 bg-sky-50 inline-block px-2 py-0.5 rounded-full border border-sky-100">
+                {TEAM_ROLES[member]}
+              </p>
+            </div>
           ))}
         </div>
       </div>
