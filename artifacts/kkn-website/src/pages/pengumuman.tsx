@@ -275,14 +275,14 @@ export default function PengumumanPage() {
         )}
       </div>
       {/* Tabs */}
-      <div className="flex items-center gap-1 bg-white/50 rounded-full p-1 w-fit border border-white/60">
+      <div className="flex items-center gap-1 bg-white/90 rounded-full p-1 w-fit border border-white/60">
         <button
           onClick={() => setTab("pengumuman")}
           className={cn(
             "px-4 py-2 rounded-full text-sm font-medium transition-all",
             tab === "pengumuman"
               ? "bg-white text-rose-600 shadow-sm"
-              : "text-gray-500 hover:text-gray-700"
+              : "text-amber-700 hover:text-amber-900"
           )}
         >
           <Megaphone className="w-3.5 h-3.5 inline mr-1.5 -mt-0.5" />
@@ -294,7 +294,7 @@ export default function PengumumanPage() {
             "px-4 py-2 rounded-full text-sm font-medium transition-all",
             tab === "notulensi"
               ? "bg-white text-rose-600 shadow-sm"
-              : "text-gray-500 hover:text-gray-700"
+              : "text-amber-700 hover:text-amber-900"
           )}
         >
           <FileText className="w-3.5 h-3.5 inline mr-1.5 -mt-0.5" />
@@ -435,7 +435,7 @@ export default function PengumumanPage() {
       )}
       {/* Pengumuman Dialog */}
       <Dialog open={openA} onOpenChange={setOpenA}>
-        <DialogContent className="glass-panel border-white/50">
+        <DialogContent className="form-dialog border-white/50">
           <DialogHeader>
             <DialogTitle>{editingAId ? "Edit Pengumuman" : "Tambah Pengumuman"}</DialogTitle>
           </DialogHeader>
@@ -445,7 +445,7 @@ export default function PengumumanPage() {
                 placeholder="Judul pengumuman"
                 value={formA.title}
                 onChange={(e) => { setFormA(f => ({ ...f, title: e.target.value })); setAFieldErrors(fe => ({ ...fe, title: "" })); }}
-                className="bg-white/50"
+                className="bg-white/90"
               />
               {aFieldErrors.title && <p className="text-xs text-rose-500 mt-1">{aFieldErrors.title}</p>}
             </div>
@@ -455,12 +455,12 @@ export default function PengumumanPage() {
                 value={formA.content}
                 onChange={(e) => { setFormA(f => ({ ...f, content: e.target.value })); setAFieldErrors(fe => ({ ...fe, content: "" })); }}
                 rows={4}
-                className="bg-white/50"
+                className="bg-white/90"
               />
               {aFieldErrors.content && <p className="text-xs text-rose-500 mt-1">{aFieldErrors.content}</p>}
             </div>
             <Select value={formA.priority} onValueChange={(v) => setFormA(f => ({ ...f, priority: v as Priority }))}>
-              <SelectTrigger className="bg-white/50">
+              <SelectTrigger className="bg-white/90">
                 <SelectValue placeholder="Prioritas" />
               </SelectTrigger>
               <SelectContent>
@@ -484,7 +484,7 @@ export default function PengumumanPage() {
       </Dialog>
       {/* Notulensi Dialog */}
       <Dialog open={openN} onOpenChange={setOpenN}>
-        <DialogContent className="glass-panel border-white/50 max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="form-dialog border-white/50 max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{editingNId ? "Edit Notulensi" : "Tambah Notulensi"}</DialogTitle>
           </DialogHeader>
@@ -494,41 +494,41 @@ export default function PengumumanPage() {
                 placeholder="Judul notulensi / nama rapat"
                 value={formN.title}
                 onChange={(e) => { fN("title", e.target.value); setNFieldErrors(fe => ({ ...fe, title: "" })); }}
-                className="bg-white/50"
+                className="bg-white/90"
               />
               {nFieldErrors.title && <p className="text-xs text-rose-500 mt-1">{nFieldErrors.title}</p>}
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 block">
+                <label className="text-xs font-semibold text-amber-800 uppercase tracking-wide mb-1.5 block">
                   Tanggal Rapat
                 </label>
                 <Input
                   type="date"
                   value={formN.meetingDate}
                   onChange={(e) => { fN("meetingDate", e.target.value); setNFieldErrors(fe => ({ ...fe, meetingDate: "" })); }}
-                  className="bg-white/50"
+                  className="bg-white/90"
                 />
                 {nFieldErrors.meetingDate && <p className="text-xs text-rose-500 mt-1">{nFieldErrors.meetingDate}</p>}
               </div>
               <div>
-                <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 block">
+                <label className="text-xs font-semibold text-amber-800 uppercase tracking-wide mb-1.5 block">
                   Penulis / Notulis
                 </label>
                 <Input
                   placeholder="Nama notulis"
                   value={formN.author}
                   onChange={(e) => { fN("author", e.target.value); setNFieldErrors(fe => ({ ...fe, author: "" })); }}
-                  className="bg-white/50"
+                  className="bg-white/90"
                 />
                 {nFieldErrors.author && <p className="text-xs text-rose-500 mt-1">{nFieldErrors.author}</p>}
               </div>
             </div>
             <div>
-              <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 block">
+              <label className="text-xs font-semibold text-amber-800 uppercase tracking-wide mb-1.5 block">
                 Peserta
               </label>
-              <div className="bg-white/50 rounded-xl border border-white/60 p-3">
+              <div className="bg-white/90 rounded-xl border border-white/60 p-3">
                 <MemberPicker
                   selected={formN.attendeesSelected}
                   onChange={(v) => fN("attendeesSelected", v)}
@@ -536,7 +536,7 @@ export default function PengumumanPage() {
               </div>
             </div>
             <div>
-              <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 block">
+              <label className="text-xs font-semibold text-amber-800 uppercase tracking-wide mb-1.5 block">
                 Agenda (opsional)
               </label>
               <Textarea
@@ -544,11 +544,11 @@ export default function PengumumanPage() {
                 value={formN.agenda}
                 onChange={(e) => fN("agenda", e.target.value)}
                 rows={3}
-                className="bg-white/50"
+                className="bg-white/90"
               />
             </div>
             <div>
-              <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 block">
+              <label className="text-xs font-semibold text-amber-800 uppercase tracking-wide mb-1.5 block">
                 Isi Notulensi
               </label>
               <Textarea
@@ -556,7 +556,7 @@ export default function PengumumanPage() {
                 value={formN.content}
                 onChange={(e) => { fN("content", e.target.value); setNFieldErrors(fe => ({ ...fe, content: "" })); }}
                 rows={10}
-                className="bg-white/50"
+                className="bg-white/90"
               />
               {nFieldErrors.content && <p className="text-xs text-rose-500 mt-1">{nFieldErrors.content}</p>}
             </div>

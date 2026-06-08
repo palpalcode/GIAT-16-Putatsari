@@ -163,28 +163,28 @@ function LifeTab({ isAdmin }: { isAdmin?: boolean }) {
       )}
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="glass-panel border-white/50 max-w-md p-0 overflow-hidden">
+        <DialogContent className="form-dialog border-white/50 max-w-md p-0 overflow-hidden">
           <div className="px-6 pt-6 pb-4 bg-gradient-to-r from-rose-400/15 to-amber-400/15">
             <DialogHeader><DialogTitle>{editId ? "Edit Keluhan" : "Catat Keluhan Our Life"}</DialogTitle></DialogHeader>
           </div>
           <div className="px-6 pb-6 pt-4 space-y-4">
             <div>
-              <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 block">Judul Keluhan</label>
-              <Input placeholder="Judul keluhan..." value={form.title} onChange={e => { setForm(f => ({ ...f, title: e.target.value })); setFieldErrors(fe => ({ ...fe, title: "" })); }} className="bg-white/60" />
+              <label className="text-xs font-semibold text-amber-800 uppercase tracking-wide mb-1.5 block">Judul Keluhan</label>
+              <Input placeholder="Judul keluhan..." value={form.title} onChange={e => { setForm(f => ({ ...f, title: e.target.value })); setFieldErrors(fe => ({ ...fe, title: "" })); }} className="bg-white/90" />
               {fieldErrors.title && <p className="text-xs text-rose-500 mt-1">{fieldErrors.title}</p>}
             </div>
             <div>
-              <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 block">Deskripsi</label>
-              <Textarea placeholder="Ceritakan keluhannya..." value={form.description} onChange={e => { setForm(f => ({ ...f, description: e.target.value })); setFieldErrors(fe => ({ ...fe, description: "" })); }} rows={3} className="bg-white/60" />
+              <label className="text-xs font-semibold text-amber-800 uppercase tracking-wide mb-1.5 block">Deskripsi</label>
+              <Textarea placeholder="Ceritakan keluhannya..." value={form.description} onChange={e => { setForm(f => ({ ...f, description: e.target.value })); setFieldErrors(fe => ({ ...fe, description: "" })); }} rows={3} className="bg-white/90" />
               {fieldErrors.description && <p className="text-xs text-rose-500 mt-1">{fieldErrors.description}</p>}
             </div>
             <div>
-              <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2 block">Dilaporkan Oleh</label>
+              <label className="text-xs font-semibold text-amber-800 uppercase tracking-wide mb-2 block">Dilaporkan Oleh</label>
               <div className="grid grid-cols-3 gap-2">
                 {MEMBERS.map(m => (
                   <button key={m} onClick={() => setForm(f => ({ ...f, reportedBy: m }))} className={cn(
                     "flex flex-col items-center gap-1 p-2 rounded-xl border-2 text-xs transition-all",
-                    form.reportedBy === m ? "border-rose-400 bg-rose-50 shadow-sm" : "border-white/40 bg-white/30 hover:bg-white/60"
+                    form.reportedBy === m ? "border-rose-400 bg-rose-50 shadow-sm" : "border-amber-200/40 bg-white/60 hover:bg-white shadow-sm"
                   )}>
                     <div className={cn("w-7 h-7 rounded-full bg-gradient-to-br flex items-center justify-center text-white text-[9px] font-bold", getMemberColor(m))}>
                       <User className="w-3.5 h-3.5" />
@@ -195,14 +195,14 @@ function LifeTab({ isAdmin }: { isAdmin?: boolean }) {
               </div>
             </div>
             <div>
-              <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 block">Status</label>
+              <label className="text-xs font-semibold text-amber-800 uppercase tracking-wide mb-1.5 block">Status</label>
               <div className="flex gap-2">
                 {[{ id: "open", label: "Terbuka" }, { id: "resolved", label: "Selesai" }].map(s => (
                   <button key={s.id} onClick={() => setForm(f => ({ ...f, status: s.id as ComplaintInputStatus }))} className={cn(
                     "flex-1 py-2 rounded-xl text-sm font-medium border-2 transition-all",
                     form.status === s.id
                       ? s.id === "open" ? "bg-amber-400 text-white border-amber-400 shadow" : "bg-emerald-500 text-white border-emerald-500 shadow"
-                      : "bg-white/40 text-gray-500 border-white/40 hover:bg-white/70"
+                      : "bg-white/90 text-amber-600 border-amber-200/40 hover:bg-white shadow-sm"
                   )}>{s.label}</button>
                 ))}
               </div>
@@ -357,28 +357,28 @@ function WorkTab({ isAdmin }: { isAdmin?: boolean }) {
       )}
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="glass-panel border-white/50 max-w-md p-0 overflow-hidden">
+        <DialogContent className="form-dialog border-white/50 max-w-md p-0 overflow-hidden">
           <div className="px-6 pt-6 pb-4 bg-gradient-to-r from-sky-400/15 to-violet-400/15">
             <DialogHeader><DialogTitle>{editId ? "Edit Masalah" : "Catat Masalah Our Work"}</DialogTitle></DialogHeader>
           </div>
           <div className="px-6 pb-6 pt-4 space-y-4">
             <div>
-              <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 block">Judul Masalah</label>
-              <Input placeholder="Judul masalah..." value={form.title} onChange={e => { setForm(f => ({ ...f, title: e.target.value })); setFieldErrors(fe => ({ ...fe, title: "" })); }} className="bg-white/60" />
+              <label className="text-xs font-semibold text-amber-800 uppercase tracking-wide mb-1.5 block">Judul Masalah</label>
+              <Input placeholder="Judul masalah..." value={form.title} onChange={e => { setForm(f => ({ ...f, title: e.target.value })); setFieldErrors(fe => ({ ...fe, title: "" })); }} className="bg-white/90" />
               {fieldErrors.title && <p className="text-xs text-rose-500 mt-1">{fieldErrors.title}</p>}
             </div>
             <div>
-              <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 block">Deskripsi</label>
-              <Textarea placeholder="Ceritakan masalahnya..." value={form.description} onChange={e => { setForm(f => ({ ...f, description: e.target.value })); setFieldErrors(fe => ({ ...fe, description: "" })); }} rows={3} className="bg-white/60" />
+              <label className="text-xs font-semibold text-amber-800 uppercase tracking-wide mb-1.5 block">Deskripsi</label>
+              <Textarea placeholder="Ceritakan masalahnya..." value={form.description} onChange={e => { setForm(f => ({ ...f, description: e.target.value })); setFieldErrors(fe => ({ ...fe, description: "" })); }} rows={3} className="bg-white/90" />
               {fieldErrors.description && <p className="text-xs text-rose-500 mt-1">{fieldErrors.description}</p>}
             </div>
             <div>
-              <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 block">Kategori</label>
+              <label className="text-xs font-semibold text-amber-800 uppercase tracking-wide mb-1.5 block">Kategori</label>
               <div className="grid grid-cols-2 gap-2">
                 {ISSUE_CATEGORIES.map(cat => (
                   <button key={cat.id} onClick={() => setForm(f => ({ ...f, category: cat.id as IssueInputCategory }))} className={cn(
                     "flex items-center gap-2 px-3 py-2 rounded-xl border-2 text-sm transition-all",
-                    form.category === cat.id ? cat.color + " border-current shadow-sm" : "bg-white/40 text-gray-500 border-white/40 hover:bg-white/70"
+                    form.category === cat.id ? cat.color + " border-current shadow-sm" : "bg-white/90 text-amber-600 border-amber-200/40 hover:bg-white shadow-sm"
                   )}>
                     <span>{cat.emoji}</span><span className="font-medium">{cat.label}</span>
                   </button>
@@ -386,7 +386,7 @@ function WorkTab({ isAdmin }: { isAdmin?: boolean }) {
               </div>
             </div>
             <div>
-              <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 block">Prioritas</label>
+              <label className="text-xs font-semibold text-amber-800 uppercase tracking-wide mb-1.5 block">Prioritas</label>
               <div className="flex gap-2">
                 {[{ id: "high", label: "🔴 Tinggi" }, { id: "medium", label: "🟡 Sedang" }, { id: "low", label: "🟢 Rendah" }].map(p => (
                   <button key={p.id} onClick={() => setForm(f => ({ ...f, priority: p.id as IssueInputPriority }))} className={cn(
@@ -395,13 +395,13 @@ function WorkTab({ isAdmin }: { isAdmin?: boolean }) {
                       ? p.id === "high" ? "bg-rose-500 text-white border-rose-500 shadow"
                         : p.id === "medium" ? "bg-amber-400 text-white border-amber-400 shadow"
                         : "bg-emerald-500 text-white border-emerald-500 shadow"
-                      : "bg-white/40 text-gray-500 border-white/40 hover:bg-white/70"
+                      : "bg-white/90 text-amber-600 border-amber-200/40 hover:bg-white shadow-sm"
                   )}>{p.label}</button>
                 ))}
               </div>
             </div>
             <div>
-              <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 block">Status</label>
+              <label className="text-xs font-semibold text-amber-800 uppercase tracking-wide mb-1.5 block">Status</label>
               <div className="flex gap-2">
                 {[{ id: "open", label: "Terbuka" }, { id: "in_progress", label: "Diproses" }, { id: "resolved", label: "Selesai" }].map(s => (
                   <button key={s.id} onClick={() => setForm(f => ({ ...f, status: s.id as IssueInputStatus }))} className={cn(
@@ -410,7 +410,7 @@ function WorkTab({ isAdmin }: { isAdmin?: boolean }) {
                       ? s.id === "open" ? "bg-rose-500 text-white border-rose-500 shadow"
                         : s.id === "in_progress" ? "bg-amber-400 text-white border-amber-400 shadow"
                         : "bg-emerald-500 text-white border-emerald-500 shadow"
-                      : "bg-white/40 text-gray-500 border-white/40 hover:bg-white/70"
+                      : "bg-white/90 text-amber-600 border-amber-200/40 hover:bg-white shadow-sm"
                   )}>{s.label}</button>
                 ))}
               </div>
@@ -444,7 +444,7 @@ export default function MasalahPage() {
         <p className="text-gray-500 text-sm mt-1">Kendala dan keluhan dari kehidupan maupun program kerja</p>
       </div>
 
-      <div className="flex gap-2 p-1 bg-white/40 backdrop-blur-sm rounded-2xl border border-white/40">
+      <div className="flex gap-2 p-1 bg-white/60 backdrop-blur-sm border-amber-200/50 rounded-2xl border border-white/40">
         {tabs.map(tab => {
           const Icon = tab.icon;
           const count = tab.id === "life" ? lifeCount : workCount;
@@ -456,7 +456,7 @@ export default function MasalahPage() {
                 "flex flex-1 items-center justify-center gap-2 px-6 py-2.5 rounded-xl text-sm font-medium transition-all",
                 activeTab === tab.id
                   ? "bg-gradient-to-r from-rose-400 to-sky-400 text-white shadow-sm"
-                  : "text-gray-600 hover:text-gray-900 hover:bg-white/50"
+                  : "text-gray-600 hover:text-amber-800 hover:bg-white/90 border-amber-200/50"
               )}
             >
               <Icon className="w-4 h-4 shrink-0" />

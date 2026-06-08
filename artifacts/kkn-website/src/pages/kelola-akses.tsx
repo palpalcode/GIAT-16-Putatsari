@@ -95,7 +95,7 @@ export default function KelolaAksesPage() {
                 return (
                   <label
                     key={resource}
-                    className="flex items-center justify-between gap-3 rounded-2xl border border-white/60 bg-white/50 px-4 py-3 cursor-pointer hover:bg-white/70 transition-colors"
+                    className="flex items-center justify-between gap-3 rounded-2xl border border-amber-200/50 bg-white px-4 py-3 cursor-pointer hover:bg-white/90 transition-colors"
                   >
                     <span className="font-medium text-gray-700">{RESOURCE_LABELS[resource]}</span>
                     <Switch

@@ -79,10 +79,10 @@ function MemberPicker({ selected, onChange }: { selected: string[]; onChange: (v
           "flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-xs font-medium border-2 transition-all",
           selected.includes(m)
             ? "bg-gradient-to-r " + getMemberColor(m) + " text-white border-transparent shadow-sm"
-            : "bg-white/40 text-gray-600 border-white/40 hover:bg-white/60"
+            : "bg-white/90 text-gray-600 border-white/40 hover:bg-white/90"
         )}>
           <div className={cn("w-4 h-4 rounded-full bg-gradient-to-br flex items-center justify-center text-white text-[8px] font-bold shrink-0",
-            selected.includes(m) ? "bg-white/30" : getMemberColor(m))}>
+            selected.includes(m) ? "bg-white/90" : getMemberColor(m))}>
             <User className="w-2.5 h-2.5" />
           </div>
           {m}
@@ -187,28 +187,28 @@ function CookingTab({ isLoggedIn }: { isLoggedIn?: boolean }) {
       )}
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="glass-panel border-white/50 max-w-md p-0 overflow-hidden max-h-[90vh] overflow-y-auto">
+        <DialogContent className="form-dialog border-white/50 max-w-md p-0 overflow-hidden max-h-[90vh] overflow-y-auto">
           <div className="px-6 pt-6 pb-4 bg-gradient-to-r from-orange-400/20 to-rose-400/20">
             <DialogHeader><DialogTitle className="flex items-center gap-2"><ChefHat className="w-5 h-5 text-orange-500" />{editId ? "Edit Jadwal Masak" : "Tambah Jadwal Masak"}</DialogTitle></DialogHeader>
           </div>
           <div className="px-6 pb-6 pt-4 space-y-5">
             <div>
-              <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 block">Tanggal</label>
-              <Input type="date" value={form.date} onChange={e => { setForm(f => ({ ...f, date: e.target.value })); setFieldErrors(fe => ({ ...fe, date: "" })); }} className="bg-white/60" />
+              <label className="text-xs font-semibold text-amber-800 uppercase tracking-wide mb-1.5 block">Tanggal</label>
+              <Input type="date" value={form.date} onChange={e => { setForm(f => ({ ...f, date: e.target.value })); setFieldErrors(fe => ({ ...fe, date: "" })); }} className="bg-white/90" />
               {fieldErrors.date && <p className="text-xs text-rose-500 mt-1">{fieldErrors.date}</p>}
             </div>
             <div>
-              <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2 block">Petugas Masak</label>
+              <label className="text-xs font-semibold text-amber-800 uppercase tracking-wide mb-2 block">Petugas Masak</label>
               <MemberPicker selected={form.persons} onChange={p => setForm(f => ({ ...f, persons: p }))} />
               {form.persons.length > 0 && <p className="text-xs text-gray-400 mt-1.5">{form.persons.length} orang dipilih</p>}
             </div>
             <div>
-              <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 block">Menu (opsional)</label>
-              <Input placeholder="Menu hari ini..." value={form.menu} onChange={e => setForm(f => ({ ...f, menu: e.target.value }))} className="bg-white/60" />
+              <label className="text-xs font-semibold text-amber-800 uppercase tracking-wide mb-1.5 block">Menu (opsional)</label>
+              <Input placeholder="Menu hari ini..." value={form.menu} onChange={e => setForm(f => ({ ...f, menu: e.target.value }))} className="bg-white/90" />
             </div>
             <div>
-              <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 block">Catatan (opsional)</label>
-              <Input placeholder="Catatan tambahan..." value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} className="bg-white/60" />
+              <label className="text-xs font-semibold text-amber-800 uppercase tracking-wide mb-1.5 block">Catatan (opsional)</label>
+              <Input placeholder="Catatan tambahan..." value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} className="bg-white/90" />
             </div>
             <div className="flex gap-3 justify-end pt-1">
               <Button variant="outline" onClick={() => setOpen(false)} className="rounded-full">Batal</Button>
@@ -325,39 +325,39 @@ function CleaningTab({ isAdmin }: { isAdmin?: boolean }) {
       )}
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="glass-panel border-white/50 max-w-md p-0 overflow-hidden max-h-[90vh] overflow-y-auto">
+        <DialogContent className="form-dialog border-white/50 max-w-md p-0 overflow-hidden max-h-[90vh] overflow-y-auto">
           <div className="px-6 pt-6 pb-4 bg-gradient-to-r from-sky-400/20 to-blue-400/20">
             <DialogHeader><DialogTitle className="flex items-center gap-2"><SprayCan className="w-5 h-5 text-sky-500" />{editId ? "Edit Jadwal Bersih" : "Tambah Jadwal Bersih"}</DialogTitle></DialogHeader>
           </div>
           <div className="px-6 pb-6 pt-4 space-y-5">
             <div>
-              <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 block">Tanggal</label>
-              <Input type="date" value={form.date} onChange={e => { setForm(f => ({ ...f, date: e.target.value })); setFieldErrors(fe => ({ ...fe, date: "" })); }} className="bg-white/60" />
+              <label className="text-xs font-semibold text-amber-800 uppercase tracking-wide mb-1.5 block">Tanggal</label>
+              <Input type="date" value={form.date} onChange={e => { setForm(f => ({ ...f, date: e.target.value })); setFieldErrors(fe => ({ ...fe, date: "" })); }} className="bg-white/90" />
               {fieldErrors.date && <p className="text-xs text-rose-500 mt-1">{fieldErrors.date}</p>}
             </div>
             <div>
-              <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2 block">Petugas</label>
+              <label className="text-xs font-semibold text-amber-800 uppercase tracking-wide mb-2 block">Petugas</label>
               <MemberPicker selected={form.persons} onChange={p => setForm(f => ({ ...f, persons: p }))} />
               {form.persons.length > 0 && <p className="text-xs text-gray-400 mt-1.5">{form.persons.length} orang dipilih</p>}
             </div>
             <div>
-              <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2 block">Area Bersih (opsional)</label>
+              <label className="text-xs font-semibold text-amber-800 uppercase tracking-wide mb-2 block">Area Bersih (opsional)</label>
               <div className="grid grid-cols-3 gap-2">
                 {AREA_OPTIONS.map(a => (
                   <button key={a.id} type="button" onClick={() => setForm(f => ({ ...f, area: f.area === a.label ? "" : a.label }))} className={cn(
                     "flex flex-col items-center gap-1 p-2 rounded-xl border-2 text-xs transition-all",
-                    form.area === a.label ? "border-sky-400 bg-sky-50 shadow-sm text-sky-700" : "border-white/40 bg-white/30 hover:bg-white/60 text-gray-600"
+                    form.area === a.label ? "border-sky-400 bg-sky-50 shadow-sm text-sky-700" : "border-white/40 bg-white/90 hover:bg-white/90 text-gray-600"
                   )}>
                     <span className="text-xl">{a.emoji}</span>
                     <span className="font-medium text-center leading-tight">{a.label}</span>
                   </button>
                 ))}
               </div>
-              <Input placeholder="Atau ketik area lain..." value={form.area} onChange={e => setForm(f => ({ ...f, area: e.target.value }))} className="bg-white/60 mt-2" />
+              <Input placeholder="Atau ketik area lain..." value={form.area} onChange={e => setForm(f => ({ ...f, area: e.target.value }))} className="bg-white/90 mt-2" />
             </div>
             <div>
-              <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 block">Catatan (opsional)</label>
-              <Input placeholder="Catatan tambahan..." value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} className="bg-white/60" />
+              <label className="text-xs font-semibold text-amber-800 uppercase tracking-wide mb-1.5 block">Catatan (opsional)</label>
+              <Input placeholder="Catatan tambahan..." value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} className="bg-white/90" />
             </div>
             <div className="flex gap-3 justify-end pt-1">
               <Button variant="outline" onClick={() => setOpen(false)} className="rounded-full">Batal</Button>
@@ -390,9 +390,9 @@ function getCatEmoji(cat: string) { return invCategories.find(c => c.id === cat)
 function InvCategoryFilter({ value, onChange }: { value: string; onChange: (v: string) => void }) {
   return (
     <div className="flex gap-2 flex-wrap">
-      <button onClick={() => onChange("all")} className={cn("px-3 py-1 rounded-full text-xs font-medium border transition-all", value === "all" ? "bg-gradient-to-r from-emerald-400 to-teal-400 text-white border-transparent" : "bg-white/50 text-gray-600 border-white/50 hover:bg-white/80")}>Semua</button>
+      <button onClick={() => onChange("all")} className={cn("px-3 py-1 rounded-full text-xs font-medium border transition-all", value === "all" ? "bg-gradient-to-r from-emerald-400 to-teal-400 text-white border-transparent" : "bg-white/90 text-gray-600 border-white/50 hover:bg-white/80")}>Semua</button>
       {invCategories.map(c => (
-        <button key={c.id} onClick={() => onChange(c.id)} className={cn("flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium border transition-all", value === c.id ? "bg-gradient-to-r from-emerald-400 to-teal-400 text-white border-transparent" : "bg-white/50 text-gray-600 border-white/50 hover:bg-white/80")}>
+        <button key={c.id} onClick={() => onChange(c.id)} className={cn("flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium border transition-all", value === c.id ? "bg-gradient-to-r from-emerald-400 to-teal-400 text-white border-transparent" : "bg-white/90 text-gray-600 border-white/50 hover:bg-white/80")}>
           <span>{c.emoji}</span>{c.label}
         </button>
       ))}
@@ -446,16 +446,16 @@ function SingleItemFields({
   return (
     <div className="space-y-4">
       <div>
-        <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 block">Nama Barang</label>
-        <Input placeholder="Nama barang..." value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} className="bg-white/60" />
+        <label className="text-xs font-semibold text-amber-800 uppercase tracking-wide mb-1.5 block">Nama Barang</label>
+        <Input placeholder="Nama barang..." value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} className="bg-white/90" />
       </div>
       <div>
-        <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2 block">Kategori</label>
+        <label className="text-xs font-semibold text-amber-800 uppercase tracking-wide mb-2 block">Kategori</label>
         <div className="grid grid-cols-2 gap-2">
           {invCategories.map(cat => (
             <button key={cat.id} type="button" onClick={() => setForm(f => ({ ...f, category: cat.id as InventoryItemInputCategory }))} className={cn(
               "flex items-center gap-2 px-3 py-2.5 rounded-xl border-2 text-sm transition-all",
-              form.category === cat.id ? cat.color + " border-current shadow-sm" : "bg-white/40 text-gray-500 border-white/40 hover:bg-white/70"
+              form.category === cat.id ? cat.color + " border-current shadow-sm" : "bg-white text-amber-700 border-amber-200/50 hover:bg-white/90"
             )}>
               <span className="text-lg">{cat.emoji}</span>
               <span className="font-medium">{cat.label}</span>
@@ -465,24 +465,24 @@ function SingleItemFields({
       </div>
       <div className="flex gap-3">
         <div className="w-28">
-          <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 block">Jumlah</label>
-          <Input type="number" min={0} value={form.quantity} onChange={e => setForm(f => ({ ...f, quantity: Number(e.target.value) }))} className="bg-white/60" />
+          <label className="text-xs font-semibold text-amber-800 uppercase tracking-wide mb-1.5 block">Jumlah</label>
+          <Input type="number" min={0} value={form.quantity} onChange={e => setForm(f => ({ ...f, quantity: Number(e.target.value) }))} className="bg-white/90" />
         </div>
         <div className="flex-1">
-          <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 block">Satuan</label>
-          <Input placeholder="pcs, tablet, botol..." value={form.unit} onChange={e => setForm(f => ({ ...f, unit: e.target.value }))} className="bg-white/60" />
+          <label className="text-xs font-semibold text-amber-800 uppercase tracking-wide mb-1.5 block">Satuan</label>
+          <Input placeholder="pcs, tablet, botol..." value={form.unit} onChange={e => setForm(f => ({ ...f, unit: e.target.value }))} className="bg-white/90" />
         </div>
       </div>
       {allowedTypes.length > 1 && (
         <div>
-          <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2 block">Tipe Kepemilikan</label>
+          <label className="text-xs font-semibold text-amber-800 uppercase tracking-wide mb-2 block">Tipe Kepemilikan</label>
           <div className="flex flex-col gap-2">
             {allowedTypes.map(t => {
               const cfg = INV_TYPE_CONFIG[t];
               return (
                 <button key={t} type="button" onClick={() => setForm(f => ({ ...f, itemType: t }))} className={cn(
                   "flex items-center gap-2 px-3 py-2 rounded-xl border-2 text-sm transition-all text-left",
-                  form.itemType === t ? cfg.color : "border-white/40 bg-white/30 text-gray-500 hover:bg-white/60"
+                  form.itemType === t ? cfg.color : "border-white/40 bg-white/90 text-gray-500 hover:bg-white/90"
                 )}>
                   <span>{cfg.emoji}</span>
                   <span className="font-medium">{cfg.label}</span>
@@ -494,16 +494,16 @@ function SingleItemFields({
       )}
       {showOwner && (
         <div>
-          <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 block">Untuk Anggota</label>
+          <label className="text-xs font-semibold text-amber-800 uppercase tracking-wide mb-1.5 block">Untuk Anggota</label>
           <select value={form.ownerName} onChange={e => setForm(f => ({ ...f, ownerName: e.target.value }))}
-            className="w-full text-sm px-3 py-2 rounded-xl border border-white/50 bg-white/60 focus:outline-none focus:border-emerald-300">
+            className="w-full text-sm px-3 py-2 rounded-xl border border-white/50 bg-white/90 focus:outline-none focus:border-emerald-300">
             {MEMBERS.map(m => <option key={m} value={m}>{m}{m === selfName ? " (saya)" : ""}</option>)}
           </select>
         </div>
       )}
       <div>
-        <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 block">Catatan (opsional)</label>
-        <Input placeholder="Catatan..." value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} className="bg-white/60" />
+        <label className="text-xs font-semibold text-amber-800 uppercase tracking-wide mb-1.5 block">Catatan (opsional)</label>
+        <Input placeholder="Catatan..." value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} className="bg-white/90" />
       </div>
     </div>
   );
@@ -574,7 +574,7 @@ function MultiItemDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="glass-panel border-white/50 max-w-2xl p-0 overflow-hidden max-h-[90vh] overflow-y-auto">
+      <DialogContent className="form-dialog border-white/50 max-w-2xl p-0 overflow-hidden max-h-[90vh] overflow-y-auto">
         <div className={cn("px-6 pt-6 pb-4", headerGradient)}>
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2"><Package className="w-5 h-5" />{title}</DialogTitle>
@@ -595,7 +595,7 @@ function MultiItemDialog({
           </div>
           {/* Kanan: preview keranjang */}
           <div className="sm:w-56 px-4 py-4 flex flex-col gap-2 bg-white/10">
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Daftar</p>
+            <p className="text-xs font-semibold text-amber-800 uppercase tracking-wide">Daftar</p>
             {cart.length === 0 ? (
               <p className="text-xs text-gray-400 text-center py-6 italic">Belum ada barang dalam daftar</p>
             ) : (
@@ -755,7 +755,7 @@ function BrgKelompokTab({ isAdmin }: { isAdmin?: boolean }) {
 
       {/* Dialog edit (satu barang) */}
       <Dialog open={editOpen} onOpenChange={setEditOpen}>
-        <DialogContent className="glass-panel border-white/50 max-w-md p-0 overflow-hidden max-h-[90vh] overflow-y-auto">
+        <DialogContent className="form-dialog border-white/50 max-w-md p-0 overflow-hidden max-h-[90vh] overflow-y-auto">
           <div className="px-6 pt-6 pb-4 bg-gradient-to-r from-emerald-400/20 to-teal-400/20">
             <DialogHeader><DialogTitle className="flex items-center gap-2"><Package className="w-5 h-5 text-emerald-500" />Edit Barang Kelompok</DialogTitle></DialogHeader>
           </div>
@@ -836,7 +836,7 @@ function BrgPribadiTab({ selfName, isPrivileged, isLoggedIn }: { selfName: strin
           <label className="text-xs font-semibold text-gray-500">Lihat milik:</label>
           {isPrivileged ? (
             <select value={selectedOwner} onChange={e => setSelectedOwner(e.target.value)}
-              className="text-sm px-3 py-1.5 rounded-xl border border-white/50 bg-white/60 focus:outline-none focus:border-emerald-300">
+              className="text-sm px-3 py-1.5 rounded-xl border border-white/50 bg-white/90 focus:outline-none focus:border-emerald-300">
               <option value="">-- Semua --</option>
               {MEMBERS.map(m => <option key={m} value={m}>{m}</option>)}
             </select>
@@ -919,7 +919,7 @@ function BrgPribadiTab({ selfName, isPrivileged, isLoggedIn }: { selfName: strin
 
       {/* Dialog edit (satu barang) */}
       <Dialog open={editOpen} onOpenChange={setEditOpen}>
-        <DialogContent className="glass-panel border-white/50 max-w-md p-0 overflow-hidden max-h-[90vh] overflow-y-auto">
+        <DialogContent className="form-dialog border-white/50 max-w-md p-0 overflow-hidden max-h-[90vh] overflow-y-auto">
           <div className="px-6 pt-6 pb-4 bg-gradient-to-r from-violet-400/20 to-sky-400/20">
             <DialogHeader><DialogTitle className="flex items-center gap-2"><User className="w-5 h-5 text-violet-500" />Edit Barang Pribadi</DialogTitle></DialogHeader>
           </div>
@@ -943,13 +943,13 @@ function InventarisTab({ isAdmin, selfName, isPrivileged, isLoggedIn }: { isAdmi
     <div className="space-y-4">
       <div className="flex items-center justify-between flex-wrap gap-2">
         <h2 className="text-lg font-semibold text-gray-700">Inventaris</h2>
-        <div className="flex gap-1 p-1 bg-white/40 rounded-xl border border-white/40">
+        <div className="flex gap-1 p-1 bg-white/90 rounded-xl border border-white/40">
           <button onClick={() => setInvTab("kelompok")} className={cn("px-3 py-1.5 rounded-lg text-xs font-medium transition-all flex items-center gap-1.5",
-            invTab === "kelompok" ? "bg-gradient-to-r from-emerald-400 to-teal-400 text-white shadow-sm" : "text-gray-500 hover:text-gray-700")}>
+            invTab === "kelompok" ? "bg-gradient-to-r from-emerald-400 to-teal-400 text-white shadow-sm" : "text-amber-700 hover:text-amber-900")}>
             🏠 Barang Kelompok
           </button>
           <button onClick={() => setInvTab("pribadi")} className={cn("px-3 py-1.5 rounded-lg text-xs font-medium transition-all flex items-center gap-1.5",
-            invTab === "pribadi" ? "bg-gradient-to-r from-violet-400 to-sky-400 text-white shadow-sm" : "text-gray-500 hover:text-gray-700")}>
+            invTab === "pribadi" ? "bg-gradient-to-r from-violet-400 to-sky-400 text-white shadow-sm" : "text-amber-700 hover:text-amber-900")}>
             👤 Barang Pribadi
           </button>
         </div>
@@ -1089,7 +1089,7 @@ function KondisiTab({ memberName: selfName, isKetSek }: { memberName: string | n
       )}
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="glass-panel border-white/50 max-w-md p-0 overflow-hidden">
+        <DialogContent className="form-dialog border-white/50 max-w-md p-0 overflow-hidden">
           <div className="px-6 pt-6 pb-4 bg-gradient-to-r from-rose-400/20 to-sky-400/20">
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
@@ -1100,21 +1100,21 @@ function KondisiTab({ memberName: selfName, isKetSek }: { memberName: string | n
           </div>
           <div className="px-6 pb-6 pt-4 space-y-4">
             <div>
-              <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2 block">Tipe Kondisi</label>
+              <label className="text-xs font-semibold text-amber-800 uppercase tracking-wide mb-2 block">Tipe Kondisi</label>
               <div className="grid grid-cols-2 gap-2">
                 {(Object.entries(CONDITION_CONFIG) as [ConditionType, typeof CONDITION_CONFIG[ConditionType]][]).map(([type, cfg]) => (
                   <button key={type} type="button" onClick={() => setForm(f => ({ ...f, type: type as ConditionType }))}
                     className={cn("flex items-center gap-2 p-2.5 rounded-xl border-2 text-xs font-medium transition-all text-left",
-                      form.type === type ? "border-rose-400 bg-rose-50 text-rose-700" : "border-white/40 bg-white/30 hover:bg-white/60 text-gray-600")}>
+                      form.type === type ? "border-rose-400 bg-rose-50 text-rose-700" : "border-white/40 bg-white/90 hover:bg-white/90 text-gray-600")}>
                     <span className="text-lg">{cfg.emoji}</span>{cfg.label}
                   </button>
                 ))}
               </div>
             </div>
             <div>
-              <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 block">Keterangan</label>
+              <label className="text-xs font-semibold text-amber-800 uppercase tracking-wide mb-1.5 block">Keterangan</label>
               <Input placeholder={`Contoh: ${CONDITION_CONFIG[form.type].label} ${CONDITION_CONFIG[form.type].placeholder}...`} value={form.description}
-                onChange={e => { setForm(f => ({ ...f, description: e.target.value })); setFieldErrors(fe => ({ ...fe, description: "" })); }} className="bg-white/60" />
+                onChange={e => { setForm(f => ({ ...f, description: e.target.value })); setFieldErrors(fe => ({ ...fe, description: "" })); }} className="bg-white/90" />
               {fieldErrors.description && <p className="text-xs text-rose-500 mt-1">{fieldErrors.description}</p>}
             </div>
             <div className="flex gap-3 justify-end pt-1">
@@ -1146,7 +1146,7 @@ export default function OurLifePage() {
         <p className="text-gray-500 text-sm mt-1">Kehidupan sehari-hari, jadwal piket, inventaris, dan kondisi anggota</p>
       </div>
 
-      <div className="flex gap-2 p-1 bg-white/40 backdrop-blur-sm rounded-2xl border border-white/40 w-fit flex-wrap">
+      <div className="flex gap-2 p-1 bg-white/90 backdrop-blur-sm rounded-2xl border border-white/40 w-fit flex-wrap">
         {tabs.map(tab => {
           const Icon = tab.icon;
           return (
@@ -1157,7 +1157,7 @@ export default function OurLifePage() {
                 "flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all",
                 activeTab === tab.id
                   ? "bg-gradient-to-r from-rose-400 to-sky-400 text-white shadow-sm"
-                  : "text-gray-600 hover:text-gray-900 hover:bg-white/50"
+                  : "text-gray-600 hover:text-gray-900 hover:bg-white/90"
               )}
             >
               <Icon className="w-4 h-4" />

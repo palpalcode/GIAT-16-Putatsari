@@ -255,7 +255,7 @@ export default function NotulensiPage() {
       )}
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="glass-panel border-white/50 max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="form-dialog border-white/50 max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{editingId ? "Edit Notulensi" : "Tambah Notulensi"}</DialogTitle>
           </DialogHeader>
@@ -264,34 +264,34 @@ export default function NotulensiPage() {
               placeholder="Judul notulensi / nama rapat"
               value={form.title}
               onChange={(e) => f("title", e.target.value)}
-              className="bg-white/50"
+              className="bg-white border-amber-200/50"
             />
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 block">
+                <label className="text-xs font-semibold text-amber-800 uppercase tracking-wide mb-1.5 block">
                   Tanggal Rapat
                 </label>
                 <Input
                   type="date"
                   value={form.meetingDate}
                   onChange={(e) => f("meetingDate", e.target.value)}
-                  className="bg-white/50"
+                  className="bg-white border-amber-200/50"
                 />
               </div>
               <div>
-                <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 block">
+                <label className="text-xs font-semibold text-amber-800 uppercase tracking-wide mb-1.5 block">
                   Penulis / Notulis
                 </label>
                 <Input
                   placeholder="Nama notulis"
                   value={form.author}
                   onChange={(e) => f("author", e.target.value)}
-                  className="bg-white/50"
+                  className="bg-white border-amber-200/50"
                 />
               </div>
             </div>
             <div>
-              <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 block">
+              <label className="text-xs font-semibold text-amber-800 uppercase tracking-wide mb-1.5 block">
                 Peserta (satu nama per baris)
               </label>
               <Textarea
@@ -299,11 +299,11 @@ export default function NotulensiPage() {
                 value={form.attendeesRaw}
                 onChange={(e) => f("attendeesRaw", e.target.value)}
                 rows={4}
-                className="bg-white/50 font-mono text-sm"
+                className="bg-white border-amber-200/50 font-mono text-sm"
               />
             </div>
             <div>
-              <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 block">
+              <label className="text-xs font-semibold text-amber-800 uppercase tracking-wide mb-1.5 block">
                 Agenda (opsional)
               </label>
               <Textarea
@@ -311,11 +311,11 @@ export default function NotulensiPage() {
                 value={form.agenda}
                 onChange={(e) => f("agenda", e.target.value)}
                 rows={3}
-                className="bg-white/50"
+                className="bg-white border-amber-200/50"
               />
             </div>
             <div>
-              <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 block">
+              <label className="text-xs font-semibold text-amber-800 uppercase tracking-wide mb-1.5 block">
                 Isi Notulensi
               </label>
               <Textarea
@@ -323,7 +323,7 @@ export default function NotulensiPage() {
                 value={form.content}
                 onChange={(e) => f("content", e.target.value)}
                 rows={10}
-                className="bg-white/50"
+                className="bg-white border-amber-200/50"
               />
             </div>
             <div className="flex gap-3 justify-end pt-2">
@@ -343,7 +343,7 @@ export default function NotulensiPage() {
       </Dialog>
 
       <AlertDialog open={deleteId !== null} onOpenChange={(v) => !v && setDeleteId(null)}>
-        <AlertDialogContent className="glass-panel border-white/50">
+        <AlertDialogContent className="form-dialog border-white/50">
           <AlertDialogHeader>
             <AlertDialogTitle>Hapus Notulensi?</AlertDialogTitle>
             <AlertDialogDescription>

@@ -85,7 +85,7 @@ function ProgramDialog({ open, onClose, editId, initial, onSave, isPending, fiel
 
   return (
     <Dialog open={open} onOpenChange={v => !v && onClose()}>
-      <DialogContent className="glass-panel border-white/50 max-w-lg p-0 overflow-hidden max-h-[90vh] overflow-y-auto">
+      <DialogContent className="form-dialog border-white/50 max-w-lg p-0 overflow-hidden max-h-[90vh] overflow-y-auto">
         <div className="px-6 pt-6 pb-4 bg-gradient-to-r from-rose-400/15 to-sky-400/15">
           <DialogHeader>
             <DialogTitle className="text-lg font-bold">{editId ? "Edit Program" : "Tambah Program Kerja"}</DialogTitle>
@@ -94,19 +94,19 @@ function ProgramDialog({ open, onClose, editId, initial, onSave, isPending, fiel
 
         <div className="px-6 pb-6 pt-4 space-y-5">
           <div>
-            <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 block">Nama Program</label>
-            <Input placeholder="Nama program kerja..." value={form.programName} onChange={e => setF("programName", e.target.value)} className="bg-white/60" />
+            <label className="text-xs font-semibold text-amber-800 uppercase tracking-wide mb-1.5 block">Nama Program</label>
+            <Input placeholder="Nama program kerja..." value={form.programName} onChange={e => setF("programName", e.target.value)} className="bg-white/90" />
             {fieldErrors.programName && <p className="text-xs text-rose-500 mt-1">{fieldErrors.programName}</p>}
           </div>
 
           <div>
-            <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 block">Tanggal Pelaksanaan</label>
-            <Input type="date" value={form.date} onChange={e => setF("date", e.target.value)} className="bg-white/60" />
+            <label className="text-xs font-semibold text-amber-800 uppercase tracking-wide mb-1.5 block">Tanggal Pelaksanaan</label>
+            <Input type="date" value={form.date} onChange={e => setF("date", e.target.value)} className="bg-white/90" />
             {fieldErrors.date && <p className="text-xs text-rose-500 mt-1">{fieldErrors.date}</p>}
           </div>
 
           <div>
-            <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 block">Status</label>
+            <label className="text-xs font-semibold text-amber-800 uppercase tracking-wide mb-1.5 block">Status</label>
             <div className="flex gap-2">
               {STATUS_OPTIONS.map(s => {
                 const Icon = s.icon;
@@ -115,7 +115,7 @@ function ProgramDialog({ open, onClose, editId, initial, onSave, isPending, fiel
                     "flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-semibold border-2 transition-all",
                     form.status === s.id
                       ? `bg-gradient-to-r ${s.activeGrad} text-white border-transparent shadow`
-                      : "bg-white/40 text-gray-500 border-white/40 hover:bg-white/70"
+                      : "bg-white text-amber-700 border-amber-200/50 hover:bg-white/90"
                   )}>
                     <Icon className="w-3.5 h-3.5" />{s.label}
                   </button>
@@ -125,12 +125,12 @@ function ProgramDialog({ open, onClose, editId, initial, onSave, isPending, fiel
           </div>
 
           <div>
-            <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2 block">Penanggung Jawab</label>
+            <label className="text-xs font-semibold text-amber-800 uppercase tracking-wide mb-2 block">Penanggung Jawab</label>
             <div className="grid grid-cols-3 gap-2">
               {MEMBERS.map(m => (
                 <button key={m} onClick={() => setF("leader", m)} className={cn(
                   "flex flex-col items-center gap-1 p-2 rounded-xl border-2 text-xs transition-all",
-                  form.leader === m ? "border-rose-400 bg-rose-50 shadow-sm" : "border-white/40 bg-white/30 hover:bg-white/60"
+                  form.leader === m ? "border-rose-400 bg-rose-50 shadow-sm" : "border-white/40 bg-white/90 hover:bg-white/90"
                 )}>
                   <div className={cn("w-8 h-8 rounded-full bg-gradient-to-br flex items-center justify-center text-white text-xs font-bold", getMemberColor(m))}>
                     <User className="w-4 h-4" />
@@ -142,12 +142,12 @@ function ProgramDialog({ open, onClose, editId, initial, onSave, isPending, fiel
           </div>
 
           <div>
-            <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2 block">Anggota Tim</label>
+            <label className="text-xs font-semibold text-amber-800 uppercase tracking-wide mb-2 block">Anggota Tim</label>
             <div className="flex flex-wrap gap-2">
               {MEMBERS.map(m => (
                 <button key={m} onClick={() => toggleMember(m)} className={cn(
                   "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border-2 transition-all",
-                  form.members.includes(m) ? "bg-sky-500 text-white border-sky-500 shadow-sm" : "bg-white/40 text-gray-600 border-white/40 hover:bg-white/60"
+                  form.members.includes(m) ? "bg-sky-500 text-white border-sky-500 shadow-sm" : "bg-white/90 text-gray-600 border-white/40 hover:bg-white/90"
                 )}>
                   <div className={cn("w-4 h-4 rounded-full bg-gradient-to-br flex items-center justify-center text-white text-[8px] font-bold shrink-0", getMemberColor(m))}>
                     <User className="w-2.5 h-2.5" />
@@ -159,8 +159,8 @@ function ProgramDialog({ open, onClose, editId, initial, onSave, isPending, fiel
           </div>
 
           <div>
-            <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 block">Catatan (opsional)</label>
-            <Input placeholder="Catatan..." value={form.notes} onChange={e => setF("notes", e.target.value)} className="bg-white/60" />
+            <label className="text-xs font-semibold text-amber-800 uppercase tracking-wide mb-1.5 block">Catatan (opsional)</label>
+            <Input placeholder="Catatan..." value={form.notes} onChange={e => setF("notes", e.target.value)} className="bg-white/90" />
           </div>
 
           <div className="flex gap-3 justify-end pt-1">
@@ -202,7 +202,7 @@ function MemberCheckbox({ members, selected, onChange }: { members: string[]; se
       {members.map(m => (
         <label key={m} className={cn(
           "flex items-center gap-2 text-sm rounded-xl p-2 cursor-pointer border transition-colors",
-          selected.includes(m) ? "bg-rose-50 border-rose-200 text-rose-700" : "bg-white/40 border-white/40 text-gray-700 hover:bg-white/60"
+          selected.includes(m) ? "bg-rose-50 border-rose-200 text-rose-700" : "bg-white/90 border-white/40 text-gray-700 hover:bg-white/90"
         )}>
           <input type="checkbox" checked={selected.includes(m)} onChange={() => toggle(m)} className="hidden" />
           <span className={cn("w-4 h-4 rounded border-2 shrink-0 flex items-center justify-center", selected.includes(m) ? "bg-rose-400 border-rose-400" : "border-gray-300")}>
@@ -367,7 +367,7 @@ export default function OurWorkPage() {
               <button key={f.id} onClick={() => setFilterStatus(filterStatus === f.id ? null : f.id)}
                 className={cn(
                   "px-3 py-1.5 flex items-center gap-1.5 rounded-2xl border transition-all text-xs font-medium",
-                  filterStatus === f.id ? f.active + " shadow-sm" : "bg-white/50 hover:bg-white/80 text-gray-600 border-white/50"
+                  filterStatus === f.id ? f.active + " shadow-sm" : "bg-white/90 hover:bg-white/80 text-gray-600 border-white/50"
                 )}>
                 <div className={cn("w-2 h-2 rounded-full shrink-0", f.dot)} />
                 <span>{f.count} {f.label}</span>
@@ -383,7 +383,7 @@ export default function OurWorkPage() {
           {/* Program list */}
           <div className="overflow-y-auto max-h-[520px] space-y-3 pr-0.5">
             {schedLoading ? (
-              <div className="animate-pulse space-y-3">{[1,2,3].map(i => <div key={i} className="bg-white/40 rounded-xl h-20" />)}</div>
+              <div className="animate-pulse space-y-3">{[1,2,3].map(i => <div key={i} className="bg-white/90 rounded-xl h-20" />)}</div>
             ) : ordered.length === 0 ? (
               <div className="flex flex-col items-center py-12 gap-3">
                 <div className="w-12 h-12 rounded-full bg-gradient-to-br from-rose-100 to-sky-100 flex items-center justify-center">
@@ -396,7 +396,7 @@ export default function OurWorkPage() {
                 const st = getStatus(s.status);
                 const Icon = st.icon;
                 return (
-                  <div key={s.id} className={cn("bg-white/40 rounded-xl p-4 group transition-all hover:-translate-y-0.5 border border-white/60", s.status === "done" && "opacity-60")}>
+                  <div key={s.id} className={cn("bg-white/90 rounded-xl p-4 group transition-all hover:-translate-y-0.5 border border-white/60", s.status === "done" && "opacity-60")}>
                     <div className="flex justify-between items-start gap-3">
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1.5 flex-wrap">
@@ -416,7 +416,7 @@ export default function OurWorkPage() {
                                     title={opt.label}
                                     className={cn(
                                       "flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-semibold border transition-all",
-                                      isActive ? `bg-gradient-to-r ${opt.activeGrad} text-white border-transparent shadow` : "bg-white/50 text-gray-400 border-gray-200 hover:bg-white/80"
+                                      isActive ? `bg-gradient-to-r ${opt.activeGrad} text-white border-transparent shadow` : "bg-white/90 text-gray-400 border-gray-200 hover:bg-white/80"
                                     )}
                                   >
                                     <OptIcon className="w-2.5 h-2.5" />{opt.label}
@@ -487,7 +487,7 @@ export default function OurWorkPage() {
               <button key={f.id} onClick={() => setDlFilterType(dlFilterType === f.id ? null : f.id)}
                 className={cn(
                   "px-3 py-1.5 flex items-center gap-1.5 rounded-2xl border transition-all text-xs font-medium",
-                  dlFilterType === f.id ? f.active + " shadow-sm" : "bg-white/50 hover:bg-white/80 text-gray-600 border-white/50"
+                  dlFilterType === f.id ? f.active + " shadow-sm" : "bg-white/90 hover:bg-white/80 text-gray-600 border-white/50"
                 )}>
                 <div className={cn("w-2 h-2 rounded-full shrink-0", f.dot)} />
                 <span>{f.count} {f.label}</span>
@@ -500,7 +500,7 @@ export default function OurWorkPage() {
               <button key={f.id} onClick={() => setDlFilterStatus(dlFilterStatus === f.id ? null : f.id)}
                 className={cn(
                   "px-3 py-1.5 flex items-center gap-1.5 rounded-2xl border transition-all text-xs font-medium",
-                  dlFilterStatus === f.id ? f.active + " shadow-sm" : "bg-white/50 hover:bg-white/80 text-gray-600 border-white/50"
+                  dlFilterStatus === f.id ? f.active + " shadow-sm" : "bg-white/90 hover:bg-white/80 text-gray-600 border-white/50"
                 )}>
                 <div className={cn("w-2 h-2 rounded-full shrink-0", f.dot)} />
                 <span>{f.count} {f.label}</span>
@@ -516,7 +516,7 @@ export default function OurWorkPage() {
           {/* Deadline list */}
           <div className="overflow-y-auto max-h-[480px] space-y-3 pr-0.5">
             {dlLoading ? (
-              <div className="animate-pulse space-y-3">{[1,2,3].map(i => <div key={i} className="bg-white/40 rounded-xl h-20" />)}</div>
+              <div className="animate-pulse space-y-3">{[1,2,3].map(i => <div key={i} className="bg-white/90 rounded-xl h-20" />)}</div>
             ) : dlSorted.length === 0 ? (
               <div className="flex flex-col items-center py-12 gap-3">
                 <div className="w-12 h-12 rounded-full bg-gradient-to-br from-amber-100 to-rose-100 flex items-center justify-center">
@@ -529,7 +529,7 @@ export default function OurWorkPage() {
                 const days = daysLeft(d.dueDate);
                 const isOverdue = d.status === "pending" && days < 0;
                 return (
-                  <div key={d.id} className={cn("bg-white/40 rounded-xl p-4 group transition-all hover:-translate-y-0.5 border border-white/60", d.status === "done" ? "opacity-60" : "", isOverdue && "ring-2 ring-rose-300/50")}>
+                  <div key={d.id} className={cn("bg-white/90 rounded-xl p-4 group transition-all hover:-translate-y-0.5 border border-white/60", d.status === "done" ? "opacity-60" : "", isOverdue && "ring-2 ring-rose-300/50")}>
                     <div className="flex justify-between items-start gap-3">
                       <div className="flex-1">
                         <div className="flex flex-wrap items-center gap-1.5 mb-1">
@@ -579,15 +579,15 @@ export default function OurWorkPage() {
       <ProgramDialog open={open} onClose={() => setOpen(false)} editId={editId} initial={initForm} onSave={handleSave} isPending={create.isPending || update.isPending} fieldErrors={progFieldErrors} />
 
       <Dialog open={dlOpen} onOpenChange={setDlOpen}>
-        <DialogContent className="glass-panel border-white/50 max-h-[90vh] overflow-y-auto">
+        <DialogContent className="form-dialog border-white/50 max-h-[90vh] overflow-y-auto">
           <DialogHeader><DialogTitle>{dlEditId ? "Edit Deadline" : "Tambah Deadline"}</DialogTitle></DialogHeader>
           <div className="space-y-4 mt-2">
             <div>
-              <Input placeholder="Judul deadline" value={dlForm.title} onChange={e => { setDlForm(f => ({ ...f, title: e.target.value })); setDlFieldErrors(fe => ({ ...fe, title: "" })); }} className="bg-white/50" />
+              <Input placeholder="Judul deadline" value={dlForm.title} onChange={e => { setDlForm(f => ({ ...f, title: e.target.value })); setDlFieldErrors(fe => ({ ...fe, title: "" })); }} className="bg-white/90" />
               {dlFieldErrors.title && <p className="text-xs text-rose-500 mt-1">{dlFieldErrors.title}</p>}
             </div>
             <Select value={dlForm.type} onValueChange={v => setDlForm(f => ({ ...f, type: v as DeadlineInputType }))}>
-              <SelectTrigger className="bg-white/50"><SelectValue /></SelectTrigger>
+              <SelectTrigger className="bg-white/90"><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="tugas">Tugas</SelectItem>
                 <SelectItem value="kegiatan">Kegiatan</SelectItem>
@@ -595,10 +595,10 @@ export default function OurWorkPage() {
             </Select>
             <div>
               <label className="text-sm font-medium text-gray-700 mb-1 block">Batas Waktu</label>
-              <Input type="date" value={dlForm.dueDate} onChange={e => setDlForm(f => ({ ...f, dueDate: e.target.value }))} className="bg-white/50" />
+              <Input type="date" value={dlForm.dueDate} onChange={e => setDlForm(f => ({ ...f, dueDate: e.target.value }))} className="bg-white/90" />
             </div>
             <Select value={dlForm.status} onValueChange={v => setDlForm(f => ({ ...f, status: v as DeadlineInputStatus }))}>
-              <SelectTrigger className="bg-white/50"><SelectValue /></SelectTrigger>
+              <SelectTrigger className="bg-white/90"><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="pending">Belum Selesai</SelectItem>
                 <SelectItem value="done">Selesai</SelectItem>
@@ -608,7 +608,7 @@ export default function OurWorkPage() {
               <label className="text-sm font-medium text-gray-700 mb-1 block">Ditugaskan Kepada</label>
               <MemberCheckbox members={MEMBERS} selected={dlForm.assignedTo} onChange={m => setDlForm(f => ({ ...f, assignedTo: m }))} />
             </div>
-            <Input placeholder="Catatan (opsional)" value={dlForm.notes} onChange={e => setDlForm(f => ({ ...f, notes: e.target.value }))} className="bg-white/50" />
+            <Input placeholder="Catatan (opsional)" value={dlForm.notes} onChange={e => setDlForm(f => ({ ...f, notes: e.target.value }))} className="bg-white/90" />
             <div className="flex gap-3 justify-end">
               <Button variant="outline" onClick={() => setDlOpen(false)}>Batal</Button>
               <Button onClick={handleDlSave} className="bg-gradient-to-r from-rose-400 to-sky-400 text-white border-0" disabled={dlCreate.isPending || dlUpdate.isPending}>Simpan</Button>

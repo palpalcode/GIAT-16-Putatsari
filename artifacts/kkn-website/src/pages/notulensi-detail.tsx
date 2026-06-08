@@ -306,7 +306,7 @@ export default function NotulensiDetailPage() {
   if (!notulensi) {
     return (
       <div className="flex flex-col items-center justify-center py-20 gap-4">
-        <p className="text-gray-500">Notulensi tidak ditemukan.</p>
+        <p className="text-amber-800">Notulensi tidak ditemukan.</p>
         <Button variant="outline" onClick={() => navigate("/notulensi")}>
           <ArrowLeft className="w-4 h-4 mr-2" />
           Kembali
@@ -406,7 +406,7 @@ export default function NotulensiDetailPage() {
                   {notulensi.attendees.map((a, i) => (
                     <span
                       key={i}
-                      className="text-xs bg-white/70 border border-white/60 px-2 py-0.5 rounded-full text-gray-700"
+                      className="text-xs bg-white/90 border border-white/60 px-2 py-0.5 rounded-full text-gray-700"
                     >
                       {a}
                     </span>
@@ -425,7 +425,7 @@ export default function NotulensiDetailPage() {
               <BookOpen className="w-4 h-4 text-rose-400" />
               <h2 className="font-bold text-gray-800 uppercase text-sm tracking-wide">Agenda</h2>
             </div>
-            <div className="bg-white/50 rounded-xl p-4 border border-white/60 text-gray-700 whitespace-pre-wrap leading-relaxed">
+            <div className="bg-white/90 rounded-xl p-4 border border-white/60 text-gray-700 whitespace-pre-wrap leading-relaxed">
               {notulensi.agenda}
             </div>
           </div>
@@ -436,7 +436,7 @@ export default function NotulensiDetailPage() {
             <FileText className="w-4 h-4 text-sky-400" />
             <h2 className="font-bold text-gray-800 uppercase text-sm tracking-wide">Isi Notulensi</h2>
           </div>
-          <div className="bg-white/50 rounded-xl p-4 border border-white/60 text-gray-700 whitespace-pre-wrap leading-relaxed min-h-[120px]">
+          <div className="bg-white/90 rounded-xl p-4 border border-white/60 text-gray-700 whitespace-pre-wrap leading-relaxed min-h-[120px]">
             {notulensi.content}
           </div>
         </div>
@@ -447,7 +447,7 @@ export default function NotulensiDetailPage() {
       </div>
 
       <AlertDialog open={showDelete} onOpenChange={setShowDelete}>
-        <AlertDialogContent className="glass-panel border-white/50">
+        <AlertDialogContent className="form-dialog border-white/50">
           <AlertDialogHeader>
             <AlertDialogTitle>Hapus Notulensi?</AlertDialogTitle>
             <AlertDialogDescription>
@@ -467,7 +467,7 @@ export default function NotulensiDetailPage() {
       </AlertDialog>
 
       <Dialog open={showEdit} onOpenChange={setShowEdit}>
-        <DialogContent className="glass-panel border-white/50 max-w-lg max-h-[90vh] overflow-y-auto">
+        <DialogContent className="form-dialog border-white/50 max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-lg font-bold text-gray-800">Edit Notulensi</DialogTitle>
           </DialogHeader>
@@ -475,7 +475,7 @@ export default function NotulensiDetailPage() {
             <div className="space-y-1.5">
               <Label className="text-sm font-medium text-gray-700">Judul</Label>
               <Input
-                className="rounded-xl bg-white/60 border-white/60"
+                className="rounded-xl bg-white/90 border-white/60"
                 placeholder="Judul rapat..."
                 value={editForm.title}
                 onChange={(e) => fE("title", e.target.value)}
@@ -486,7 +486,7 @@ export default function NotulensiDetailPage() {
               <Label className="text-sm font-medium text-gray-700">Tanggal Rapat</Label>
               <Input
                 type="date"
-                className="rounded-xl bg-white/60 border-white/60"
+                className="rounded-xl bg-white/90 border-white/60"
                 value={editForm.meetingDate}
                 onChange={(e) => fE("meetingDate", e.target.value)}
               />
@@ -495,7 +495,7 @@ export default function NotulensiDetailPage() {
             <div className="space-y-1.5">
               <Label className="text-sm font-medium text-gray-700">Notulis</Label>
               <Input
-                className="rounded-xl bg-white/60 border-white/60"
+                className="rounded-xl bg-white/90 border-white/60"
                 placeholder="Nama notulis..."
                 value={editForm.author}
                 onChange={(e) => fE("author", e.target.value)}
@@ -504,7 +504,7 @@ export default function NotulensiDetailPage() {
             </div>
             <div className="space-y-1.5">
               <Label className="text-sm font-medium text-gray-700">Peserta</Label>
-              <div className="rounded-xl bg-white/60 border border-white/60 p-3">
+              <div className="rounded-xl bg-white/90 border border-white/60 p-3">
                 <MemberPicker
                   selected={editForm.attendeesSelected}
                   onChange={(v) => fE("attendeesSelected", v)}
@@ -514,7 +514,7 @@ export default function NotulensiDetailPage() {
             <div className="space-y-1.5">
               <Label className="text-sm font-medium text-gray-700">Agenda</Label>
               <Textarea
-                className="rounded-xl bg-white/60 border-white/60 min-h-[80px] resize-none"
+                className="rounded-xl bg-white/90 border-white/60 min-h-[80px] resize-none"
                 placeholder="Daftar agenda rapat..."
                 value={editForm.agenda}
                 onChange={(e) => fE("agenda", e.target.value)}
@@ -523,7 +523,7 @@ export default function NotulensiDetailPage() {
             <div className="space-y-1.5">
               <Label className="text-sm font-medium text-gray-700">Isi Notulensi</Label>
               <Textarea
-                className="rounded-xl bg-white/60 border-white/60 min-h-[120px] resize-none"
+                className="rounded-xl bg-white/90 border-white/60 min-h-[120px] resize-none"
                 placeholder="Catatan hasil rapat..."
                 value={editForm.content}
                 onChange={(e) => fE("content", e.target.value)}
