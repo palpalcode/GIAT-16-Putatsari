@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   useGetProgramSchedules,
@@ -59,6 +59,10 @@ function ProgramDialog({ open, onClose, editId, initial, onSave, isPending }: {
 }) {
   const [form, setForm] = useState<ProgramForm>(initial);
   const setF = (k: keyof ProgramForm, v: any) => setForm(f => ({ ...f, [k]: v }));
+
+  useEffect(() => {
+    if (open) setForm(initial);
+  }, [open, initial]);
 
   function toggleMember(m: string) {
     setF("members", form.members.includes(m) ? form.members.filter(x => x !== m) : [...form.members, m]);
@@ -193,6 +197,10 @@ export default function OurWorkPage() {
     }
   }
 
+  function handleStatusChange(id: number, status: ProgramScheduleInputStatus) {
+    update.mutate({ id, data: { status } }, { onSuccess: () => { invalidate(); toast({ title: `Status diperbarui: ${getStatus(status).label}` }); } });
+  }
+
   const all = schedules ?? [];
   const filtered = filterStatus ? all.filter(s => s.status === filterStatus) : all;
   const ordered = [...filtered.filter(s => s.status === "ongoing"), ...filtered.filter(s => s.status === "planned"), ...filtered.filter(s => s.status === "done")];
@@ -263,6 +271,27 @@ export default function OurWorkPage() {
                         <Icon className="w-3 h-3" />{st.label}
                       </Badge>
                       <span className="text-xs text-gray-400">{formatDate(s.date)}</span>
+                      {isKetSek && (
+                        <div className="flex gap-1 ml-1">
+                          {STATUS_OPTIONS.map(opt => {
+                            const OptIcon = opt.icon;
+                            const isActive = s.status === opt.id;
+                            return (
+                              <button key={opt.id}
+                                onClick={() => handleStatusChange(s.id, opt.id as ProgramScheduleInputStatus)}
+                                disabled={update.isPending}
+                                title={opt.label}
+                                className={cn(
+                                  "flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold border transition-all",
+                                  isActive ? `bg-gradient-to-r ${opt.activeGrad} text-white border-transparent shadow` : "bg-white/50 text-gray-400 border-gray-200 hover:bg-white/80"
+                                )}
+                              >
+                                <OptIcon className="w-2.5 h-2.5" />{opt.label}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      )}
                     </div>
                     <h3 className={cn("font-bold text-gray-900 text-base", s.status === "done" && "line-through")}>{s.programName}</h3>
                     <div className="flex items-center gap-2 mt-1.5">
