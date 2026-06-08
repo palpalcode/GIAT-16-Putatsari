@@ -60,7 +60,7 @@ export default function ProfilPage() {
       });
 
       const objectPath = urlResp.objectPath;
-      await updateAvatar.mutateAsync({ id: memberId, data: { avatarUrl: `/api${objectPath}` } });
+      await updateAvatar.mutateAsync({ id: memberId, data: { avatarUrl: `/api/storage${objectPath}` } });
       await refetch();
       toast({ title: "Foto profil berhasil diperbarui 🎉" });
     } catch {
