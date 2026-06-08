@@ -33,6 +33,7 @@ import { Badge } from "@/components/ui/badge";
 import { Plus, Pencil, Trash2, Megaphone, FileText, Calendar, User, Users, ChevronRight } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { cn, TEAM_ROLES } from "@/lib/utils";
+import { MemberPicker } from "@/components/ui/member-picker";
 import {
   useCreateNotulensi,
   useUpdateNotulensi,
@@ -116,7 +117,7 @@ export default function PengumumanPage() {
   const [formN, setFormN] = useState({
     title: "",
     meetingDate: "",
-    attendeesRaw: "",
+    attendeesSelected: [] as string[],
     agenda: "",
     content: "",
     author: SEKRETARIS_NAME,
@@ -179,15 +180,9 @@ export default function PengumumanPage() {
   const fN = <K extends keyof typeof formN>(k: K, v: typeof formN[K]) =>
     setFormN((prev) => ({ ...prev, [k]: v }));
 
-  function parseAttendees(raw: string): string[] {
-    return raw
-      .split(/[\n,]/)
-      .map((s) => s.trim())
-      .filter(Boolean);
-  }
   function openAddN() {
     setEditingNId(null);
-    setFormN({ title: "", meetingDate: "", attendeesRaw: "", agenda: "", content: "", author: SEKRETARIS_NAME });
+    setFormN({ title: "", meetingDate: "", attendeesSelected: [], agenda: "", content: "", author: SEKRETARIS_NAME });
     setOpenN(true);
   }
   function openEditN(n: Notulensi, e: React.MouseEvent) {
@@ -196,7 +191,7 @@ export default function PengumumanPage() {
     setFormN({
       title: n.title,
       meetingDate: n.meetingDate,
-      attendeesRaw: n.attendees.join("\n"),
+      attendeesSelected: n.attendees,
       agenda: n.agenda ?? "",
       content: n.content,
       author: n.author,
@@ -208,7 +203,7 @@ export default function PengumumanPage() {
     const payload = {
       title: formN.title,
       meetingDate: formN.meetingDate,
-      attendees: parseAttendees(formN.attendeesRaw),
+      attendees: formN.attendeesSelected,
       agenda: formN.agenda || undefined,
       content: formN.content,
       author: formN.author,
@@ -520,15 +515,14 @@ export default function PengumumanPage() {
             </div>
             <div>
               <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 block">
-                Peserta (satu nama per baris)
+                Peserta
               </label>
-              <Textarea
-                placeholder={"Nama peserta 1\nNama peserta 2\n..."}
-                value={formN.attendeesRaw}
-                onChange={(e) => fN("attendeesRaw", e.target.value)}
-                rows={4}
-                className="bg-white/50 font-mono text-sm"
-              />
+              <div className="bg-white/50 rounded-xl border border-white/60 p-3">
+                <MemberPicker
+                  selected={formN.attendeesSelected}
+                  onChange={(v) => fN("attendeesSelected", v)}
+                />
+              </div>
             </div>
             <div>
               <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 block">

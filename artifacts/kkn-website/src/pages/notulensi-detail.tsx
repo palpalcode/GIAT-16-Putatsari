@@ -44,6 +44,7 @@ import {
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
+import { MemberPicker } from "@/components/ui/member-picker";
 
 function formatDate(d: string) {
   if (!d) return "-";
@@ -183,13 +184,13 @@ export default function NotulensiDetailPage() {
   const [editForm, setEditForm] = useState({
     title: "",
     meetingDate: "",
-    attendeesRaw: "",
+    attendeesSelected: [] as string[],
     agenda: "",
     content: "",
     author: "",
   });
 
-  function fE(k: keyof typeof editForm, v: string) {
+  function fE(k: keyof typeof editForm, v: string | string[]) {
     setEditForm((p) => ({ ...p, [k]: v }));
   }
 
@@ -198,7 +199,7 @@ export default function NotulensiDetailPage() {
     setEditForm({
       title: notulensi.title,
       meetingDate: notulensi.meetingDate.slice(0, 10),
-      attendeesRaw: notulensi.attendees.join(", "),
+      attendeesSelected: notulensi.attendees,
       agenda: notulensi.agenda ?? "",
       content: notulensi.content,
       author: notulensi.author,
@@ -208,17 +209,13 @@ export default function NotulensiDetailPage() {
 
   function handleSaveEdit() {
     if (!editForm.title || !editForm.meetingDate || !editForm.content || !editForm.author) return;
-    const attendees = editForm.attendeesRaw
-      .split(",")
-      .map((s) => s.trim())
-      .filter(Boolean);
     updateMutation.mutate(
       {
         id,
         data: {
           title: editForm.title,
           meetingDate: editForm.meetingDate,
-          attendees,
+          attendees: editForm.attendeesSelected,
           agenda: editForm.agenda || undefined,
           content: editForm.content,
           author: editForm.author,
@@ -499,13 +496,13 @@ export default function NotulensiDetailPage() {
               />
             </div>
             <div className="space-y-1.5">
-              <Label className="text-sm font-medium text-gray-700">Peserta (pisahkan dengan koma)</Label>
-              <Input
-                className="rounded-xl bg-white/60 border-white/60"
-                placeholder="Andi, Budi, Citra..."
-                value={editForm.attendeesRaw}
-                onChange={(e) => fE("attendeesRaw", e.target.value)}
-              />
+              <Label className="text-sm font-medium text-gray-700">Peserta</Label>
+              <div className="rounded-xl bg-white/60 border border-white/60 p-3">
+                <MemberPicker
+                  selected={editForm.attendeesSelected}
+                  onChange={(v) => fE("attendeesSelected", v)}
+                />
+              </div>
             </div>
             <div className="space-y-1.5">
               <Label className="text-sm font-medium text-gray-700">Agenda</Label>
