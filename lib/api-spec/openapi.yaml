@@ -1925,9 +1925,16 @@ components:
         absentToday:
           type: integer
         attendanceSummary:
-          type: array
-          items:
-            $ref: "#/components/schemas/Attendance"
+          type: object
+          properties:
+            hadir:
+              type: integer
+            izin:
+              type: integer
+            sakit:
+              type: integer
+            alfa:
+              type: integer
 
     Notulensi:
       type: object

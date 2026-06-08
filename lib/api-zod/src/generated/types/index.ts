@@ -34,6 +34,7 @@ export * from './cookingSchedule';
 export * from './cookingScheduleInput';
 export * from './cookingScheduleUpdate';
 export * from './dashboardSummary';
+export * from './dashboardSummaryAttendanceSummary';
 export * from './deadline';
 export * from './deadlineInput';
 export * from './deadlineInputStatus';

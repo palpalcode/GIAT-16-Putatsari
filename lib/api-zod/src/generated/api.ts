@@ -704,14 +704,12 @@ export const GetDashboardSummaryResponse = zod.object({
 })).optional(),
   "presentToday": zod.number().optional(),
   "absentToday": zod.number().optional(),
-  "attendanceSummary": zod.array(zod.object({
-  "id": zod.number(),
-  "memberName": zod.string(),
-  "date": zod.string(),
-  "status": zod.enum(['hadir', 'izin', 'sakit', 'alfa']),
-  "notes": zod.string().nullish(),
-  "createdAt": zod.string()
-})).optional()
+  "attendanceSummary": zod.object({
+  "hadir": zod.number().optional(),
+  "izin": zod.number().optional(),
+  "sakit": zod.number().optional(),
+  "alfa": zod.number().optional()
+}).optional()
 })
 
 

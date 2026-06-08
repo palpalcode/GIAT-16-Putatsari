@@ -293,10 +293,10 @@ export default function Dashboard() {
         ) : (
           <div className="flex flex-wrap gap-3">
             {[
-              { label: "Hadir", emoji: "✅", count: summary?.presentToday ?? 0, color: "bg-emerald-50 text-emerald-700 border-emerald-200" },
-              { label: "Izin", emoji: "📋", count: (summary?.attendanceSummary as any)?.izin ?? 0, color: "bg-amber-50 text-amber-700 border-amber-200" },
-              { label: "Sakit", emoji: "🤒", count: (summary?.attendanceSummary as any)?.sakit ?? 0, color: "bg-rose-50 text-rose-700 border-rose-200" },
-              { label: "Alfa", emoji: "❓", count: (summary?.attendanceSummary as any)?.alfa ?? 0, color: "bg-gray-50 text-gray-600 border-gray-200" },
+              { label: "Hadir", emoji: "✅", count: summary?.attendanceSummary?.hadir ?? 0, color: "bg-emerald-50 text-emerald-700 border-emerald-200" },
+              { label: "Izin", emoji: "📋", count: summary?.attendanceSummary?.izin ?? 0, color: "bg-amber-50 text-amber-700 border-amber-200" },
+              { label: "Sakit", emoji: "🤒", count: summary?.attendanceSummary?.sakit ?? 0, color: "bg-rose-50 text-rose-700 border-rose-200" },
+              { label: "Alfa", emoji: "❓", count: summary?.attendanceSummary?.alfa ?? 0, color: "bg-gray-50 text-gray-600 border-gray-200" },
               { label: "Belum diisi", emoji: "—", count: 9 - ((summary?.presentToday ?? 0) + (summary?.absentToday ?? 0)), color: "bg-gray-50 text-gray-400 border-gray-100" },
             ].map(({ label, emoji, count, color }) => (
               <div key={label} className={cn("flex items-center gap-2 px-3 py-2 rounded-xl border text-xs font-medium", color)}>

@@ -644,25 +644,12 @@ export interface KasUpdate {
   notes?: string;
 }
 
-export type AttendanceStatus = typeof AttendanceStatus[keyof typeof AttendanceStatus];
-
-
-export const AttendanceStatus = {
-  hadir: 'hadir',
-  izin: 'izin',
-  sakit: 'sakit',
-  alfa: 'alfa',
-} as const;
-
-export interface Attendance {
-  id: number;
-  memberName: string;
-  date: string;
-  status: AttendanceStatus;
-  /** @nullable */
-  notes?: string | null;
-  createdAt: string;
-}
+export type DashboardSummaryAttendanceSummary = {
+  hadir?: number;
+  izin?: number;
+  sakit?: number;
+  alfa?: number;
+};
 
 export interface DashboardSummary {
   totalAnnouncements: number;
@@ -679,7 +666,7 @@ export interface DashboardSummary {
   urgentDeadlines?: Deadline[];
   presentToday?: number;
   absentToday?: number;
-  attendanceSummary?: Attendance[];
+  attendanceSummary?: DashboardSummaryAttendanceSummary;
 }
 
 export interface Notulensi {
@@ -759,6 +746,26 @@ export const MemberConditionUpdateType = {
 export interface MemberConditionUpdate {
   type?: MemberConditionUpdateType;
   description?: string;
+}
+
+export type AttendanceStatus = typeof AttendanceStatus[keyof typeof AttendanceStatus];
+
+
+export const AttendanceStatus = {
+  hadir: 'hadir',
+  izin: 'izin',
+  sakit: 'sakit',
+  alfa: 'alfa',
+} as const;
+
+export interface Attendance {
+  id: number;
+  memberName: string;
+  date: string;
+  status: AttendanceStatus;
+  /** @nullable */
+  notes?: string | null;
+  createdAt: string;
 }
 
 export type AttendanceInputStatus = typeof AttendanceInputStatus[keyof typeof AttendanceInputStatus];

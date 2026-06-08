@@ -55,13 +55,12 @@ router.get("/dashboard/summary", async (req, res) => {
 
     const presentToday = todayAttendance.filter(a => a.status === "hadir").length;
     const absentToday = todayAttendance.filter(a => a.status !== "hadir").length;
-    const attendanceSummary = todayAttendance.map(a => ({
-      id: a.id,
-      memberName: a.memberName,
-      status: a.status,
-      notes: a.notes ?? null,
-      createdAt: a.createdAt.toISOString(),
-    }));
+    const attendanceSummary = {
+      hadir: todayAttendance.filter(a => a.status === "hadir").length,
+      izin: todayAttendance.filter(a => a.status === "izin").length,
+      sakit: todayAttendance.filter(a => a.status === "sakit").length,
+      alfa: todayAttendance.filter(a => a.status === "alfa").length,
+    };
 
     res.json({
       totalAnnouncements: announcements.length,

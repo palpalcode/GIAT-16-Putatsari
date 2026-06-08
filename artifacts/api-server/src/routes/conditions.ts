@@ -12,7 +12,7 @@ function canManageCondition(req: any, ownerName: string): boolean {
 }
 
 // GET /conditions — public list of all member conditions
-router.get("/conditions", async (req, res) => {
+router.get("/conditions", requireLogin, async (req, res) => {
   try {
     const rows = await db.select().from(memberConditionsTable).orderBy(memberConditionsTable.memberName, memberConditionsTable.type);
     res.json(rows.map(r => ({ ...r, createdAt: r.createdAt.toISOString() })));
