@@ -35,7 +35,7 @@ const tabs = [
 ];
 
 // ─── COMPLAINTS (Our Life) ────────────────────────────────────────────────────
-function LifeTab({ isAdmin }: { isAdmin?: boolean }) {
+function LifeTab({ isAdmin, isLoggedIn, memberName }: { isAdmin?: boolean; isLoggedIn?: boolean; memberName?: string | null }) {
   const qc = useQueryClient();
   const { toast } = useToast();
   const { data: complaints, isLoading } = useGetComplaints();
@@ -53,7 +53,7 @@ function LifeTab({ isAdmin }: { isAdmin?: boolean }) {
     qc.invalidateQueries({ queryKey: getGetDashboardSummaryQueryKey() });
   }
 
-  function openAdd() { setEditId(null); setForm({ title: "", description: "", reportedBy: "", status: "open" }); setFieldErrors({}); setOpen(true); }
+  function openAdd() { setEditId(null); setForm({ title: "", description: "", reportedBy: memberName || "", status: "open" }); setFieldErrors({}); setOpen(true); }
   function openEdit(c: any) { setEditId(c.id); setForm({ title: c.title, description: c.description, reportedBy: c.reportedBy, status: c.status }); setFieldErrors({}); setOpen(true); }
 
   function handleSave() {
@@ -90,7 +90,7 @@ function LifeTab({ isAdmin }: { isAdmin?: boolean }) {
           <span className="text-xs bg-violet-100 text-violet-700 px-2 py-0.5 rounded-full border border-violet-200">{open_count} terbuka</span>
           <span className="text-xs bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full border border-emerald-200">{resolved_count} selesai</span>
         </div>
-        {isAdmin && (
+        {isLoggedIn && (
           <Button size="sm" onClick={openAdd} className="bg-gradient-to-r from-rose-400 to-sky-400 text-white border-0 rounded-full gap-1">
             <Plus className="w-4 h-4" />Tambah
           </Button>
@@ -167,19 +167,28 @@ function LifeTab({ isAdmin }: { isAdmin?: boolean }) {
             </div>
             <div>
               <label className="text-xs font-semibold text-violet-800 uppercase tracking-wide mb-2 block">Dilaporkan Oleh</label>
-              <div className="grid grid-cols-3 gap-2">
-                {MEMBERS.map(m => (
-                  <button key={m} onClick={() => setForm(f => ({ ...f, reportedBy: m }))} className={cn(
-                    "flex flex-col items-center gap-1 p-2 rounded-xl border-2 text-xs transition-all",
-                    form.reportedBy === m ? "border-rose-400 bg-rose-50 shadow-sm" : "border-violet-200/40 bg-white/60 hover:bg-white shadow-sm"
-                  )}>
-                    <div className={cn("w-7 h-7 rounded-full bg-gradient-to-br flex items-center justify-center text-white text-[9px] font-bold", getMemberColor(m))}>
-                      <User className="w-3.5 h-3.5" />
-                    </div>
-                    <span className="text-center leading-tight text-gray-700 line-clamp-2 text-[10px]">{m}</span>
-                  </button>
-                ))}
-              </div>
+              {isAdmin ? (
+                <div className="grid grid-cols-3 gap-2">
+                  {MEMBERS.map(m => (
+                    <button key={m} onClick={() => setForm(f => ({ ...f, reportedBy: m }))} className={cn(
+                      "flex flex-col items-center gap-1 p-2 rounded-xl border-2 text-xs transition-all",
+                      form.reportedBy === m ? "border-rose-400 bg-rose-50 shadow-sm" : "border-violet-200/40 bg-white/60 hover:bg-white shadow-sm"
+                    )}>
+                      <div className={cn("w-7 h-7 rounded-full bg-gradient-to-br flex items-center justify-center text-white text-[9px] font-bold", getMemberColor(m))}>
+                        <User className="w-3.5 h-3.5" />
+                      </div>
+                      <span className="text-center leading-tight text-gray-700 line-clamp-2 text-[10px]">{m}</span>
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <div className="flex items-center gap-2 p-2 rounded-xl border-2 border-rose-400 bg-rose-50 shadow-sm w-fit">
+                  <div className={cn("w-7 h-7 rounded-full bg-gradient-to-br flex items-center justify-center text-white text-[9px] font-bold", getMemberColor(form.reportedBy))}>
+                    <User className="w-3.5 h-3.5" />
+                  </div>
+                  <span className="text-xs font-medium text-gray-700">{form.reportedBy}</span>
+                </div>
+              )}
             </div>
             <div>
               <label className="text-xs font-semibold text-violet-800 uppercase tracking-wide mb-1.5 block">Status</label>
@@ -228,7 +237,7 @@ const statusClass: Record<string, string> = {
 };
 const statusLabel: Record<string, string> = { open: "Terbuka", in_progress: "Diproses", resolved: "Selesai" };
 
-function WorkTab({ isAdmin }: { isAdmin?: boolean }) {
+function WorkTab({ isAdmin, isLoggedIn }: { isAdmin?: boolean; isLoggedIn?: boolean }) {
   const qc = useQueryClient();
   const { toast } = useToast();
   const { data: issues, isLoading } = useGetIssues();
@@ -279,7 +288,7 @@ function WorkTab({ isAdmin }: { isAdmin?: boolean }) {
           <span className="text-xs bg-violet-100 text-violet-700 px-2 py-0.5 rounded-full border border-violet-200">{open_count} terbuka</span>
           <span className="text-xs bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full border border-emerald-200">{resolved_count} selesai</span>
         </div>
-        {isAdmin && (
+        {isLoggedIn && (
           <Button size="sm" onClick={openAdd} className="bg-gradient-to-r from-rose-400 to-sky-400 text-white border-0 rounded-full gap-1">
             <Plus className="w-4 h-4" />Tambah
           </Button>
@@ -416,7 +425,7 @@ function WorkTab({ isAdmin }: { isAdmin?: boolean }) {
 // ─── MAIN PAGE ────────────────────────────────────────────────────────────────
 export default function MasalahPage() {
   const [activeTab, setActiveTab] = useState("life");
-  const { can } = useAuth();
+  const { can, isLoggedIn, memberName } = useAuth();
   const isAdmin = can("masalah");
   const { data: complaints } = useGetComplaints();
   const { data: issues } = useGetIssues();
@@ -465,8 +474,8 @@ export default function MasalahPage() {
         <p className="text-xs text-gray-400 mb-4">
           {activeTab === "life" ? tabs[0].desc : tabs[1].desc}
         </p>
-        {activeTab === "life" && <LifeTab isAdmin={isAdmin} />}
-        {activeTab === "work" && <WorkTab isAdmin={isAdmin} />}
+        {activeTab === "life" && <LifeTab isAdmin={isAdmin} isLoggedIn={isLoggedIn} memberName={memberName} />}
+        {activeTab === "work" && <WorkTab isAdmin={isAdmin} isLoggedIn={isLoggedIn} />}
       </div>
     </div>
   );

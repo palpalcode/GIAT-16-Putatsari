@@ -2,7 +2,7 @@ import { Router } from "express";
 import { db } from "@workspace/db";
 import { complaintsTable } from "@workspace/db";
 import { eq, desc } from "drizzle-orm";
-import { requireEdit } from "../lib/auth";
+import { requireEdit, requireLogin } from "../lib/auth";
 import { CreateComplaintBody, UpdateComplaintBody } from "@workspace/api-zod";
 
 const router = Router();
@@ -21,7 +21,7 @@ router.get("/complaints", async (req, res) => {
   }
 });
 
-router.post("/complaints", requireEdit("masalah"), async (req, res) => {
+router.post("/complaints", requireLogin, async (req, res) => {
   try {
     const parsed = CreateComplaintBody.safeParse(req.body);
     if (!parsed.success) {
