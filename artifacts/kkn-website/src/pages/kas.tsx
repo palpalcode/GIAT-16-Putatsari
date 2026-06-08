@@ -899,7 +899,7 @@ function IuranMakanTab({ isAdmin, summary }: { isAdmin?: boolean; summary: any }
             </div>
             <div className="flex gap-3 justify-end pt-1">
               <Button variant="outline" onClick={() => setOpenTransfer(false)} className="rounded-full">Batal</Button>
-              <Button onClick={doTransfer} disabled={transferSisa.isPending || !transferForm.terpakai || Number(transferForm.terpakai) >= jatahHarian}
+              <Button onClick={doTransfer} disabled={transferSisa.isPending || !transferForm.terpakai || (jatahHarian > 0 && Number(transferForm.terpakai) >= jatahHarian)}
                 className="rounded-full text-white border-0 bg-gradient-to-r from-sky-400 to-blue-500">Transfer</Button>
             </div>
           </div>
