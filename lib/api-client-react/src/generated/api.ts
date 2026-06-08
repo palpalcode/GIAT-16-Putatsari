@@ -29,6 +29,8 @@ import type {
   AuthResult,
   AuthStatus,
   AvatarUpdateInput,
+  CatalogItem,
+  CatalogItemInput,
   ChangePasswordInput,
   ChangeUserPasswordInput,
   CleaningSchedule,
@@ -47,6 +49,7 @@ import type {
   ErrorEnvelope,
   GetAttendanceParams,
   GetInventoryParams,
+  GetItemCatalogParams,
   GetIuranPaymentsParams,
   GetKasParams,
   HealthStatus,
@@ -2145,6 +2148,303 @@ export const useDeleteInventoryItem = <TError = ErrorType<unknown>,
         TContext
       > => {
       return useMutation(getDeleteInventoryItemMutationOptions(options));
+    }
+
+export const getGetItemCatalogUrl = (params?: GetItemCatalogParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/inventory/catalog?${stringifiedParams}` : `/api/inventory/catalog`
+}
+
+/**
+ * @summary Get item catalog (nama + satuan baku)
+ */
+export const getItemCatalog = async (params?: GetItemCatalogParams, options?: RequestInit): Promise<CatalogItem[]> => {
+
+  return customFetch<CatalogItem[]>(getGetItemCatalogUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetItemCatalogQueryKey = (params?: GetItemCatalogParams,) => {
+    return [
+    `/api/inventory/catalog`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetItemCatalogQueryOptions = <TData = Awaited<ReturnType<typeof getItemCatalog>>, TError = ErrorType<unknown>>(params?: GetItemCatalogParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getItemCatalog>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetItemCatalogQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getItemCatalog>>> = ({ signal }) => getItemCatalog(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getItemCatalog>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetItemCatalogQueryResult = NonNullable<Awaited<ReturnType<typeof getItemCatalog>>>
+export type GetItemCatalogQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Get item catalog (nama + satuan baku)
+ */
+
+export function useGetItemCatalog<TData = Awaited<ReturnType<typeof getItemCatalog>>, TError = ErrorType<unknown>>(
+ params?: GetItemCatalogParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getItemCatalog>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetItemCatalogQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getCreateCatalogItemUrl = () => {
+
+
+
+
+  return `/api/inventory/catalog`
+}
+
+/**
+ * @summary Create catalog entry (ketua/sekretaris only)
+ */
+export const createCatalogItem = async (catalogItemInput: CatalogItemInput, options?: RequestInit): Promise<CatalogItem> => {
+
+  return customFetch<CatalogItem>(getCreateCatalogItemUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      catalogItemInput,)
+  }
+);}
+
+
+
+
+export const getCreateCatalogItemMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createCatalogItem>>, TError,{data: BodyType<CatalogItemInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createCatalogItem>>, TError,{data: BodyType<CatalogItemInput>}, TContext> => {
+
+const mutationKey = ['createCatalogItem'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createCatalogItem>>, {data: BodyType<CatalogItemInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  createCatalogItem(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateCatalogItemMutationResult = NonNullable<Awaited<ReturnType<typeof createCatalogItem>>>
+    export type CreateCatalogItemMutationBody = BodyType<CatalogItemInput>
+    export type CreateCatalogItemMutationError = ErrorType<void>
+
+    /**
+ * @summary Create catalog entry (ketua/sekretaris only)
+ */
+export const useCreateCatalogItem = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createCatalogItem>>, TError,{data: BodyType<CatalogItemInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createCatalogItem>>,
+        TError,
+        {data: BodyType<CatalogItemInput>},
+        TContext
+      > => {
+      return useMutation(getCreateCatalogItemMutationOptions(options));
+    }
+
+export const getUpdateCatalogItemUrl = (id: number,) => {
+
+
+
+
+  return `/api/inventory/catalog/${id}`
+}
+
+/**
+ * @summary Update catalog entry (ketua/sekretaris only)
+ */
+export const updateCatalogItem = async (id: number,
+    catalogItemInput: CatalogItemInput, options?: RequestInit): Promise<CatalogItem> => {
+
+  return customFetch<CatalogItem>(getUpdateCatalogItemUrl(id),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      catalogItemInput,)
+  }
+);}
+
+
+
+
+export const getUpdateCatalogItemMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateCatalogItem>>, TError,{id: number;data: BodyType<CatalogItemInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateCatalogItem>>, TError,{id: number;data: BodyType<CatalogItemInput>}, TContext> => {
+
+const mutationKey = ['updateCatalogItem'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateCatalogItem>>, {id: number;data: BodyType<CatalogItemInput>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  updateCatalogItem(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateCatalogItemMutationResult = NonNullable<Awaited<ReturnType<typeof updateCatalogItem>>>
+    export type UpdateCatalogItemMutationBody = BodyType<CatalogItemInput>
+    export type UpdateCatalogItemMutationError = ErrorType<void>
+
+    /**
+ * @summary Update catalog entry (ketua/sekretaris only)
+ */
+export const useUpdateCatalogItem = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateCatalogItem>>, TError,{id: number;data: BodyType<CatalogItemInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateCatalogItem>>,
+        TError,
+        {id: number;data: BodyType<CatalogItemInput>},
+        TContext
+      > => {
+      return useMutation(getUpdateCatalogItemMutationOptions(options));
+    }
+
+export const getDeleteCatalogItemUrl = (id: number,) => {
+
+
+
+
+  return `/api/inventory/catalog/${id}`
+}
+
+/**
+ * @summary Delete catalog entry (ketua/sekretaris only)
+ */
+export const deleteCatalogItem = async (id: number, options?: RequestInit): Promise<void> => {
+
+  return customFetch<void>(getDeleteCatalogItemUrl(id),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+export const getDeleteCatalogItemMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteCatalogItem>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteCatalogItem>>, TError,{id: number}, TContext> => {
+
+const mutationKey = ['deleteCatalogItem'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteCatalogItem>>, {id: number}> = (props) => {
+          const {id} = props ?? {};
+
+          return  deleteCatalogItem(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteCatalogItemMutationResult = NonNullable<Awaited<ReturnType<typeof deleteCatalogItem>>>
+
+    export type DeleteCatalogItemMutationError = ErrorType<void>
+
+    /**
+ * @summary Delete catalog entry (ketua/sekretaris only)
+ */
+export const useDeleteCatalogItem = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteCatalogItem>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof deleteCatalogItem>>,
+        TError,
+        {id: number},
+        TContext
+      > => {
+      return useMutation(getDeleteCatalogItemMutationOptions(options));
     }
 
 export const getGetDeadlinesUrl = () => {

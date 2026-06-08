@@ -419,6 +419,63 @@ export const DeleteInventoryItemParams = zod.object({
 
 
 /**
+ * @summary Get item catalog (nama + satuan baku)
+ */
+export const GetItemCatalogQueryParams = zod.object({
+  "category": zod.enum(['alat_kebersihan', 'alat_masak', 'alat_makan', 'alat_tulis', 'alat_elektronik', 'pakaian', 'stock_makanan', 'device']).optional().describe('Filter by category')
+})
+
+export const GetItemCatalogResponseItem = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "category": zod.enum(['alat_kebersihan', 'alat_masak', 'alat_makan', 'alat_tulis', 'alat_elektronik', 'pakaian', 'stock_makanan', 'device']),
+  "unit": zod.string(),
+  "createdAt": zod.string()
+})
+export const GetItemCatalogResponse = zod.array(GetItemCatalogResponseItem)
+
+
+/**
+ * @summary Create catalog entry (ketua/sekretaris only)
+ */
+export const CreateCatalogItemBody = zod.object({
+  "name": zod.string(),
+  "category": zod.enum(['alat_kebersihan', 'alat_masak', 'alat_makan', 'alat_tulis', 'alat_elektronik', 'pakaian', 'stock_makanan', 'device']),
+  "unit": zod.string()
+})
+
+
+/**
+ * @summary Update catalog entry (ketua/sekretaris only)
+ */
+export const UpdateCatalogItemParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const UpdateCatalogItemBody = zod.object({
+  "name": zod.string(),
+  "category": zod.enum(['alat_kebersihan', 'alat_masak', 'alat_makan', 'alat_tulis', 'alat_elektronik', 'pakaian', 'stock_makanan', 'device']),
+  "unit": zod.string()
+})
+
+export const UpdateCatalogItemResponse = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "category": zod.enum(['alat_kebersihan', 'alat_masak', 'alat_makan', 'alat_tulis', 'alat_elektronik', 'pakaian', 'stock_makanan', 'device']),
+  "unit": zod.string(),
+  "createdAt": zod.string()
+})
+
+
+/**
+ * @summary Delete catalog entry (ketua/sekretaris only)
+ */
+export const DeleteCatalogItemParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+
+/**
  * @summary Get deadlines list
  */
 export const GetDeadlinesResponseItem = zod.object({

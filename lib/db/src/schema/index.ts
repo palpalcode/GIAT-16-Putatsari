@@ -1,4 +1,5 @@
 import { pgTable, serial, text, integer, timestamp, jsonb, boolean, uniqueIndex } from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 
@@ -262,3 +263,19 @@ export const iuranMakanPaymentsTable = pgTable(
 export const insertIuranMakanPaymentSchema = createInsertSchema(iuranMakanPaymentsTable).omit({ id: true, createdAt: true });
 export type InsertIuranMakanPayment = z.infer<typeof insertIuranMakanPaymentSchema>;
 export type IuranMakanPayment = typeof iuranMakanPaymentsTable.$inferSelect;
+
+export const itemCatalogTable = pgTable(
+  "item_catalog",
+  {
+    id: serial("id").primaryKey(),
+    name: text("name").notNull(),
+    category: text("category").notNull(),
+    unit: text("unit").notNull(),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+  },
+  (t) => [uniqueIndex("item_catalog_name_lower_unique").on(sql`lower(${t.name})`).concurrently()],
+);
+
+export const insertItemCatalogSchema = createInsertSchema(itemCatalogTable).omit({ id: true, createdAt: true });
+export type InsertItemCatalog = z.infer<typeof insertItemCatalogSchema>;
+export type ItemCatalog = typeof itemCatalogTable.$inferSelect;

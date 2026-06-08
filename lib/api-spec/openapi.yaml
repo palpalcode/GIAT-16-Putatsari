@@ -551,6 +551,95 @@ paths:
         "204":
           description: Deleted
 
+  /inventory/catalog:
+    get:
+      operationId: getItemCatalog
+      tags: [inventory]
+      summary: Get item catalog (nama + satuan baku)
+      parameters:
+        - name: category
+          in: query
+          schema:
+            type: string
+            enum: [alat_kebersihan, alat_masak, alat_makan, alat_tulis, alat_elektronik, pakaian, stock_makanan, device]
+          description: Filter by category
+      responses:
+        "200":
+          description: Catalog entries
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CatalogItem"
+    post:
+      operationId: createCatalogItem
+      tags: [inventory]
+      summary: Create catalog entry (ketua/sekretaris only)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CatalogItemInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CatalogItem"
+        "403":
+          description: Forbidden
+        "409":
+          description: Name already exists in catalog
+
+  /inventory/catalog/{id}:
+    put:
+      operationId: updateCatalogItem
+      tags: [inventory]
+      summary: Update catalog entry (ketua/sekretaris only)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CatalogItemInput"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CatalogItem"
+        "403":
+          description: Forbidden
+        "404":
+          description: Not found
+    delete:
+      operationId: deleteCatalogItem
+      tags: [inventory]
+      summary: Delete catalog entry (ketua/sekretaris only)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+        "403":
+          description: Forbidden
+        "404":
+          description: Not found
+
   /deadlines:
     get:
       operationId: getDeadlines
@@ -2602,4 +2691,32 @@ components:
           type: string
           enum: [hadir, izin, sakit, alfa]
         notes:
+          type: string
+
+    CatalogItem:
+      type: object
+      required: [id, name, category, unit, createdAt]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        category:
+          type: string
+          enum: [alat_kebersihan, alat_masak, alat_makan, alat_tulis, alat_elektronik, pakaian, stock_makanan, device]
+        unit:
+          type: string
+        createdAt:
+          type: string
+
+    CatalogItemInput:
+      type: object
+      required: [name, category, unit]
+      properties:
+        name:
+          type: string
+        category:
+          type: string
+          enum: [alat_kebersihan, alat_masak, alat_makan, alat_tulis, alat_elektronik, pakaian, stock_makanan, device]
+        unit:
           type: string

@@ -1013,6 +1013,48 @@ export interface AttendanceUpdate {
   notes?: string;
 }
 
+export type CatalogItemCategory = typeof CatalogItemCategory[keyof typeof CatalogItemCategory];
+
+
+export const CatalogItemCategory = {
+  alat_kebersihan: 'alat_kebersihan',
+  alat_masak: 'alat_masak',
+  alat_makan: 'alat_makan',
+  alat_tulis: 'alat_tulis',
+  alat_elektronik: 'alat_elektronik',
+  pakaian: 'pakaian',
+  stock_makanan: 'stock_makanan',
+  device: 'device',
+} as const;
+
+export interface CatalogItem {
+  id: number;
+  name: string;
+  category: CatalogItemCategory;
+  unit: string;
+  createdAt: string;
+}
+
+export type CatalogItemInputCategory = typeof CatalogItemInputCategory[keyof typeof CatalogItemInputCategory];
+
+
+export const CatalogItemInputCategory = {
+  alat_kebersihan: 'alat_kebersihan',
+  alat_masak: 'alat_masak',
+  alat_makan: 'alat_makan',
+  alat_tulis: 'alat_tulis',
+  alat_elektronik: 'alat_elektronik',
+  pakaian: 'pakaian',
+  stock_makanan: 'stock_makanan',
+  device: 'device',
+} as const;
+
+export interface CatalogItemInput {
+  name: string;
+  category: CatalogItemInputCategory;
+  unit: string;
+}
+
 export type GetInventoryParams = {
 /**
  * Filter by item type
@@ -1031,6 +1073,27 @@ export const GetInventoryType = {
   kelompok: 'kelompok',
   pribadi: 'pribadi',
   pinjaman: 'pinjaman',
+} as const;
+
+export type GetItemCatalogParams = {
+/**
+ * Filter by category
+ */
+category?: GetItemCatalogCategory;
+};
+
+export type GetItemCatalogCategory = typeof GetItemCatalogCategory[keyof typeof GetItemCatalogCategory];
+
+
+export const GetItemCatalogCategory = {
+  alat_kebersihan: 'alat_kebersihan',
+  alat_masak: 'alat_masak',
+  alat_makan: 'alat_makan',
+  alat_tulis: 'alat_tulis',
+  alat_elektronik: 'alat_elektronik',
+  pakaian: 'pakaian',
+  stock_makanan: 'stock_makanan',
+  device: 'device',
 } as const;
 
 export type GetKasParams = {
