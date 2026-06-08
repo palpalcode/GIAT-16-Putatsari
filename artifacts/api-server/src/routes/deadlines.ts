@@ -33,7 +33,7 @@ router.post("/deadlines", requireEdit("deadline"), async (req, res) => {
 
 router.patch("/deadlines/:id", requireEdit("deadline"), async (req, res) => {
   try {
-    const id = Number(req.params.id);
+    const id = Number(req.params.id as string);
     const { title, type, dueDate, status, assignedTo, notes } = req.body;
     const updates: any = {};
     if (title !== undefined) updates.title = title;
@@ -53,7 +53,7 @@ router.patch("/deadlines/:id", requireEdit("deadline"), async (req, res) => {
 
 router.delete("/deadlines/:id", requireEdit("deadline"), async (req, res) => {
   try {
-    await db.delete(deadlinesTable).where(eq(deadlinesTable.id, Number(req.params.id)));
+    await db.delete(deadlinesTable).where(eq(deadlinesTable.id, Number(req.params.id as string)));
     res.status(204).send();
   } catch (err) {
     req.log.error(err);

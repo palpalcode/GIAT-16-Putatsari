@@ -65,7 +65,7 @@ router.post("/kas", requireEdit("kas"), async (req, res) => {
 
 router.patch("/kas/:id", requireEdit("kas"), async (req, res) => {
   try {
-    const id = Number(req.params.id);
+    const id = Number(req.params.id as string);
     const { type, amount, description, category, date, notes, fund, prokerId, items } = req.body;
     const updates: any = {};
     if (type !== undefined) updates.type = type;
@@ -104,7 +104,7 @@ router.patch("/kas/:id", requireEdit("kas"), async (req, res) => {
 router.delete("/kas/:id", requireEdit("kas"), async (req, res) => {
   try {
     // cascade handles kasItemsTable rows via FK
-    await db.delete(kasTable).where(eq(kasTable.id, Number(req.params.id)));
+    await db.delete(kasTable).where(eq(kasTable.id, Number(req.params.id as string)));
     res.status(204).send();
   } catch (err) {
     req.log.error(err);
@@ -258,7 +258,7 @@ router.delete("/kas/iuran-payments/:id", requireEdit("kas"), async (req, res) =>
   try {
     await db
       .delete(iuranMakanPaymentsTable)
-      .where(eq(iuranMakanPaymentsTable.id, Number(req.params.id)));
+      .where(eq(iuranMakanPaymentsTable.id, Number(req.params.id as string)));
     res.status(204).send();
   } catch (err) {
     req.log.error(err);

@@ -32,7 +32,7 @@ router.post("/announcements", requireEdit("pengumuman"), async (req, res) => {
 
 router.patch("/announcements/:id", requireEdit("pengumuman"), async (req, res) => {
   try {
-    const id = Number(req.params.id);
+    const id = Number(req.params.id as string);
     const { title, content, priority } = req.body;
     const updates: any = {};
     if (title !== undefined) updates.title = title;
@@ -49,7 +49,7 @@ router.patch("/announcements/:id", requireEdit("pengumuman"), async (req, res) =
 
 router.delete("/announcements/:id", requireEdit("pengumuman"), async (req, res) => {
   try {
-    const id = Number(req.params.id);
+    const id = Number(req.params.id as string);
     await db.delete(announcementsTable).where(eq(announcementsTable.id, id));
     res.status(204).send();
   } catch (err) {

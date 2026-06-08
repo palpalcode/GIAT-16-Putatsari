@@ -33,7 +33,7 @@ router.post("/templates", requireEdit("our-work"), async (req, res) => {
 
 router.patch("/templates/:id", requireEdit("our-work"), async (req, res) => {
   try {
-    const id = Number(req.params.id);
+    const id = Number(req.params.id as string);
     const { title, category, content } = req.body;
     const updates: any = {};
     if (title !== undefined) updates.title = title;
@@ -50,7 +50,7 @@ router.patch("/templates/:id", requireEdit("our-work"), async (req, res) => {
 
 router.delete("/templates/:id", requireEdit("our-work"), async (req, res) => {
   try {
-    await db.delete(templatesTable).where(eq(templatesTable.id, Number(req.params.id)));
+    await db.delete(templatesTable).where(eq(templatesTable.id, Number(req.params.id as string)));
     res.status(204).send();
   } catch (err) {
     req.log.error(err);

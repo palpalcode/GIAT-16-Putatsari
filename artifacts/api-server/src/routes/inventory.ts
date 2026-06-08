@@ -72,7 +72,7 @@ router.post("/inventory", async (req, res) => {
 
 router.patch("/inventory/:id", async (req, res) => {
   try {
-    const id = Number(req.params.id);
+    const id = Number(req.params.id as string);
     const divisionRole = getDivisionRole(req);
     const sessionName = getMemberName(req);
     const [item] = await db.select().from(inventoryTable).where(eq(inventoryTable.id, id));
@@ -111,7 +111,7 @@ router.patch("/inventory/:id", async (req, res) => {
 
 router.delete("/inventory/:id", async (req, res) => {
   try {
-    const id = Number(req.params.id);
+    const id = Number(req.params.id as string);
     const divisionRole = getDivisionRole(req);
     const sessionName = getMemberName(req);
     const [item] = await db.select().from(inventoryTable).where(eq(inventoryTable.id, id));

@@ -44,7 +44,7 @@ router.post("/proker-funds", requireEdit("kas"), async (req, res) => {
 
 router.patch("/proker-funds/:id", requireEdit("kas"), async (req, res) => {
   try {
-    const id = Number(req.params.id);
+    const id = Number(req.params.id as string);
     const { name, budget, notes } = req.body;
     const updates: any = {};
     if (name !== undefined) updates.name = name;
@@ -61,7 +61,7 @@ router.patch("/proker-funds/:id", requireEdit("kas"), async (req, res) => {
 
 router.delete("/proker-funds/:id", requireEdit("kas"), async (req, res) => {
   try {
-    await db.delete(prokerFundsTable).where(eq(prokerFundsTable.id, Number(req.params.id)));
+    await db.delete(prokerFundsTable).where(eq(prokerFundsTable.id, Number(req.params.id as string)));
     res.status(204).send();
   } catch (err) {
     req.log.error(err);

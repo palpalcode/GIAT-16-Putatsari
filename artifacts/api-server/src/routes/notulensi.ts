@@ -22,7 +22,7 @@ router.get("/notulensi", async (req, res) => {
 
 router.get("/notulensi/:id", async (req, res) => {
   try {
-    const id = Number(req.params.id);
+    const id = Number(req.params.id as string);
     const [row] = await db.select().from(notulensiTable).where(eq(notulensiTable.id, id));
     if (!row) { res.status(404).json({ error: "Notulensi tidak ditemukan" }); return; }
     res.json(mapRow(row));
@@ -45,7 +45,7 @@ router.post("/notulensi", requireEdit("notulensi"), async (req, res) => {
 
 router.patch("/notulensi/:id", requireEdit("notulensi"), async (req, res) => {
   try {
-    const id = Number(req.params.id);
+    const id = Number(req.params.id as string);
     const { title, meetingDate, attendees, agenda, content, author } = req.body;
     const updates: Partial<typeof notulensiTable.$inferInsert> = {};
     if (title !== undefined) updates.title = title;
@@ -65,7 +65,7 @@ router.patch("/notulensi/:id", requireEdit("notulensi"), async (req, res) => {
 
 router.delete("/notulensi/:id", requireEdit("notulensi"), async (req, res) => {
   try {
-    const id = Number(req.params.id);
+    const id = Number(req.params.id as string);
     await db.delete(notulensiTable).where(eq(notulensiTable.id, id));
     res.status(204).send();
   } catch (err) {

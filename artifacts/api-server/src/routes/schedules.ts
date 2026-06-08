@@ -34,7 +34,7 @@ router.post("/schedules/cooking", requireLogin, async (req, res) => {
 
 router.patch("/schedules/cooking/:id", requireLogin, async (req, res) => {
   try {
-    const id = Number(req.params.id);
+    const id = Number(req.params.id as string);
     const { date, persons, menu, notes } = req.body;
     const updates: any = {};
     if (date !== undefined) updates.date = date;
@@ -52,7 +52,7 @@ router.patch("/schedules/cooking/:id", requireLogin, async (req, res) => {
 
 router.delete("/schedules/cooking/:id", requireLogin, async (req, res) => {
   try {
-    await db.delete(cookingSchedulesTable).where(eq(cookingSchedulesTable.id, Number(req.params.id)));
+    await db.delete(cookingSchedulesTable).where(eq(cookingSchedulesTable.id, Number(req.params.id as string)));
     res.status(204).send();
   } catch (err) {
     req.log.error(err);
@@ -84,7 +84,7 @@ router.post("/schedules/cleaning", requireEdit("our-life"), async (req, res) => 
 
 router.patch("/schedules/cleaning/:id", requireEdit("our-life"), async (req, res) => {
   try {
-    const id = Number(req.params.id);
+    const id = Number(req.params.id as string);
     const { date, persons, area, notes } = req.body;
     const updates: any = {};
     if (date !== undefined) updates.date = date;
@@ -102,7 +102,7 @@ router.patch("/schedules/cleaning/:id", requireEdit("our-life"), async (req, res
 
 router.delete("/schedules/cleaning/:id", requireEdit("our-life"), async (req, res) => {
   try {
-    await db.delete(cleaningSchedulesTable).where(eq(cleaningSchedulesTable.id, Number(req.params.id)));
+    await db.delete(cleaningSchedulesTable).where(eq(cleaningSchedulesTable.id, Number(req.params.id as string)));
     res.status(204).send();
   } catch (err) {
     req.log.error(err);
@@ -134,7 +134,7 @@ router.post("/schedules/programs", requireEdit("our-work"), async (req, res) => 
 
 router.patch("/schedules/programs/:id", requireEdit("our-work"), async (req, res) => {
   try {
-    const id = Number(req.params.id);
+    const id = Number(req.params.id as string);
     const { programName, date, leader, members, status, notes } = req.body;
     const updates: any = {};
     if (programName !== undefined) updates.programName = programName;
@@ -154,7 +154,7 @@ router.patch("/schedules/programs/:id", requireEdit("our-work"), async (req, res
 
 router.delete("/schedules/programs/:id", requireEdit("our-work"), async (req, res) => {
   try {
-    await db.delete(programSchedulesTable).where(eq(programSchedulesTable.id, Number(req.params.id)));
+    await db.delete(programSchedulesTable).where(eq(programSchedulesTable.id, Number(req.params.id as string)));
     res.status(204).send();
   } catch (err) {
     req.log.error(err);

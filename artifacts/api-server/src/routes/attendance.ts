@@ -34,6 +34,10 @@ const STATUS_LABELS: Record<string, string> = {
   alfa: "A",
 };
 
+function excelStyle(s: Partial<ExcelJS.Style>): ExcelJS.Style {
+  return s as ExcelJS.Style;
+}
+
 const STATUS_STYLES: Record<string, { bg: string; fg: string }> = {
   H: { bg: "DCFAE6", fg: "16A34A" }, // green
   I: { bg: "FFF7E6", fg: "D97706" }, // amber
@@ -161,30 +165,30 @@ function buildWeekSheet(
 
     // Summary columns
     const summaryStart = 3 + dates.length;
-    const summaryStyle = { alignment: { horizontal: "center" }, border: {
+    const summaryStyle = excelStyle({ alignment: { horizontal: "center" }, border: {
       top: { style: "thin", color: { argb: "D1D5DB" } },
       bottom: { style: "thin", color: { argb: "D1D5DB" } },
       left: { style: "thin", color: { argb: "D1D5DB" } },
       right: { style: "thin", color: { argb: "D1D5DB" } },
-    }} as ExcelJS.Style;
+    }});
     const hCell = row.getCell(summaryStart); hCell.value = hadir; hCell.style = summaryStyle;
     const iCell = row.getCell(summaryStart + 1); iCell.value = izin; iCell.style = summaryStyle;
     const sCell = row.getCell(summaryStart + 2); sCell.value = sakit; sCell.style = summaryStyle;
     const aCell = row.getCell(summaryStart + 3); aCell.value = alfa; aCell.style = summaryStyle;
     const tCell = row.getCell(summaryStart + 4); tCell.value = total;
-    tCell.style = { font: { bold: true }, alignment: { horizontal: "center" }, border: {
+    tCell.style = excelStyle({ font: { bold: true }, alignment: { horizontal: "center" }, border: {
       top: { style: "thin", color: { argb: "D1D5DB" } },
       bottom: { style: "thin", color: { argb: "D1D5DB" } },
       left: { style: "thin", color: { argb: "D1D5DB" } },
       right: { style: "thin", color: { argb: "D1D5DB" } },
-    }} as ExcelJS.Style;
+    }});
   }
 
   // Totals row
   const totalRow = ws.addRow(["", "TOTAL"]);
   totalRow.height = 24;
 
-  const totalStyle = (value: any) => ({
+  const totalStyle = (_value: unknown): ExcelJS.Style => excelStyle({
     font: { bold: true },
     fill: { type: "pattern", pattern: "solid", fgColor: { argb: TOTAL_BG } },
     alignment: { horizontal: "center" },
@@ -194,7 +198,7 @@ function buildWeekSheet(
       left: { style: "thin", color: { argb: "D1D5DB" } },
       right: { style: "thin", color: { argb: "D1D5DB" } },
     },
-  } as ExcelJS.Style);
+  });
 
   const totalCell1 = totalRow.getCell(1); totalCell1.value = ""; totalCell1.style = totalStyle("");
   const totalCell2 = totalRow.getCell(2); totalCell2.value = "TOTAL"; totalCell2.style = totalStyle("TOTAL");
