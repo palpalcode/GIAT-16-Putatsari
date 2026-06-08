@@ -2,14 +2,99 @@ import { Router } from "express";
 import { db, attendanceTable } from "@workspace/db";
 import { and, eq } from "drizzle-orm";
 import { getMemberName, getRole, requireLogin } from "../lib/auth";
+import * as XLSX from "xlsx";
 
 const router = Router();
 
 const VALID_STATUSES = ["hadir", "izin", "sakit", "alfa"] as const;
 
+const MEMBERS = [
+  "Muhamad Naufal", "Fadhilah Apta Nur Safitri", "Lutfia Tri Rahmacahyani",
+  "Navida Fitria", "Miftakhul Jannah", "Vrizcka Aullia Asmara",
+  "Quro'atul A'ini", "Dewi Anita Sari", "Tiara Nuril Safitri",
+];
+
 function isKetSek(req: any) {
   const role = getRole(req);
   return role === "ketua" || role === "sekretaris";
+}
+
+const STATUS_LABELS: Record<string, string> = {
+  hadir: "H",
+  izin: "I",
+  sakit: "S",
+  alfa: "A",
+};
+
+function getWeekDates(start: string, weekIndex: number): string[] {
+  const startDate = new Date(start);
+  const dates: string[] = [];
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(startDate);
+    d.setDate(startDate.getDate() + weekIndex * 7 + i);
+    dates.push(d.toISOString().split("T")[0]);
+  }
+  return dates;
+}
+
+function getWeekLabel(dates: string[]): string {
+  const s = new Date(dates[0]).toLocaleDateString("id-ID", { day: "numeric", month: "short" });
+  const e = new Date(dates[6]).toLocaleDateString("id-ID", { day: "numeric", month: "short" });
+  return `Week ${s} – ${e}`;
+}
+
+function buildWeekSheet(rows: { memberName: string; date: string; status: string }[], dates: string[]) {
+  const rowsByMember: Record<string, Record<string, string>> = {};
+  for (const m of MEMBERS) {
+    rowsByMember[m] = {};
+    for (const d of dates) rowsByMember[m][d] = "";
+  }
+  for (const r of rows) {
+    if (rowsByMember[r.memberName] && dates.includes(r.date)) {
+      rowsByMember[r.memberName][r.date] = STATUS_LABELS[r.status] ?? r.status;
+    }
+  }
+
+  const data: (string | number)[][] = [];
+  data.push(["No", "Nama", ...dates.map(d => {
+    const day = new Date(d).toLocaleDateString("id-ID", { weekday: "short" });
+    const num = new Date(d).getDate();
+    return `${day} ${num}`;
+  }), "Hadir", "Izin", "Sakit", "Alfa", "Total" ]);
+
+  for (let i = 0; i < MEMBERS.length; i++) {
+    const m = MEMBERS[i];
+    const cells = dates.map(d => rowsByMember[m][d] ?? "");
+    const hadir = cells.filter(c => c === "H").length;
+    const izin = cells.filter(c => c === "I").length;
+    const sakit = cells.filter(c => c === "S").length;
+    const alfa = cells.filter(c => c === "A").length;
+    const total = hadir + izin + sakit + alfa;
+    data.push([i + 1, m, ...cells, hadir, izin, sakit, alfa, total]);
+  }
+
+  // Totals row
+  const totals: (string | number)[] = ["", "TOTAL"];
+  for (const d of dates) {
+    let dayHadir = 0;
+    for (const m of MEMBERS) {
+      if (rowsByMember[m][d] === "H") dayHadir++;
+    }
+    totals.push(dayHadir);
+  }
+  let totalHadir = 0, totalIzin = 0, totalSakit = 0, totalAlfa = 0, totalAll = 0;
+  for (let i = 0; i < MEMBERS.length; i++) {
+    const row = data[i + 1];
+    totalHadir += Number(row[row.length - 5]);
+    totalIzin += Number(row[row.length - 4]);
+    totalSakit += Number(row[row.length - 3]);
+    totalAlfa += Number(row[row.length - 2]);
+    totalAll += Number(row[row.length - 1]);
+  }
+  totals.push(totalHadir, totalIzin, totalSakit, totalAlfa, totalAll);
+  data.push(totals);
+
+  return data;
 }
 
 // GET /attendance?date=YYYY-MM-DD — list attendance, optionally filter by date
@@ -98,6 +183,34 @@ router.delete("/attendance/:id", requireLogin, async (req, res) => {
   try {
     await db.delete(attendanceTable).where(eq(attendanceTable.id, id));
     res.status(204).end();
+  } catch (err) {
+    req.log.error(err);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+// GET /attendance/export — export all attendance records as multi-week Excel workbook
+router.get("/attendance/export", async (req, res) => {
+  try {
+    const rows = await db.select().from(attendanceTable).orderBy(attendanceTable.date, attendanceTable.memberName);
+    const startDate = typeof req.query.start === "string" ? req.query.start : "2026-06-15";
+    const weekCount = typeof req.query.weeks === "string" ? parseInt(req.query.weeks, 10) : 7;
+    const validWeeks = Number.isNaN(weekCount) || weekCount < 1 ? 7 : Math.min(weekCount, 52);
+
+    const wb = XLSX.utils.book_new();
+    const flatRows = rows.map(r => ({ memberName: r.memberName, date: r.date, status: r.status }));
+
+    for (let w = 0; w < validWeeks; w++) {
+      const dates = getWeekDates(startDate, w);
+      const sheetData = buildWeekSheet(flatRows, dates);
+      const ws = XLSX.utils.aoa_to_sheet(sheetData);
+      XLSX.utils.book_append_sheet(wb, ws, getWeekLabel(dates));
+    }
+
+    const buf = XLSX.write(wb, { type: "buffer", bookType: "xlsx" });
+    res.setHeader("Content-Disposition", `attachment; filename="absensi-kkn-${startDate}.xlsx"`);
+    res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+    res.send(buf);
   } catch (err) {
     req.log.error(err);
     res.status(500).json({ error: "Server error" });

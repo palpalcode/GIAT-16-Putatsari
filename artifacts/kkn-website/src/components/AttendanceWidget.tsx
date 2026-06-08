@@ -10,6 +10,7 @@ import {
 } from "@workspace/api-client-react";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
+import { Download } from "lucide-react";
 
 const MEMBERS = [
   "Muhamad Naufal", "Fadhilah Apta Nur Safitri", "Lutfia Tri Rahmacahyani",
@@ -82,20 +83,33 @@ export function AttendanceWidget({
 
   return (
     <div className="space-y-4">
-      {showDatePicker && (
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-          <h2 className="text-lg font-semibold text-gray-700">Rekap Absensi</h2>
-          <div className="flex items-center gap-2">
-            <label className="text-xs text-gray-500 font-medium">Tanggal:</label>
-            <input
-              type="date"
-              value={selectedDate}
-              onChange={e => setSelectedDate(e.target.value)}
-              className="text-sm px-3 py-1.5 rounded-xl border border-white/50 bg-white/60 focus:outline-none focus:border-rose-300 focus:ring-1 focus:ring-rose-300"
-            />
-          </div>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <h2 className="text-lg font-semibold text-gray-700">Rekap Absensi</h2>
+        <div className="flex items-center gap-2">
+          {showDatePicker && (
+            <>
+              <label className="text-xs text-gray-500 font-medium">Tanggal:</label>
+              <input
+                type="date"
+                value={selectedDate}
+                onChange={e => setSelectedDate(e.target.value)}
+                className="text-sm px-3 py-1.5 rounded-xl border border-white/50 bg-white/60 focus:outline-none focus:border-rose-300 focus:ring-1 focus:ring-rose-300"
+              />
+            </>
+          )}
+          <button
+            onClick={() => {
+              const start = "2026-06-15";
+              const weeks = 7;
+              window.open(`/api/attendance/export?start=${start}&weeks=${weeks}`, "_blank");
+            }}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100 transition-colors"
+          >
+            <Download className="w-3.5 h-3.5" />
+            Export Excel
+          </button>
         </div>
-      )}
+      </div>
 
       {/* Summary pills */}
       <div className="flex gap-2 flex-wrap">
