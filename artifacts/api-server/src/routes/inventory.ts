@@ -14,7 +14,7 @@ function isKetSek(divisionRole: string | null) {
   return divisionRole === "Kormades" || divisionRole === "Sekretaris";
 }
 
-const VALID_CATALOG_CATEGORIES = ["alat_kebersihan", "alat_masak", "alat_makan", "alat_tulis", "alat_elektronik", "pakaian", "stock_makanan", "device"] as const;
+const VALID_CATALOG_CATEGORIES = ["alat_kebersihan", "alat_masak", "alat_makan", "alat_tulis", "alat_elektronik", "pakaian", "stock_makanan", "device", "darurat", "tempat_tidur"] as const;
 type CatalogCategory = typeof VALID_CATALOG_CATEGORIES[number];
 
 function isValidCatalogCategory(cat: unknown): cat is CatalogCategory {

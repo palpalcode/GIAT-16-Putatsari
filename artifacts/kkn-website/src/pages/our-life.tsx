@@ -373,6 +373,8 @@ const invCategories = [
   { id: "pakaian", label: "Pakaian", emoji: "👕", color: "bg-pink-100 text-pink-700 border-pink-200" },
   { id: "stock_makanan", label: "Stock Makanan", emoji: "🍚", color: "bg-lime-100 text-lime-700 border-lime-200" },
   { id: "device", label: "Device", emoji: "📱", color: "bg-violet-100 text-violet-700 border-violet-200" },
+  { id: "darurat", label: "Darurat", emoji: "🚨", color: "bg-red-100 text-red-700 border-red-200" },
+  { id: "tempat_tidur", label: "Tempat Tidur", emoji: "🛏️", color: "bg-amber-100 text-amber-700 border-amber-200" },
 ];
 
 function getCatColor(cat: string) { return invCategories.find(c => c.id === cat)?.color ?? "bg-gray-100 text-gray-700 border-gray-200"; }

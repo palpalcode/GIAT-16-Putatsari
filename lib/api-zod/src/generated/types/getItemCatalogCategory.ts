@@ -18,4 +18,6 @@ export const GetItemCatalogCategory = {
   pakaian: 'pakaian',
   stock_makanan: 'stock_makanan',
   device: 'device',
+  darurat: 'darurat',
+  tempat_tidur: 'tempat_tidur',
 } as const;

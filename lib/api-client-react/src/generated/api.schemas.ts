@@ -270,6 +270,8 @@ export const InventoryItemCategory = {
   pakaian: 'pakaian',
   stock_makanan: 'stock_makanan',
   device: 'device',
+  darurat: 'darurat',
+  tempat_tidur: 'tempat_tidur',
 } as const;
 
 export type InventoryItemItemType = typeof InventoryItemItemType[keyof typeof InventoryItemItemType];
@@ -309,6 +311,8 @@ export const InventoryItemInputCategory = {
   pakaian: 'pakaian',
   stock_makanan: 'stock_makanan',
   device: 'device',
+  darurat: 'darurat',
+  tempat_tidur: 'tempat_tidur',
 } as const;
 
 export type InventoryItemInputItemType = typeof InventoryItemInputItemType[keyof typeof InventoryItemInputItemType];
@@ -343,6 +347,8 @@ export const InventoryItemUpdateCategory = {
   pakaian: 'pakaian',
   stock_makanan: 'stock_makanan',
   device: 'device',
+  darurat: 'darurat',
+  tempat_tidur: 'tempat_tidur',
 } as const;
 
 export type InventoryItemUpdateItemType = typeof InventoryItemUpdateItemType[keyof typeof InventoryItemUpdateItemType];
@@ -1025,6 +1031,8 @@ export const CatalogItemCategory = {
   pakaian: 'pakaian',
   stock_makanan: 'stock_makanan',
   device: 'device',
+  darurat: 'darurat',
+  tempat_tidur: 'tempat_tidur',
 } as const;
 
 export interface CatalogItem {
@@ -1047,6 +1055,8 @@ export const CatalogItemInputCategory = {
   pakaian: 'pakaian',
   stock_makanan: 'stock_makanan',
   device: 'device',
+  darurat: 'darurat',
+  tempat_tidur: 'tempat_tidur',
 } as const;
 
 export interface CatalogItemInput {
@@ -1094,6 +1104,8 @@ export const GetItemCatalogCategory = {
   pakaian: 'pakaian',
   stock_makanan: 'stock_makanan',
   device: 'device',
+  darurat: 'darurat',
+  tempat_tidur: 'tempat_tidur',
 } as const;
 
 export type GetKasParams = {

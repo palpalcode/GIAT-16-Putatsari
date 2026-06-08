@@ -561,7 +561,7 @@ paths:
           in: query
           schema:
             type: string
-            enum: [alat_kebersihan, alat_masak, alat_makan, alat_tulis, alat_elektronik, pakaian, stock_makanan, device]
+            enum: [alat_kebersihan, alat_masak, alat_makan, alat_tulis, alat_elektronik, pakaian, stock_makanan, device, darurat, tempat_tidur]
           description: Filter by category
       responses:
         "200":
@@ -1973,7 +1973,7 @@ components:
           type: string
         category:
           type: string
-          enum: [alat_kebersihan, alat_masak, alat_makan, alat_tulis, alat_elektronik, pakaian, stock_makanan, device]
+          enum: [alat_kebersihan, alat_masak, alat_makan, alat_tulis, alat_elektronik, pakaian, stock_makanan, device, darurat, tempat_tidur]
         quantity:
           type: integer
         unit:
@@ -1998,7 +1998,7 @@ components:
           type: string
         category:
           type: string
-          enum: [alat_kebersihan, alat_masak, alat_makan, alat_tulis, alat_elektronik, pakaian, stock_makanan, device]
+          enum: [alat_kebersihan, alat_masak, alat_makan, alat_tulis, alat_elektronik, pakaian, stock_makanan, device, darurat, tempat_tidur]
         quantity:
           type: integer
         unit:
@@ -2020,7 +2020,7 @@ components:
           type: string
         category:
           type: string
-          enum: [alat_kebersihan, alat_masak, alat_makan, alat_tulis, alat_elektronik, pakaian, stock_makanan, device]
+          enum: [alat_kebersihan, alat_masak, alat_makan, alat_tulis, alat_elektronik, pakaian, stock_makanan, device, darurat, tempat_tidur]
         quantity:
           type: integer
         unit:
@@ -2703,7 +2703,7 @@ components:
           type: string
         category:
           type: string
-          enum: [alat_kebersihan, alat_masak, alat_makan, alat_tulis, alat_elektronik, pakaian, stock_makanan, device]
+          enum: [alat_kebersihan, alat_masak, alat_makan, alat_tulis, alat_elektronik, pakaian, stock_makanan, device, darurat, tempat_tidur]
         unit:
           type: string
         createdAt:
@@ -2717,6 +2717,6 @@ components:
           type: string
         category:
           type: string
-          enum: [alat_kebersihan, alat_masak, alat_makan, alat_tulis, alat_elektronik, pakaian, stock_makanan, device]
+          enum: [alat_kebersihan, alat_masak, alat_makan, alat_tulis, alat_elektronik, pakaian, stock_makanan, device, darurat, tempat_tidur]
         unit:
           type: string
