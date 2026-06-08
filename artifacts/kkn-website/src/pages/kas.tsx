@@ -1228,6 +1228,8 @@ function DanaProkerTab({ isAdmin }: { isAdmin?: boolean }) {
 
   const selectedProkerData = prokers?.find(p => p.id === selectedProker);
   const prokerTxs = prokerKas?.filter((k: any) => k.prokerId === selectedProker) ?? [];
+  const transferMasukTxs = prokerTxs.filter((k: any) => k.type === "pemasukan" && k.transferId != null);
+  const regularProkerTxs = prokerTxs.filter((k: any) => !(k.type === "pemasukan" && k.transferId != null));
 
   function saveProker(isEdit: boolean) {
     const data = { name: editProkerForm.name, budget: Number(editProkerForm.budget), notes: editProkerForm.notes || undefined };
@@ -1333,9 +1335,63 @@ function DanaProkerTab({ isAdmin }: { isAdmin?: boolean }) {
         )}
 
         {loadingKas ? <div className="animate-pulse space-y-2">{[1,2].map(i => <div key={i} className="glass-card h-14" />)}</div> : (
-          <TxList items={prokerTxs} isAdmin={isAdmin}
-            onDelete={id => del.mutate({ id }, { onSuccess: () => { invalidateAll(); toast({ title: "Transaksi dihapus" }); } })}
-            onCancelTransfer={id => cancelTransfer.mutate({ id }, { onSuccess: () => { invalidateAll(); toast({ title: "Transfer dibatalkan" }); } })} />
+          <div className="space-y-5">
+            {transferMasukTxs.length > 0 && (
+              <div>
+                <div className="flex items-center gap-2 mb-2">
+                  <ArrowDownCircle className="w-4 h-4 text-emerald-600" />
+                  <h4 className="font-bold text-gray-700 text-sm">Dana Masuk</h4>
+                  <span className="text-xs text-emerald-700 font-semibold bg-emerald-50 border border-emerald-200 rounded-full px-2 py-0.5">
+                    {formatRp(transferMasukTxs.reduce((s: number, k: any) => s + k.amount, 0))}
+                  </span>
+                </div>
+                <div className="flex flex-col gap-2">
+                  {[...transferMasukTxs].sort((a: any, b: any) => b.date.localeCompare(a.date)).map((item: any) => (
+                    <div key={item.id} className="glass-card p-3.5 group hover:-translate-y-0.5 transition-all border-l-4 border-emerald-300">
+                      <div className="flex items-center gap-3">
+                        <div className="w-9 h-9 rounded-xl flex items-center justify-center text-base shrink-0 bg-emerald-100">
+                          <ArrowDownCircle className="w-4 h-4 text-emerald-600" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-semibold text-sm text-gray-900 truncate">{item.description}</p>
+                          <p className="text-xs text-gray-400">{formatDate(item.date)}</p>
+                        </div>
+                        <div className="flex items-center gap-1 shrink-0">
+                          <span className="font-bold text-sm text-emerald-600">+{formatRp(item.amount)}</span>
+                          {isAdmin && (
+                            <div className="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity ml-0.5">
+                              <Button variant="ghost" size="icon" className="h-6 w-6 rounded-full" title="Batalkan transfer"
+                                onClick={() => { if (window.confirm("Batalkan transfer ini? Kedua catatan kas terkait akan dihapus.")) cancelTransfer.mutate({ id: item.transferId }, { onSuccess: () => { invalidateAll(); toast({ title: "Transfer dibatalkan" }); } }); }}>
+                                <Undo2 className="w-3 h-3 text-rose-500" />
+                              </Button>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            {regularProkerTxs.length > 0 && (
+              <div>
+                {transferMasukTxs.length > 0 && (
+                  <div className="flex items-center gap-2 mb-2">
+                    <h4 className="font-bold text-gray-700 text-sm">Transaksi</h4>
+                  </div>
+                )}
+                <TxList items={regularProkerTxs} isAdmin={isAdmin}
+                  onDelete={id => del.mutate({ id }, { onSuccess: () => { invalidateAll(); toast({ title: "Transaksi dihapus" }); } })}
+                  onCancelTransfer={id => cancelTransfer.mutate({ id }, { onSuccess: () => { invalidateAll(); toast({ title: "Transfer dibatalkan" }); } })} />
+              </div>
+            )}
+            {transferMasukTxs.length === 0 && regularProkerTxs.length === 0 && (
+              <div className="flex flex-col items-center py-10 gap-2">
+                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-emerald-100 to-sky-100 flex items-center justify-center text-2xl">💰</div>
+                <p className="text-gray-400 text-sm">Belum ada transaksi.</p>
+              </div>
+            )}
+          </div>
         )}
 
         <SimpleTxDialog open={openAddTx} onClose={() => setOpenAddTx(false)}
