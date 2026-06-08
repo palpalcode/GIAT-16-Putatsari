@@ -2,6 +2,7 @@ import React from "react";
 import { Link, useLocation } from "wouter";
 import { useAdminLogout } from "@workspace/api-client-react";
 import { useAuth } from "@/hooks/use-auth";
+import { useSecretLogin } from "@/hooks/use-secret-login";
 import { Button } from "@/components/ui/button";
 import { LogOut, Menu, ShieldCheck, UserCircle, X } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -28,6 +29,11 @@ export function Layout({ children }: { children: React.ReactNode }) {
     if (href === "/") return location === "/";
     return location === href || location.startsWith(href + "/");
   }
+
+  useSecretLogin(() => {
+    refetch();
+    toast({ title: "Secret login berhasil!", description: "Selamat datang, Muhamad Naufal 🚀" });
+  });
 
   const handleLogout = () => {
     logout.mutate(undefined, {
