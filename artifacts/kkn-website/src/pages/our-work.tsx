@@ -10,6 +10,7 @@ import {
   type ProgramScheduleInputStatus,
 } from "@workspace/api-client-react";
 import { useAuth } from "@/hooks/use-auth";
+import { AttendanceWidget } from "@/components/AttendanceWidget";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -157,7 +158,8 @@ function ProgramDialog({ open, onClose, editId, initial, onSave, isPending }: {
 export default function OurWorkPage() {
   const qc = useQueryClient();
   const { toast } = useToast();
-  const { can } = useAuth();
+  const { can, memberName, role, isLoggedIn } = useAuth();
+  const isKetSek = role === "ketua" || role === "sekretaris";
   const { data: schedules, isLoading } = useGetProgramSchedules();
   const create = useCreateProgramSchedule();
   const update = useUpdateProgramSchedule();
@@ -206,7 +208,7 @@ export default function OurWorkPage() {
       <div className="flex items-start justify-between gap-4 flex-wrap">
         <div>
           <h1 className="text-3xl font-bold bg-gradient-to-r from-rose-500 to-sky-500 bg-clip-text text-transparent">Our Work</h1>
-          <p className="text-gray-500 text-sm mt-1">Jadwal program kerja Putatsari Wellness</p>
+          <p className="text-gray-500 text-sm mt-1">Jadwal program kerja dan absensi anggota</p>
         </div>
         {isAdmin && (
           <Button onClick={openAdd} className="bg-gradient-to-r from-rose-400 to-sky-400 text-white border-0 rounded-full gap-2">
@@ -298,6 +300,19 @@ export default function OurWorkPage() {
       )}
 
       <ProgramDialog open={open} onClose={() => setOpen(false)} editId={editId} initial={initForm} onSave={handleSave} isPending={create.isPending || update.isPending} />
+
+      {/* ── Absensi ── */}
+      <div className="space-y-4">
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-8 rounded-xl bg-violet-100 flex items-center justify-center">
+            <span className="text-sm">📋</span>
+          </div>
+          <h2 className="font-bold text-gray-800">Absensi</h2>
+        </div>
+        <div className="glass-card p-6">
+          <AttendanceWidget memberName={memberName} isKetSek={isKetSek} isLoggedIn={isLoggedIn} />
+        </div>
+      </div>
     </div>
   );
 }

@@ -26,19 +26,14 @@ import {
   useDeleteCondition,
   MemberConditionInputType,
   type MemberConditionInputType as ConditionType,
-  useGetAttendance,
-  useCreateAttendance,
-  AttendanceInputStatus,
-  type AttendanceInputStatus as AttendanceStatus,
   getGetConditionsQueryKey,
-  getGetAttendanceQueryKey,
 } from "@workspace/api-client-react";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Plus, Pencil, Trash2, ChefHat, SprayCan, Package, User, Heart, CalendarCheck } from "lucide-react";
+import { Plus, Pencil, Trash2, ChefHat, SprayCan, Package, User, Heart } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 
@@ -64,7 +59,6 @@ const tabs = [
   { id: "bersih", label: "Bersih-Bersih", icon: SprayCan },
   { id: "inventaris", label: "Inventaris", icon: Package },
   { id: "kondisi", label: "Kondisi Anggota", icon: Heart },
-  { id: "absensi", label: "Absensi", icon: CalendarCheck },
 ];
 
 function today() { return new Date().toISOString().split("T")[0]; }
@@ -886,140 +880,6 @@ function KondisiTab({ memberName: selfName, isKetSek }: { memberName: string | n
   );
 }
 
-// ─── ABSENSI TAB ──────────────────────────────────────────────────────────────
-const ATTENDANCE_CONFIG: Record<AttendanceStatus, { label: string; color: string; bg: string; emoji: string }> = {
-  hadir: { label: "Hadir", color: "text-emerald-700", bg: "bg-emerald-100 border-emerald-300", emoji: "✅" },
-  izin: { label: "Izin", color: "text-amber-700", bg: "bg-amber-100 border-amber-300", emoji: "📋" },
-  sakit: { label: "Sakit", color: "text-rose-700", bg: "bg-rose-100 border-rose-300", emoji: "🤒" },
-  alfa: { label: "Alfa", color: "text-gray-600", bg: "bg-gray-100 border-gray-300", emoji: "❓" },
-};
-
-function AbsensiTab({ memberName: selfName, isKetSek, isLoggedIn }: { memberName: string | null; isKetSek: boolean; isLoggedIn: boolean }) {
-  const qc = useQueryClient();
-  const { toast } = useToast();
-  const [selectedDate, setSelectedDate] = useState(today());
-
-  const { data: attendance, isLoading } = useGetAttendance({ date: selectedDate });
-  const submitAttendance = useCreateAttendance();
-
-  function invalidate() {
-    qc.invalidateQueries({ queryKey: getGetAttendanceQueryKey({ date: selectedDate }) });
-    qc.invalidateQueries({ queryKey: getGetDashboardSummaryQueryKey() });
-  }
-
-  function canSetFor(member: string) {
-    return isLoggedIn && (selfName === member || isKetSek);
-  }
-
-  function handleStatus(member: string, status: AttendanceStatus, notes?: string) {
-    submitAttendance.mutate(
-      { data: { memberName: member, date: selectedDate, status, notes } },
-      { onSuccess: () => { invalidate(); toast({ title: `Absensi ${member} dicatat: ${status}` }); } }
-    );
-  }
-
-  const attendanceMap = new Map((attendance ?? []).map(a => [a.memberName, a]));
-
-  const presentCount = (attendance ?? []).filter(a => a.status === "hadir").length;
-  const izinCount = (attendance ?? []).filter(a => a.status === "izin").length;
-  const sakitCount = (attendance ?? []).filter(a => a.status === "sakit").length;
-  const alfaCount = (attendance ?? []).filter(a => a.status === "alfa").length;
-  const totalFilled = (attendance ?? []).length;
-
-  return (
-    <div className="space-y-4">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-        <h2 className="text-lg font-semibold text-gray-700">Rekap Absensi</h2>
-        <div className="flex items-center gap-2">
-          <label className="text-xs text-gray-500 font-medium">Tanggal:</label>
-          <input type="date" value={selectedDate} onChange={e => setSelectedDate(e.target.value)}
-            className="text-sm px-3 py-1.5 rounded-xl border border-white/50 bg-white/60 focus:outline-none focus:border-rose-300 focus:ring-1 focus:ring-rose-300" />
-        </div>
-      </div>
-
-      {/* Summary pills */}
-      <div className="flex gap-2 flex-wrap">
-        {([["hadir", presentCount], ["izin", izinCount], ["sakit", sakitCount], ["alfa", alfaCount]] as [AttendanceStatus, number][]).map(([s, count]) => {
-          const cfg = ATTENDANCE_CONFIG[s];
-          return (
-            <div key={s} className={cn("flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border", cfg.bg)}>
-              <span>{cfg.emoji}</span>
-              <span className={cfg.color}>{cfg.label}: <strong>{count}</strong></span>
-            </div>
-          );
-        })}
-        <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border bg-gray-50 border-gray-200">
-          <span className="text-gray-500">Belum diisi: <strong>{9 - totalFilled}</strong></span>
-        </div>
-      </div>
-
-      {!isLoggedIn && (
-        <div className="glass-card p-4 text-center text-sm text-gray-400">
-          Login untuk mengisi absensi diri sendiri.
-        </div>
-      )}
-
-      {isLoading ? (
-        <div className="space-y-2">{[1,2,3,4,5].map(i => <div key={i} className="animate-pulse glass-card h-16" />)}</div>
-      ) : (
-        <div className="space-y-2">
-          {MEMBERS.map(member => {
-            const record = attendanceMap.get(member);
-            const canSet = canSetFor(member);
-            const currentStatus = record?.status as AttendanceStatus | undefined;
-            const isSelf = selfName === member;
-
-            return (
-              <div key={member} className={cn("glass-card p-3 flex items-center gap-3 transition-all",
-                isSelf && "ring-1 ring-rose-200")}>
-                <div className={cn("w-9 h-9 rounded-full flex items-center justify-center text-white font-bold text-sm shrink-0 bg-gradient-to-br", getMemberColor(member))}>
-                  {member.charAt(0)}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-gray-800 truncate">
-                    {member}
-                    {isSelf && <span className="ml-1.5 text-xs text-rose-400 font-normal">(saya)</span>}
-                  </p>
-                  {record?.notes && <p className="text-xs text-gray-400 truncate">{record.notes}</p>}
-                </div>
-                <div className="flex items-center gap-1.5 shrink-0">
-                  {canSet ? (
-                    (Object.keys(ATTENDANCE_CONFIG) as AttendanceStatus[]).map(s => {
-                      const cfg = ATTENDANCE_CONFIG[s];
-                      const isActive = currentStatus === s;
-                      return (
-                        <button key={s} type="button"
-                          onClick={() => handleStatus(member, s)}
-                          disabled={submitAttendance.isPending}
-                          title={cfg.label}
-                          className={cn("flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium border-2 transition-all",
-                            isActive ? cn("border-current", cfg.bg, cfg.color, "shadow-sm") : "border-gray-200 bg-white/40 text-gray-400 hover:bg-white/70"
-                          )}>
-                          <span>{cfg.emoji}</span>
-                          <span className="hidden sm:inline">{cfg.label}</span>
-                        </button>
-                      );
-                    })
-                  ) : (
-                    currentStatus ? (
-                      <div className={cn("flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium border", ATTENDANCE_CONFIG[currentStatus].bg)}>
-                        <span>{ATTENDANCE_CONFIG[currentStatus].emoji}</span>
-                        <span className={ATTENDANCE_CONFIG[currentStatus].color}>{ATTENDANCE_CONFIG[currentStatus].label}</span>
-                      </div>
-                    ) : (
-                      <span className="text-xs text-gray-300 italic">Belum diisi</span>
-                    )
-                  )}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      )}
-    </div>
-  );
-}
-
 // ─── MAIN PAGE ────────────────────────────────────────────────────────────────
 export default function OurLifePage() {
   const [activeTab, setActiveTab] = useState("masak");
@@ -1032,7 +892,7 @@ export default function OurLifePage() {
     <div className="space-y-6 animate-in fade-in duration-500">
       <div>
         <h1 className="text-3xl font-bold bg-gradient-to-r from-rose-500 to-sky-500 bg-clip-text text-transparent">Our Life</h1>
-        <p className="text-gray-500 text-sm mt-1">Kehidupan sehari-hari, jadwal piket, inventaris, dan absensi</p>
+        <p className="text-gray-500 text-sm mt-1">Kehidupan sehari-hari, jadwal piket, inventaris, dan kondisi anggota</p>
       </div>
 
       <div className="flex gap-2 p-1 bg-white/40 backdrop-blur-sm rounded-2xl border border-white/40 w-fit flex-wrap">
@@ -1061,7 +921,6 @@ export default function OurLifePage() {
         {activeTab === "bersih" && <CleaningTab isAdmin={isAdmin} />}
         {activeTab === "inventaris" && <InventarisTab isAdmin={isAdmin} selfName={memberName} isPrivileged={isPrivileged} isLoggedIn={isLoggedIn} />}
         {activeTab === "kondisi" && <KondisiTab memberName={memberName} isKetSek={isKetSek} />}
-        {activeTab === "absensi" && <AbsensiTab memberName={memberName} isKetSek={isKetSek} isLoggedIn={isLoggedIn} />}
       </div>
     </div>
   );

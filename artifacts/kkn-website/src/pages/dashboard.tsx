@@ -1,9 +1,11 @@
 import { useGetDashboardSummary, useGetMembers, useGetKasSummary } from "@workspace/api-client-react";
+import { useAuth } from "@/hooks/use-auth";
 import { Badge } from "@/components/ui/badge";
-import { Megaphone, Calendar, AlertTriangle, CheckCircle2, ChefHat, SprayCan, Package, CalendarCheck, Wallet, ShieldCheck, Utensils } from "lucide-react";
+import { Megaphone, Calendar, AlertTriangle, CheckCircle2, ChefHat, SprayCan, Package, Wallet, ShieldCheck, Utensils } from "lucide-react";
 import { Link } from "wouter";
 import { cn } from "@/lib/utils";
 import { getMemberColor } from "@/components/ui/member-picker";
+import { AttendanceWidget } from "@/components/AttendanceWidget";
 
 function formatRp(n: number) { return "Rp " + Math.abs(n).toLocaleString("id-ID"); }
 
@@ -53,6 +55,8 @@ export default function Dashboard() {
   const { data: summary, isLoading } = useGetDashboardSummary();
   const { data: members, isLoading: membersLoading } = useGetMembers();
   const { data: kasSummary, isLoading: kasLoading } = useGetKasSummary();
+  const { memberName, role, isLoggedIn } = useAuth();
+  const isKetSek = role === "ketua" || role === "sekretaris";
 
   return (
     <div className="space-y-10 animate-in fade-in duration-500">
@@ -340,39 +344,19 @@ export default function Dashboard() {
       </div>
 
       {/* ── Absensi Hari Ini ─────────────────────────────────────────────────── */}
-      <div className="glass-card p-4">
-        <div className="flex items-center justify-between mb-3">
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded-lg bg-violet-100 flex items-center justify-center">
-              <CalendarCheck className="w-3 h-3 text-violet-500" />
+            <div className="w-8 h-8 rounded-xl bg-violet-100 flex items-center justify-center">
+              <span className="text-sm">📋</span>
             </div>
-            <span className="text-sm font-semibold text-gray-600">Absensi Hari Ini</span>
+            <h2 className="font-bold text-gray-800">Absensi</h2>
           </div>
-          <Link href="/our-life">
-            <span className="text-xs text-rose-400 hover:text-rose-600 cursor-pointer font-medium">Isi Absensi →</span>
-          </Link>
+          <Link href="/our-work" className="text-xs text-violet-500 hover:text-violet-700 font-medium transition-colors">Lihat di Our Work →</Link>
         </div>
-        {isLoading ? (
-          <div className="flex gap-3">
-            {[1,2,3,4].map(i => <SkeletonBlock key={i} className="h-12 w-24" />)}
-          </div>
-        ) : (
-          <div className="flex flex-wrap gap-3">
-            {[
-              { label: "Hadir", emoji: "✅", count: summary?.attendanceSummary?.hadir ?? 0, color: "bg-emerald-50 text-emerald-700 border-emerald-200" },
-              { label: "Izin", emoji: "📋", count: summary?.attendanceSummary?.izin ?? 0, color: "bg-amber-50 text-amber-700 border-amber-200" },
-              { label: "Sakit", emoji: "🤒", count: summary?.attendanceSummary?.sakit ?? 0, color: "bg-rose-50 text-rose-700 border-rose-200" },
-              { label: "Alfa", emoji: "❓", count: summary?.attendanceSummary?.alfa ?? 0, color: "bg-gray-50 text-gray-600 border-gray-200" },
-              { label: "Belum diisi", emoji: "—", count: 9 - ((summary?.presentToday ?? 0) + (summary?.absentToday ?? 0)), color: "bg-gray-50 text-gray-400 border-gray-100" },
-            ].map(({ label, emoji, count, color }) => (
-              <div key={label} className={cn("flex items-center gap-2 px-3 py-2 rounded-xl border text-xs font-medium", color)}>
-                <span>{emoji}</span>
-                <span>{label}</span>
-                <span className="font-bold text-base leading-none">{count}</span>
-              </div>
-            ))}
-          </div>
-        )}
+        <div className="glass-card p-6">
+          <AttendanceWidget memberName={memberName} isKetSek={isKetSek} isLoggedIn={isLoggedIn} defaultDate={new Date().toISOString().split("T")[0]} showDatePicker={false} />
+        </div>
       </div>
 
       {/* ── Tim Putatsari Wellness — 3x3 Grid ───────────────────────────────── */}
