@@ -778,6 +778,29 @@ export interface KasSummary {
   totalPengeluaran: number;
 }
 
+export interface IuranMakanPayment {
+  id: number;
+  memberName: string;
+  weekLabel: string;
+  amount: number;
+  /** @nullable */
+  notes?: string | null;
+  createdAt: string;
+}
+
+export interface IuranMakanPaymentInput {
+  memberName: string;
+  weekLabel: string;
+  amount: number;
+  notes?: string;
+}
+
+export interface IuranMakanMemberSummary {
+  memberName: string;
+  totalPaid: number;
+  weekCount: number;
+}
+
 export interface TransferSisaMakanInput {
   date: string;
   terpakai: number;
@@ -1013,6 +1036,13 @@ export const GetKasFund = {
   iuran_makan: 'iuran_makan',
   proker: 'proker',
 } as const;
+
+export type GetIuranPaymentsParams = {
+/**
+ * ISO week label e.g. 2026-W23
+ */
+week: string;
+};
 
 export type GetAttendanceParams = {
 /**

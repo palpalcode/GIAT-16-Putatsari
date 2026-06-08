@@ -951,6 +951,77 @@ paths:
               schema:
                 $ref: "#/components/schemas/KasSummary"
 
+  /kas/iuran-payments:
+    get:
+      operationId: getIuranPayments
+      tags: [kas]
+      summary: Get iuran makan payment status per member for a week
+      parameters:
+        - name: week
+          in: query
+          required: true
+          schema:
+            type: string
+          description: ISO week label e.g. 2026-W23
+      responses:
+        "200":
+          description: List of payments for the week
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/IuranMakanPayment"
+    post:
+      operationId: createIuranPayment
+      tags: [kas]
+      summary: Mark member as paid for the week (admin)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/IuranMakanPaymentInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/IuranMakanPayment"
+        "409":
+          description: Already paid
+
+  /kas/iuran-payments/{id}:
+    delete:
+      operationId: deleteIuranPayment
+      tags: [kas]
+      summary: Unmark payment (admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /kas/iuran-payments/summary:
+    get:
+      operationId: getIuranPaymentsSummary
+      tags: [kas]
+      summary: Get total iuran paid per member across all weeks
+      responses:
+        "200":
+          description: Per-member summary
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/IuranMakanMemberSummary"
+
   /kas/transfer-sisa-makan:
     post:
       operationId: transferSisaMakan
@@ -2224,6 +2295,47 @@ components:
         totalPemasukan:
           type: integer
         totalPengeluaran:
+          type: integer
+
+    IuranMakanPayment:
+      type: object
+      required: [id, memberName, weekLabel, amount, createdAt]
+      properties:
+        id:
+          type: integer
+        memberName:
+          type: string
+        weekLabel:
+          type: string
+        amount:
+          type: integer
+        notes:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+
+    IuranMakanPaymentInput:
+      type: object
+      required: [memberName, weekLabel, amount]
+      properties:
+        memberName:
+          type: string
+        weekLabel:
+          type: string
+        amount:
+          type: integer
+        notes:
+          type: string
+
+    IuranMakanMemberSummary:
+      type: object
+      required: [memberName, totalPaid, weekCount]
+      properties:
+        memberName:
+          type: string
+        totalPaid:
+          type: integer
+        weekCount:
           type: integer
 
     TransferSisaMakanInput:

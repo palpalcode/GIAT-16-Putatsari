@@ -47,6 +47,7 @@ import type {
   ErrorEnvelope,
   GetAttendanceParams,
   GetInventoryParams,
+  GetIuranPaymentsParams,
   GetKasParams,
   HealthStatus,
   InventoryItem,
@@ -55,6 +56,9 @@ import type {
   Issue,
   IssueInput,
   IssueUpdate,
+  IuranMakanMemberSummary,
+  IuranMakanPayment,
+  IuranMakanPaymentInput,
   Kas,
   KasConfig,
   KasConfigInput,
@@ -3813,6 +3817,308 @@ export function useGetKasSummary<TData = Awaited<ReturnType<typeof getKasSummary
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
   const queryOptions = getGetKasSummaryQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetIuranPaymentsUrl = (params: GetIuranPaymentsParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/kas/iuran-payments?${stringifiedParams}` : `/api/kas/iuran-payments`
+}
+
+/**
+ * @summary Get iuran makan payment status per member for a week
+ */
+export const getIuranPayments = async (params: GetIuranPaymentsParams, options?: RequestInit): Promise<IuranMakanPayment[]> => {
+
+  return customFetch<IuranMakanPayment[]>(getGetIuranPaymentsUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetIuranPaymentsQueryKey = (params?: GetIuranPaymentsParams,) => {
+    return [
+    `/api/kas/iuran-payments`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetIuranPaymentsQueryOptions = <TData = Awaited<ReturnType<typeof getIuranPayments>>, TError = ErrorType<unknown>>(params: GetIuranPaymentsParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getIuranPayments>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetIuranPaymentsQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getIuranPayments>>> = ({ signal }) => getIuranPayments(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getIuranPayments>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetIuranPaymentsQueryResult = NonNullable<Awaited<ReturnType<typeof getIuranPayments>>>
+export type GetIuranPaymentsQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Get iuran makan payment status per member for a week
+ */
+
+export function useGetIuranPayments<TData = Awaited<ReturnType<typeof getIuranPayments>>, TError = ErrorType<unknown>>(
+ params: GetIuranPaymentsParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getIuranPayments>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetIuranPaymentsQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getCreateIuranPaymentUrl = () => {
+
+
+
+
+  return `/api/kas/iuran-payments`
+}
+
+/**
+ * @summary Mark member as paid for the week (admin)
+ */
+export const createIuranPayment = async (iuranMakanPaymentInput: IuranMakanPaymentInput, options?: RequestInit): Promise<IuranMakanPayment> => {
+
+  return customFetch<IuranMakanPayment>(getCreateIuranPaymentUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      iuranMakanPaymentInput,)
+  }
+);}
+
+
+
+
+export const getCreateIuranPaymentMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createIuranPayment>>, TError,{data: BodyType<IuranMakanPaymentInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createIuranPayment>>, TError,{data: BodyType<IuranMakanPaymentInput>}, TContext> => {
+
+const mutationKey = ['createIuranPayment'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createIuranPayment>>, {data: BodyType<IuranMakanPaymentInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  createIuranPayment(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateIuranPaymentMutationResult = NonNullable<Awaited<ReturnType<typeof createIuranPayment>>>
+    export type CreateIuranPaymentMutationBody = BodyType<IuranMakanPaymentInput>
+    export type CreateIuranPaymentMutationError = ErrorType<void>
+
+    /**
+ * @summary Mark member as paid for the week (admin)
+ */
+export const useCreateIuranPayment = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createIuranPayment>>, TError,{data: BodyType<IuranMakanPaymentInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createIuranPayment>>,
+        TError,
+        {data: BodyType<IuranMakanPaymentInput>},
+        TContext
+      > => {
+      return useMutation(getCreateIuranPaymentMutationOptions(options));
+    }
+
+export const getDeleteIuranPaymentUrl = (id: number,) => {
+
+
+
+
+  return `/api/kas/iuran-payments/${id}`
+}
+
+/**
+ * @summary Unmark payment (admin)
+ */
+export const deleteIuranPayment = async (id: number, options?: RequestInit): Promise<void> => {
+
+  return customFetch<void>(getDeleteIuranPaymentUrl(id),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+export const getDeleteIuranPaymentMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteIuranPayment>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteIuranPayment>>, TError,{id: number}, TContext> => {
+
+const mutationKey = ['deleteIuranPayment'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteIuranPayment>>, {id: number}> = (props) => {
+          const {id} = props ?? {};
+
+          return  deleteIuranPayment(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteIuranPaymentMutationResult = NonNullable<Awaited<ReturnType<typeof deleteIuranPayment>>>
+
+    export type DeleteIuranPaymentMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Unmark payment (admin)
+ */
+export const useDeleteIuranPayment = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteIuranPayment>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof deleteIuranPayment>>,
+        TError,
+        {id: number},
+        TContext
+      > => {
+      return useMutation(getDeleteIuranPaymentMutationOptions(options));
+    }
+
+export const getGetIuranPaymentsSummaryUrl = () => {
+
+
+
+
+  return `/api/kas/iuran-payments/summary`
+}
+
+/**
+ * @summary Get total iuran paid per member across all weeks
+ */
+export const getIuranPaymentsSummary = async ( options?: RequestInit): Promise<IuranMakanMemberSummary[]> => {
+
+  return customFetch<IuranMakanMemberSummary[]>(getGetIuranPaymentsSummaryUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetIuranPaymentsSummaryQueryKey = () => {
+    return [
+    `/api/kas/iuran-payments/summary`
+    ] as const;
+    }
+
+
+export const getGetIuranPaymentsSummaryQueryOptions = <TData = Awaited<ReturnType<typeof getIuranPaymentsSummary>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getIuranPaymentsSummary>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetIuranPaymentsSummaryQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getIuranPaymentsSummary>>> = ({ signal }) => getIuranPaymentsSummary({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getIuranPaymentsSummary>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetIuranPaymentsSummaryQueryResult = NonNullable<Awaited<ReturnType<typeof getIuranPaymentsSummary>>>
+export type GetIuranPaymentsSummaryQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Get total iuran paid per member across all weeks
+ */
+
+export function useGetIuranPaymentsSummary<TData = Awaited<ReturnType<typeof getIuranPaymentsSummary>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getIuranPaymentsSummary>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetIuranPaymentsSummaryQueryOptions(options)
 
   const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
 

@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { db } from "@workspace/db";
-import { kasTable, kasItemsTable, kasConfigTable } from "@workspace/db";
-import { and, eq, desc, inArray } from "drizzle-orm";
+import { kasTable, kasItemsTable, kasConfigTable, iuranMakanPaymentsTable } from "@workspace/db";
+import { and, eq, desc, inArray, sql, sum } from "drizzle-orm";
 import { requireEdit } from "../lib/auth";
 
 const router = Router();
@@ -193,6 +193,73 @@ router.get("/kas/summary", async (req, res) => {
       weeklyFoodAmount: weeklyFood, emergencyFundTarget: emergencyTarget,
       dailyFoodAllowance, emergencyFundStatus, totalPemasukan, totalPengeluaran,
     });
+  } catch (err) {
+    req.log.error(err);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+// ─── IURAN MAKAN PAYMENTS ───────────────────────────────────────────────────
+
+router.get("/kas/iuran-payments/summary", async (req, res) => {
+  try {
+    const rows = await db
+      .select({
+        memberName: iuranMakanPaymentsTable.memberName,
+        totalPaid: sum(iuranMakanPaymentsTable.amount),
+        weekCount: sql<number>`count(*)::int`,
+      })
+      .from(iuranMakanPaymentsTable)
+      .groupBy(iuranMakanPaymentsTable.memberName)
+      .orderBy(iuranMakanPaymentsTable.memberName);
+    res.json(rows.map(r => ({ ...r, totalPaid: Number(r.totalPaid ?? 0) })));
+  } catch (err) {
+    req.log.error(err);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+router.get("/kas/iuran-payments", async (req, res) => {
+  try {
+    const { week } = req.query as { week?: string };
+    if (!week) { res.status(400).json({ error: "week wajib diisi" }); return; }
+    const rows = await db
+      .select()
+      .from(iuranMakanPaymentsTable)
+      .where(eq(iuranMakanPaymentsTable.weekLabel, week))
+      .orderBy(iuranMakanPaymentsTable.memberName);
+    res.json(rows.map(r => ({ ...r, createdAt: r.createdAt.toISOString() })));
+  } catch (err) {
+    req.log.error(err);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+router.post("/kas/iuran-payments", requireEdit("kas"), async (req, res) => {
+  try {
+    const { memberName, weekLabel, amount, notes } = req.body;
+    if (!memberName || !weekLabel || amount === undefined) {
+      res.status(400).json({ error: "memberName, weekLabel, amount wajib diisi" }); return;
+    }
+    const [row] = await db
+      .insert(iuranMakanPaymentsTable)
+      .values({ memberName, weekLabel, amount: Number(amount), notes: notes ?? null })
+      .onConflictDoNothing()
+      .returning();
+    if (!row) { res.status(409).json({ error: "Sudah tercatat sebagai sudah bayar" }); return; }
+    res.status(201).json({ ...row, createdAt: row.createdAt.toISOString() });
+  } catch (err) {
+    req.log.error(err);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+router.delete("/kas/iuran-payments/:id", requireEdit("kas"), async (req, res) => {
+  try {
+    await db
+      .delete(iuranMakanPaymentsTable)
+      .where(eq(iuranMakanPaymentsTable.id, Number(req.params.id)));
+    res.status(204).send();
   } catch (err) {
     req.log.error(err);
     res.status(500).json({ error: "Server error" });

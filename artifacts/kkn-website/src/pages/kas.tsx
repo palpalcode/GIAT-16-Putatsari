@@ -16,10 +16,17 @@ import {
   useCreateProkerFund,
   useUpdateProkerFund,
   useDeleteProkerFund,
+  useGetMembers,
+  useGetIuranPayments,
+  useCreateIuranPayment,
+  useDeleteIuranPayment,
+  useGetIuranPaymentsSummary,
   getGetKasQueryKey,
   getGetKasConfigQueryKey,
   getGetKasSummaryQueryKey,
   getGetProkerFundsQueryKey,
+  getGetIuranPaymentsQueryKey,
+  getGetIuranPaymentsSummaryQueryKey,
 } from "@workspace/api-client-react";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
@@ -29,7 +36,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import {
   Plus, Pencil, Trash2, TrendingUp, TrendingDown, Wallet,
   ArrowUpCircle, ArrowDownCircle, ShieldCheck, Utensils,
-  Folder, ChevronRight, Settings, ArrowRightLeft, ChevronDown,
+  Folder, ChevronLeft, ChevronRight, ChevronDown, Settings, ArrowRightLeft, Check, X,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
@@ -38,6 +45,40 @@ function today() { return new Date().toISOString().split("T")[0]; }
 function formatRp(n: number) { return "Rp " + Math.abs(n).toLocaleString("id-ID"); }
 function formatDate(d: string) {
   return new Date(d).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" });
+}
+
+function getISOWeek(date: Date): { year: number; week: number } {
+  const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+  const day = d.getUTCDay() || 7;
+  d.setUTCDate(d.getUTCDate() + 4 - day);
+  const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+  const week = Math.ceil(((d.getTime() - yearStart.getTime()) / 86400000 + 1) / 7);
+  return { year: d.getUTCFullYear(), week };
+}
+function toWeekLabel(date: Date): string {
+  const { year, week } = getISOWeek(date);
+  return `${year}-W${String(week).padStart(2, "0")}`;
+}
+function weekLabelToRange(label: string): string {
+  const [yearStr, wStr] = label.split("-W");
+  const year = Number(yearStr);
+  const week = Number(wStr);
+  const jan4 = new Date(Date.UTC(year, 0, 4));
+  const startOfWeek = new Date(jan4.getTime() + (week - getISOWeek(jan4).week) * 7 * 86400000);
+  const monday = new Date(startOfWeek.getTime() - ((startOfWeek.getUTCDay() || 7) - 1) * 86400000);
+  const sunday = new Date(monday.getTime() + 6 * 86400000);
+  const fmt = (d: Date) => d.toLocaleDateString("id-ID", { day: "numeric", month: "short", timeZone: "UTC" });
+  return `${fmt(monday)} – ${fmt(sunday)}`;
+}
+function shiftWeek(label: string, delta: number): string {
+  const [yearStr, wStr] = label.split("-W");
+  const year = Number(yearStr);
+  const week = Number(wStr);
+  const jan4 = new Date(Date.UTC(year, 0, 4));
+  const startOfWeek = new Date(jan4.getTime() + (week - getISOWeek(jan4).week) * 7 * 86400000);
+  const monday = new Date(startOfWeek.getTime() - ((startOfWeek.getUTCDay() || 7) - 1) * 86400000);
+  const shifted = new Date(monday.getTime() + delta * 7 * 86400000);
+  return toWeekLabel(shifted);
 }
 
 const KAS_CATEGORIES = [
@@ -502,11 +543,19 @@ function IuranMakanTab({ isAdmin, summary }: { isAdmin?: boolean; summary: any }
   const updateConfig = useUpdateKasConfig();
   const transferSisa = useTransferSisaMakan();
 
+  const { data: members } = useGetMembers();
+  const [selectedWeek, setSelectedWeek] = useState(() => toWeekLabel(new Date()));
+  const { data: weekPayments, isLoading: loadingWeekPayments } = useGetIuranPayments({ week: selectedWeek });
+  const { data: memberSummary } = useGetIuranPaymentsSummary();
+  const createPayment = useCreateIuranPayment();
+  const deletePayment = useDeleteIuranPayment();
+
   const [openTx, setOpenTx] = useState(false);
   const [openConfig, setOpenConfig] = useState(false);
   const [openTransfer, setOpenTransfer] = useState(false);
+  const [activeSubTab, setActiveSubTab] = useState<"rekap" | "transaksi">("rekap");
   const [txState, setTxState] = useState<SimpleTxState>(defaultSimpleTx({ description: "Belanja makan", category: "makan" }));
-  const [configForm, setConfigForm] = useState({ weeklyAmount: "" });
+  const [configForm, setConfigForm] = useState({ weeklyAmount: String(summary?.weeklyFoodAmount ?? 0) });
   const [transferForm, setTransferForm] = useState({ date: today(), terpakai: "" });
 
   const jatahHarian = summary?.dailyFoodAllowance ?? 0;
@@ -518,6 +567,10 @@ function IuranMakanTab({ isAdmin, summary }: { isAdmin?: boolean; summary: any }
     qc.invalidateQueries({ queryKey: getGetKasSummaryQueryKey() });
     qc.invalidateQueries({ queryKey: getGetKasConfigQueryKey() });
     qc.invalidateQueries({ queryKey: getGetKasQueryKey({ fund: "darurat" }) });
+  }
+  function invalidatePayments() {
+    qc.invalidateQueries({ queryKey: getGetIuranPaymentsQueryKey({ week: selectedWeek }) });
+    qc.invalidateQueries({ queryKey: getGetIuranPaymentsSummaryQueryKey() });
   }
 
   function saveTx() {
@@ -551,6 +604,25 @@ function IuranMakanTab({ isAdmin, summary }: { isAdmin?: boolean; summary: any }
     });
   }
 
+  function togglePayment(memberName: string) {
+    const existing = (weekPayments ?? []).find(p => p.memberName === memberName);
+    if (existing) {
+      deletePayment.mutate({ id: existing.id }, { onSuccess: () => { invalidatePayments(); toast({ title: `${memberName} ditandai belum bayar` }); } });
+    } else {
+      createPayment.mutate(
+        { data: { memberName, weekLabel: selectedWeek, amount: weeklyFood } },
+        { onSuccess: () => { invalidatePayments(); toast({ title: `${memberName} ditandai sudah bayar` }); },
+          onError: () => { toast({ title: "Gagal mencatat pembayaran", variant: "destructive" }); } }
+      );
+    }
+  }
+
+  const memberNames = (members ?? []).map(m => m.name);
+  const paidSet = new Set((weekPayments ?? []).map(p => p.memberName));
+  const paidCount = paidSet.size;
+  const totalCount = memberNames.length;
+  const all = kas ?? [];
+  const isCurrentWeek = selectedWeek === toWeekLabel(new Date());
   return (
     <div className="space-y-5">
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -575,28 +647,163 @@ function IuranMakanTab({ isAdmin, summary }: { isAdmin?: boolean; summary: any }
         </div>
       </div>
 
-      <div className="flex gap-2 flex-wrap">
-        {isAdmin && (
-          <>
-            <Button size="sm" onClick={() => { setTxState(defaultSimpleTx({ type: "pengeluaran", description: "Belanja makan", category: "makan" })); setOpenTx(true); }}
-              className="bg-gradient-to-r from-orange-400 to-amber-400 text-white border-0 rounded-full gap-1">
-              <Plus className="w-4 h-4" />Catat Pengeluaran Makan
-            </Button>
-            <Button size="sm" onClick={() => { setTxState(defaultSimpleTx({ type: "pemasukan", description: "Iuran makan mingguan", category: "makan" })); setOpenTx(true); }}
-              variant="outline" className="rounded-full gap-1 text-emerald-700 border-emerald-200 hover:bg-emerald-50">
-              <ArrowUpCircle className="w-4 h-4" />Catat Pemasukan
-            </Button>
-            <Button size="sm" onClick={() => { setTransferForm({ date: today(), terpakai: "" }); setOpenTransfer(true); }}
-              variant="outline" className="rounded-full gap-1 text-sky-700 border-sky-200 hover:bg-sky-50">
-              <ArrowRightLeft className="w-4 h-4" />Transfer Sisa ke Dana Darurat
-            </Button>
-          </>
-        )}
+      {/* Sub-tab selector */}
+      <div className="flex gap-1 p-1 bg-white/40 rounded-xl border border-white/40">
+        {([
+          { id: "rekap" as const, label: "Rekap Iuran Per Anggota" },
+          { id: "transaksi" as const, label: "Riwayat Transaksi" },
+        ]).map(t => (
+          <button key={t.id} onClick={() => setActiveSubTab(t.id)} className={cn(
+            "flex-1 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all",
+            activeSubTab === t.id ? "bg-gradient-to-r from-orange-400 to-amber-400 text-white shadow-sm" : "text-gray-500 hover:text-gray-700 hover:bg-white/40"
+          )}>{t.label}</button>
+        ))}
       </div>
 
-      {isLoading ? <div className="animate-pulse space-y-2">{[1,2].map(i => <div key={i} className="glass-card h-14" />)}</div> : (
-        <TxList items={kas ?? []} isAdmin={isAdmin}
-          onDelete={id => del.mutate({ id }, { onSuccess: () => { invalidate(); toast({ title: "Transaksi dihapus" }); } })} />
+      {activeSubTab === "rekap" && (
+        <div className="space-y-4">
+          {/* Week navigation */}
+          <div className="flex items-center justify-between gap-2">
+            <button onClick={() => setSelectedWeek(w => shiftWeek(w, -1))} className="p-1.5 rounded-lg hover:bg-white/60 transition-colors text-gray-500">
+              <ChevronLeft className="w-4 h-4" />
+            </button>
+            <div className="text-center flex-1">
+              <p className="text-sm font-bold text-gray-800">{selectedWeek}</p>
+              <p className="text-xs text-gray-400">{weekLabelToRange(selectedWeek)}</p>
+              {isCurrentWeek && <Badge className="text-[10px] bg-orange-100 text-orange-700 border-orange-200 mt-0.5">Minggu Ini</Badge>}
+            </div>
+            <button onClick={() => setSelectedWeek(w => shiftWeek(w, 1))} disabled={isCurrentWeek} className={cn("p-1.5 rounded-lg transition-colors", isCurrentWeek ? "text-gray-300" : "hover:bg-white/60 text-gray-500")}>
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          </div>
+
+          {/* Progress bar */}
+          {totalCount > 0 && (
+            <div className="glass-card p-4 bg-gradient-to-br from-orange-50 to-amber-50">
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-sm font-semibold text-gray-700">Status Pembayaran</p>
+                <span className={cn("text-sm font-bold", paidCount === totalCount ? "text-emerald-600" : "text-amber-600")}>
+                  {paidCount}/{totalCount} sudah bayar
+                </span>
+              </div>
+              <div className="w-full h-2.5 bg-gray-200 rounded-full overflow-hidden">
+                <div
+                  className={cn("h-full rounded-full transition-all duration-500", paidCount === totalCount ? "bg-emerald-400" : "bg-orange-400")}
+                  style={{ width: `${totalCount > 0 ? (paidCount / totalCount) * 100 : 0}%` }}
+                />
+              </div>
+              {weeklyFood > 0 && <p className="text-xs text-gray-400 mt-1.5">Total terkumpul: {formatRp(paidCount * weeklyFood)}</p>}
+            </div>
+          )}
+
+          {/* Member payment table */}
+          {loadingWeekPayments ? (
+            <div className="animate-pulse space-y-2">{[1,2,3,4].map(i => <div key={i} className="glass-card h-12" />)}</div>
+          ) : (
+            <div className="space-y-2">
+              {memberNames.length === 0 && (
+                <p className="text-center text-sm text-gray-400 py-6">Belum ada data anggota.</p>
+              )}
+              {memberNames.map(name => {
+                const payment = (weekPayments ?? []).find(p => p.memberName === name);
+                const paid = !!payment;
+                return (
+                  <div key={name} className={cn(
+                    "glass-card px-4 py-3 flex items-center justify-between gap-3 transition-all",
+                    paid ? "bg-emerald-50/70" : "bg-white/40"
+                  )}>
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className={cn(
+                        "w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0",
+                        paid ? "bg-emerald-500 text-white" : "bg-gray-200 text-gray-500"
+                      )}>
+                        {paid ? <Check className="w-4 h-4" /> : name.charAt(0)}
+                      </div>
+                      <div className="min-w-0">
+                        <p className="font-semibold text-sm text-gray-900 truncate">{name}</p>
+                        {paid && payment && (
+                          <p className="text-xs text-emerald-600">{formatRp(payment.amount)} {String.fromCharCode(0x00B7)} {new Date(payment.createdAt).toLocaleDateString("id-ID", { day: "numeric", month: "short" })}</p>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <Badge className={cn(
+                        "text-[10px] border px-2 py-0.5 shrink-0",
+                        paid ? "bg-emerald-100 text-emerald-700 border-emerald-200" : "bg-gray-100 text-gray-500 border-gray-200"
+                      )}>
+                        {paid ? "Sudah Bayar" : "Belum Bayar"}
+                      </Badge>
+                      {isAdmin && (
+                        <button
+                          onClick={() => togglePayment(name)}
+                          disabled={createPayment.isPending || deletePayment.isPending}
+                          className={cn(
+                            "w-7 h-7 rounded-full flex items-center justify-center transition-all border",
+                            paid
+                              ? "bg-rose-50 border-rose-200 text-rose-500 hover:bg-rose-100"
+                              : "bg-emerald-50 border-emerald-200 text-emerald-600 hover:bg-emerald-100"
+                          )}
+                          title={paid ? "Batalkan pembayaran" : "Tandai sudah bayar"}
+                        >
+                          {paid ? <X className="w-3.5 h-3.5" /> : <Check className="w-3.5 h-3.5" />}
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Per-member cumulative summary */}
+          {(memberSummary ?? []).length > 0 && (
+            <div className="mt-4">
+              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Rekap Total Per Anggota (Semua Minggu)</p>
+              <div className="space-y-2">
+                {(memberSummary ?? [])
+                  .sort((a, b) => b.totalPaid - a.totalPaid)
+                  .map(s => (
+                    <div key={s.memberName} className="flex items-center justify-between gap-2 px-3 py-2 rounded-xl bg-white/40 border border-white/60">
+                      <span className="text-sm text-gray-700 font-medium">{s.memberName}</span>
+                      <div className="text-right">
+                        <p className="text-sm font-bold text-orange-700">{formatRp(s.totalPaid)}</p>
+                        <p className="text-[10px] text-gray-400">{s.weekCount} minggu</p>
+                      </div>
+                    </div>
+                  ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {activeSubTab === "transaksi" && (
+        <div className="space-y-4">
+          {/* Actions */}
+          <div className="flex gap-2 flex-wrap">
+            {isAdmin && (
+              <>
+                <Button size="sm" onClick={() => { setTxState(defaultSimpleTx({ type: "pengeluaran", description: "Belanja makan", category: "makan" })); setOpenTx(true); }}
+                  className="bg-gradient-to-r from-orange-400 to-amber-400 text-white border-0 rounded-full gap-1">
+                  <Plus className="w-4 h-4" />Catat Pengeluaran Makan
+                </Button>
+                <Button size="sm" onClick={() => { setTxState(defaultSimpleTx({ type: "pemasukan", description: "Iuran makan mingguan", category: "makan" })); setOpenTx(true); }}
+                  variant="outline" className="rounded-full gap-1 text-emerald-700 border-emerald-200 hover:bg-emerald-50">
+                  <ArrowUpCircle className="w-4 h-4" />Catat Pemasukan
+                </Button>
+                <Button size="sm" onClick={() => { setTransferForm({ date: today(), terpakai: "" }); setOpenTransfer(true); }}
+                  variant="outline" className="rounded-full gap-1 text-sky-700 border-sky-200 hover:bg-sky-50">
+                  <ArrowRightLeft className="w-4 h-4" />Transfer Sisa ke Dana Darurat
+                </Button>
+              </>
+            )}
+          </div>
+
+          {isLoading ? <div className="animate-pulse space-y-2">{[1,2].map(i => <div key={i} className="glass-card h-14" />)}</div> : (
+            <TxList items={all} isAdmin={isAdmin}
+              onDelete={id => del.mutate({ id }, { onSuccess: () => { invalidate(); toast({ title: "Transaksi dihapus" }); } })} />
+          )}
+        </div>
       )}
 
       <SimpleTxDialog open={openTx} onClose={() => setOpenTx(false)} title="Catat Transaksi Makan"

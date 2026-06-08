@@ -245,3 +245,20 @@ export const attendanceTable = pgTable(
 export const insertAttendanceSchema = createInsertSchema(attendanceTable).omit({ id: true, createdAt: true });
 export type InsertAttendance = z.infer<typeof insertAttendanceSchema>;
 export type Attendance = typeof attendanceTable.$inferSelect;
+
+export const iuranMakanPaymentsTable = pgTable(
+  "iuran_makan_payments",
+  {
+    id: serial("id").primaryKey(),
+    memberName: text("member_name").notNull(),
+    weekLabel: text("week_label").notNull(), // format: "2026-W23"
+    amount: integer("amount").notNull().default(0),
+    notes: text("notes"),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+  },
+  (t) => [uniqueIndex("iuran_makan_payments_member_week_unique").on(t.memberName, t.weekLabel)],
+);
+
+export const insertIuranMakanPaymentSchema = createInsertSchema(iuranMakanPaymentsTable).omit({ id: true, createdAt: true });
+export type InsertIuranMakanPayment = z.infer<typeof insertIuranMakanPaymentSchema>;
+export type IuranMakanPayment = typeof iuranMakanPaymentsTable.$inferSelect;

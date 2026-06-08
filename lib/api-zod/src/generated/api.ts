@@ -790,6 +790,54 @@ export const GetKasSummaryResponse = zod.object({
 
 
 /**
+ * @summary Get iuran makan payment status per member for a week
+ */
+export const GetIuranPaymentsQueryParams = zod.object({
+  "week": zod.coerce.string().describe('ISO week label e.g. 2026-W23')
+})
+
+export const GetIuranPaymentsResponseItem = zod.object({
+  "id": zod.number(),
+  "memberName": zod.string(),
+  "weekLabel": zod.string(),
+  "amount": zod.number(),
+  "notes": zod.string().nullish(),
+  "createdAt": zod.string()
+})
+export const GetIuranPaymentsResponse = zod.array(GetIuranPaymentsResponseItem)
+
+
+/**
+ * @summary Mark member as paid for the week (admin)
+ */
+export const CreateIuranPaymentBody = zod.object({
+  "memberName": zod.string(),
+  "weekLabel": zod.string(),
+  "amount": zod.number(),
+  "notes": zod.string().optional()
+})
+
+
+/**
+ * @summary Unmark payment (admin)
+ */
+export const DeleteIuranPaymentParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+
+/**
+ * @summary Get total iuran paid per member across all weeks
+ */
+export const GetIuranPaymentsSummaryResponseItem = zod.object({
+  "memberName": zod.string(),
+  "totalPaid": zod.number(),
+  "weekCount": zod.number()
+})
+export const GetIuranPaymentsSummaryResponse = zod.array(GetIuranPaymentsSummaryResponseItem)
+
+
+/**
  * @summary Transfer sisa makan hari ini ke dana darurat (admin)
  */
 export const TransferSisaMakanBody = zod.object({
