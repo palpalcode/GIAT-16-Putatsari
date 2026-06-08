@@ -255,6 +255,14 @@ export const InventoryItemCategory = {
   umum: 'umum',
 } as const;
 
+export type InventoryItemItemType = typeof InventoryItemItemType[keyof typeof InventoryItemItemType];
+
+
+export const InventoryItemItemType = {
+  kelompok: 'kelompok',
+  pribadi: 'pribadi',
+} as const;
+
 export interface InventoryItem {
   id: number;
   name: string;
@@ -263,6 +271,11 @@ export interface InventoryItem {
   unit: string;
   /** @nullable */
   notes?: string | null;
+  itemType: InventoryItemItemType;
+  /** @nullable */
+  ownerName?: string | null;
+  /** @nullable */
+  ownerLabel?: string | null;
   createdAt: string;
 }
 
@@ -276,12 +289,23 @@ export const InventoryItemInputCategory = {
   umum: 'umum',
 } as const;
 
+export type InventoryItemInputItemType = typeof InventoryItemInputItemType[keyof typeof InventoryItemInputItemType];
+
+
+export const InventoryItemInputItemType = {
+  kelompok: 'kelompok',
+  pribadi: 'pribadi',
+} as const;
+
 export interface InventoryItemInput {
   name: string;
   category: InventoryItemInputCategory;
   quantity: number;
   unit: string;
   notes?: string;
+  itemType?: InventoryItemInputItemType;
+  ownerName?: string;
+  ownerLabel?: string;
 }
 
 export type InventoryItemUpdateCategory = typeof InventoryItemUpdateCategory[keyof typeof InventoryItemUpdateCategory];
@@ -300,6 +324,8 @@ export interface InventoryItemUpdate {
   quantity?: number;
   unit?: string;
   notes?: string;
+  ownerName?: string;
+  ownerLabel?: string;
 }
 
 export type DeadlineType = typeof DeadlineType[keyof typeof DeadlineType];
@@ -799,6 +825,25 @@ export interface AttendanceUpdate {
   status?: AttendanceUpdateStatus;
   notes?: string;
 }
+
+export type GetInventoryParams = {
+/**
+ * Filter by item type
+ */
+type?: GetInventoryType;
+/**
+ * Filter by owner name (for pribadi items)
+ */
+owner?: string;
+};
+
+export type GetInventoryType = typeof GetInventoryType[keyof typeof GetInventoryType];
+
+
+export const GetInventoryType = {
+  kelompok: 'kelompok',
+  pribadi: 'pribadi',
+} as const;
 
 export type GetAttendanceParams = {
 /**

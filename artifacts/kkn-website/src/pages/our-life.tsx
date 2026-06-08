@@ -12,6 +12,8 @@ import {
   useDeleteCleaningSchedule,
   useCreateInventoryItem,
   type InventoryItemInputCategory,
+  InventoryItemInputItemType,
+  type InventoryItemInputItemType as InvItemType,
   useUpdateInventoryItem,
   useDeleteInventoryItem,
   getGetCookingSchedulesQueryKey,
@@ -369,34 +371,131 @@ function getCatColor(cat: string) { return invCategories.find(c => c.id === cat)
 function getCatLabel(cat: string) { return invCategories.find(c => c.id === cat)?.label ?? cat; }
 function getCatEmoji(cat: string) { return invCategories.find(c => c.id === cat)?.emoji ?? "📦"; }
 
-function InventarisTab({ isAdmin }: { isAdmin?: boolean }) {
+// Shared category filter + item grid used by both sub-tabs
+function InvCategoryFilter({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  return (
+    <div className="flex gap-2 flex-wrap">
+      <button onClick={() => onChange("all")} className={cn("px-3 py-1 rounded-full text-xs font-medium border transition-all", value === "all" ? "bg-gradient-to-r from-emerald-400 to-teal-400 text-white border-transparent" : "bg-white/50 text-gray-600 border-white/50 hover:bg-white/80")}>Semua</button>
+      {invCategories.map(c => (
+        <button key={c.id} onClick={() => onChange(c.id)} className={cn("flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium border transition-all", value === c.id ? "bg-gradient-to-r from-emerald-400 to-teal-400 text-white border-transparent" : "bg-white/50 text-gray-600 border-white/50 hover:bg-white/80")}>
+          <span>{c.emoji}</span>{c.label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function InvItemForm({
+  editId, form, setForm, onSave, onCancel, isPending, forKelompok,
+}: {
+  editId: number | null;
+  form: { name: string; category: InventoryItemInputCategory; quantity: number; unit: string; notes: string; ownerType: "bersama" | "anggota"; ownerMember: string };
+  setForm: React.Dispatch<React.SetStateAction<typeof form>>;
+  onSave: () => void;
+  onCancel: () => void;
+  isPending: boolean;
+  forKelompok: boolean;
+}) {
+  return (
+    <div className="px-6 pb-6 pt-4 space-y-4">
+      <div>
+        <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 block">Nama Barang</label>
+        <Input placeholder="Nama barang..." value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} className="bg-white/60" />
+      </div>
+      <div>
+        <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2 block">Kategori</label>
+        <div className="grid grid-cols-2 gap-2">
+          {invCategories.map(cat => (
+            <button key={cat.id} type="button" onClick={() => setForm(f => ({ ...f, category: cat.id as InventoryItemInputCategory }))} className={cn(
+              "flex items-center gap-2 px-3 py-2.5 rounded-xl border-2 text-sm transition-all",
+              form.category === cat.id ? cat.color + " border-current shadow-sm" : "bg-white/40 text-gray-500 border-white/40 hover:bg-white/70"
+            )}>
+              <span className="text-lg">{cat.emoji}</span>
+              <span className="font-medium">{cat.label}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+      <div className="flex gap-3">
+        <div className="w-28">
+          <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 block">Jumlah</label>
+          <Input type="number" min={0} value={form.quantity} onChange={e => setForm(f => ({ ...f, quantity: Number(e.target.value) }))} className="bg-white/60" />
+        </div>
+        <div className="flex-1">
+          <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 block">Satuan</label>
+          <Input placeholder="pcs, tablet, botol..." value={form.unit} onChange={e => setForm(f => ({ ...f, unit: e.target.value }))} className="bg-white/60" />
+        </div>
+      </div>
+      {forKelompok && (
+        <div>
+          <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2 block">Kepemilikan (opsional)</label>
+          <div className="flex gap-2">
+            <button type="button" onClick={() => setForm(f => ({ ...f, ownerType: "bersama" }))} className={cn("flex-1 py-2 rounded-xl border-2 text-xs font-medium transition-all", form.ownerType === "bersama" ? "border-emerald-400 bg-emerald-50 text-emerald-700" : "border-white/40 bg-white/30 text-gray-500 hover:bg-white/60")}>
+              🤝 Milik Bersama
+            </button>
+            <button type="button" onClick={() => setForm(f => ({ ...f, ownerType: "anggota" }))} className={cn("flex-1 py-2 rounded-xl border-2 text-xs font-medium transition-all", form.ownerType === "anggota" ? "border-sky-400 bg-sky-50 text-sky-700" : "border-white/40 bg-white/30 text-gray-500 hover:bg-white/60")}>
+              👤 Milik Anggota
+            </button>
+          </div>
+          {form.ownerType === "anggota" && (
+            <select value={form.ownerMember} onChange={e => setForm(f => ({ ...f, ownerMember: e.target.value }))}
+              className="mt-2 w-full text-sm px-3 py-2 rounded-xl border border-white/50 bg-white/60 focus:outline-none focus:border-emerald-300">
+              <option value="">-- Pilih anggota --</option>
+              {MEMBERS.map(m => <option key={m} value={m}>{m}</option>)}
+            </select>
+          )}
+        </div>
+      )}
+      <div>
+        <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 block">Catatan (opsional)</label>
+        <Input placeholder="Catatan..." value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} className="bg-white/60" />
+      </div>
+      <div className="flex gap-3 justify-end pt-1">
+        <Button variant="outline" onClick={onCancel} className="rounded-full">Batal</Button>
+        <Button onClick={onSave} className="bg-gradient-to-r from-emerald-400 to-teal-400 text-white border-0 rounded-full" disabled={!form.name || !form.unit || isPending}>Simpan</Button>
+      </div>
+    </div>
+  );
+}
+
+type InvForm = { name: string; category: InventoryItemInputCategory; quantity: number; unit: string; notes: string; ownerType: "bersama" | "anggota"; ownerMember: string };
+const defaultInvForm = (): InvForm => ({ name: "", category: "umum", quantity: 1, unit: "", notes: "", ownerType: "bersama", ownerMember: "" });
+
+// Barang Kelompok sub-tab
+function BrgKelompokTab({ isAdmin }: { isAdmin?: boolean }) {
   const qc = useQueryClient();
   const { toast } = useToast();
-  const { data: inventory, isLoading } = useGetInventory();
+  const { data: inventory, isLoading } = useGetInventory({ type: "kelompok" });
   const create = useCreateInventoryItem();
   const update = useUpdateInventoryItem();
   const del = useDeleteInventoryItem();
 
   const [open, setOpen] = useState(false);
   const [editId, setEditId] = useState<number | null>(null);
-  const [form, setForm] = useState<{ name: string; category: InventoryItemInputCategory; quantity: number; unit: string; notes: string }>({ name: "", category: "umum", quantity: 1, unit: "", notes: "" });
+  const [form, setForm] = useState<InvForm>(defaultInvForm);
   const [filterCat, setFilterCat] = useState("all");
 
   function invalidate() {
-    qc.invalidateQueries({ queryKey: getGetInventoryQueryKey() });
+    qc.invalidateQueries({ queryKey: getGetInventoryQueryKey({ type: "kelompok" }) });
     qc.invalidateQueries({ queryKey: getGetDashboardSummaryQueryKey() });
   }
 
-  function openAdd() { setEditId(null); setForm({ name: "", category: "umum", quantity: 1, unit: "", notes: "" }); setOpen(true); }
-  function openEdit(item: any) { setEditId(item.id); setForm({ name: item.name, category: item.category, quantity: item.quantity, unit: item.unit, notes: item.notes ?? "" }); setOpen(true); }
+  function openAdd() { setEditId(null); setForm(defaultInvForm()); setOpen(true); }
+  function openEdit(item: any) {
+    setEditId(item.id);
+    const ownerType: "bersama" | "anggota" = item.ownerLabel && item.ownerLabel !== "Milik Bersama" ? "anggota" : "bersama";
+    setForm({ name: item.name, category: item.category as InventoryItemInputCategory, quantity: item.quantity, unit: item.unit, notes: item.notes ?? "", ownerType, ownerMember: ownerType === "anggota" ? (item.ownerName ?? "") : "" });
+    setOpen(true);
+  }
 
   function handleSave() {
-    if (!form.name || !form.unit) return;
-    const payload = { name: form.name, category: form.category, quantity: form.quantity, unit: form.unit, notes: form.notes || undefined };
+    const ownerName = form.ownerType === "anggota" && form.ownerMember ? form.ownerMember : undefined;
+    const ownerLabel = form.ownerType === "anggota" && form.ownerMember ? form.ownerMember : "Milik Bersama";
+    const payload = { name: form.name, category: form.category, quantity: form.quantity, unit: form.unit, notes: form.notes || undefined, itemType: InventoryItemInputItemType.kelompok, ownerName, ownerLabel };
     if (editId !== null) {
-      update.mutate({ id: editId, data: payload }, { onSuccess: () => { invalidate(); setOpen(false); toast({ title: "Item diperbarui" }); } });
+      update.mutate({ id: editId, data: payload }, { onSuccess: () => { invalidate(); setOpen(false); toast({ title: "Barang diperbarui" }); } });
     } else {
-      create.mutate({ data: payload }, { onSuccess: () => { invalidate(); setOpen(false); toast({ title: "Item ditambahkan" }); } });
+      create.mutate({ data: payload }, { onSuccess: () => { invalidate(); setOpen(false); toast({ title: "Barang ditambahkan" }); } });
     }
   }
 
@@ -410,7 +509,7 @@ function InventarisTab({ isAdmin }: { isAdmin?: boolean }) {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between flex-wrap gap-2">
-        <h2 className="text-lg font-semibold text-gray-700">Inventaris Posko</h2>
+        <p className="text-sm text-gray-500">Barang yang dikelola bersama untuk keperluan posko</p>
         {isAdmin && (
           <Button size="sm" onClick={openAdd} className="bg-gradient-to-r from-emerald-400 to-teal-400 text-white border-0 rounded-full gap-1">
             <Plus className="w-4 h-4" />Tambah Barang
@@ -418,19 +517,12 @@ function InventarisTab({ isAdmin }: { isAdmin?: boolean }) {
         )}
       </div>
 
-      <div className="flex gap-2 flex-wrap">
-        <button onClick={() => setFilterCat("all")} className={cn("px-3 py-1 rounded-full text-xs font-medium border transition-all", filterCat === "all" ? "bg-gradient-to-r from-emerald-400 to-teal-400 text-white border-transparent" : "bg-white/50 text-gray-600 border-white/50 hover:bg-white/80")}>Semua</button>
-        {invCategories.map(c => (
-          <button key={c.id} onClick={() => setFilterCat(c.id)} className={cn("flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium border transition-all", filterCat === c.id ? "bg-gradient-to-r from-emerald-400 to-teal-400 text-white border-transparent" : "bg-white/50 text-gray-600 border-white/50 hover:bg-white/80")}>
-            <span>{c.emoji}</span>{c.label}
-          </button>
-        ))}
-      </div>
+      <InvCategoryFilter value={filterCat} onChange={setFilterCat} />
 
       {isLoading ? (
         <div className="animate-pulse space-y-3">{[1,2].map(i => <div key={i} className="glass-card h-24" />)}</div>
       ) : filtered.length === 0 ? (
-        <div className="text-center py-10 text-gray-400 text-sm">Belum ada barang inventaris.</div>
+        <div className="text-center py-10 text-gray-400 text-sm">Belum ada barang kelompok.</div>
       ) : (
         <div className="space-y-5">
           {Object.entries(grouped).map(([catId, items]) => (
@@ -444,15 +536,21 @@ function InventarisTab({ isAdmin }: { isAdmin?: boolean }) {
               <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
                 {items.map(item => (
                   <div key={item.id} className="glass-card p-3 group transition-all hover:-translate-y-0.5">
-                    <div className="flex justify-between items-center gap-2">
-                      <div className="min-w-0">
+                    <div className="flex justify-between items-start gap-2">
+                      <div className="min-w-0 flex-1">
                         <p className="font-semibold text-sm text-gray-900 truncate">{item.name}</p>
                         <p className="text-xs text-gray-500"><span className="text-xl font-bold text-gray-800">{item.quantity}</span> {item.unit}</p>
+                        {item.ownerLabel && (
+                          <span className="inline-flex items-center gap-1 mt-1 text-[10px] px-2 py-0.5 rounded-full bg-sky-50 text-sky-600 border border-sky-100">
+                            {item.ownerLabel === "Milik Bersama" ? "🤝" : "👤"} {item.ownerLabel}
+                          </span>
+                        )}
+                        {item.notes && <p className="text-xs text-gray-400 mt-1 truncate">{item.notes}</p>}
                       </div>
                       {isAdmin && (
                         <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
                           <Button variant="ghost" size="icon" className="h-6 w-6 rounded-full" onClick={() => openEdit(item)}><Pencil className="w-3 h-3 text-sky-500" /></Button>
-                          <Button variant="ghost" size="icon" className="h-6 w-6 rounded-full" onClick={() => del.mutate({ id: item.id }, { onSuccess: () => { invalidate(); toast({ title: "Item dihapus" }); } })}><Trash2 className="w-3 h-3 text-rose-500" /></Button>
+                          <Button variant="ghost" size="icon" className="h-6 w-6 rounded-full" onClick={() => del.mutate({ id: item.id }, { onSuccess: () => { invalidate(); toast({ title: "Barang dihapus" }); } })}><Trash2 className="w-3 h-3 text-rose-500" /></Button>
                         </div>
                       )}
                     </div>
@@ -465,50 +563,162 @@ function InventarisTab({ isAdmin }: { isAdmin?: boolean }) {
       )}
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="glass-panel border-white/50 max-w-md p-0 overflow-hidden">
+        <DialogContent className="glass-panel border-white/50 max-w-md p-0 overflow-hidden max-h-[90vh] overflow-y-auto">
           <div className="px-6 pt-6 pb-4 bg-gradient-to-r from-emerald-400/20 to-teal-400/20">
-            <DialogHeader><DialogTitle className="flex items-center gap-2"><Package className="w-5 h-5 text-emerald-500" />{editId ? "Edit Barang" : "Tambah Barang"}</DialogTitle></DialogHeader>
+            <DialogHeader><DialogTitle className="flex items-center gap-2"><Package className="w-5 h-5 text-emerald-500" />{editId ? "Edit Barang Kelompok" : "Tambah Barang Kelompok"}</DialogTitle></DialogHeader>
           </div>
-          <div className="px-6 pb-6 pt-4 space-y-4">
-            <div>
-              <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 block">Nama Barang</label>
-              <Input placeholder="Nama barang..." value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} className="bg-white/60" />
-            </div>
-            <div>
-              <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2 block">Kategori</label>
-              <div className="grid grid-cols-2 gap-2">
-                {invCategories.map(cat => (
-                  <button key={cat.id} type="button" onClick={() => setForm(f => ({ ...f, category: cat.id as InventoryItemInputCategory }))} className={cn(
-                    "flex items-center gap-2 px-3 py-2.5 rounded-xl border-2 text-sm transition-all",
-                    form.category === cat.id ? cat.color + " border-current shadow-sm" : "bg-white/40 text-gray-500 border-white/40 hover:bg-white/70"
-                  )}>
-                    <span className="text-lg">{cat.emoji}</span>
-                    <span className="font-medium">{cat.label}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-            <div className="flex gap-3">
-              <div className="w-28">
-                <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 block">Jumlah</label>
-                <Input type="number" min={0} placeholder="0" value={form.quantity} onChange={e => setForm(f => ({ ...f, quantity: Number(e.target.value) }))} className="bg-white/60" />
-              </div>
-              <div className="flex-1">
-                <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 block">Satuan</label>
-                <Input placeholder="pcs, tablet, botol..." value={form.unit} onChange={e => setForm(f => ({ ...f, unit: e.target.value }))} className="bg-white/60" />
-              </div>
-            </div>
-            <div>
-              <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 block">Catatan (opsional)</label>
-              <Input placeholder="Catatan..." value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} className="bg-white/60" />
-            </div>
-            <div className="flex gap-3 justify-end pt-1">
-              <Button variant="outline" onClick={() => setOpen(false)} className="rounded-full">Batal</Button>
-              <Button onClick={handleSave} className="bg-gradient-to-r from-emerald-400 to-teal-400 text-white border-0 rounded-full" disabled={create.isPending || update.isPending}>Simpan</Button>
-            </div>
-          </div>
+          <InvItemForm editId={editId} form={form} setForm={setForm} onSave={handleSave} onCancel={() => setOpen(false)} isPending={create.isPending || update.isPending} forKelompok={true} />
         </DialogContent>
       </Dialog>
+    </div>
+  );
+}
+
+// Barang Pribadi sub-tab
+function BrgPribadiTab({ selfName, isPrivileged, isLoggedIn }: { selfName: string | null; isPrivileged: boolean; isLoggedIn: boolean }) {
+  const qc = useQueryClient();
+  const { toast } = useToast();
+  const [selectedOwner, setSelectedOwner] = useState<string>(selfName ?? "");
+  const { data: inventory, isLoading } = useGetInventory({ type: "pribadi", owner: selectedOwner || undefined });
+  const create = useCreateInventoryItem();
+  const update = useUpdateInventoryItem();
+  const del = useDeleteInventoryItem();
+
+  const [open, setOpen] = useState(false);
+  const [editId, setEditId] = useState<number | null>(null);
+  const [form, setForm] = useState<InvForm>(defaultInvForm);
+  const [filterCat, setFilterCat] = useState("all");
+
+  function invalidate() {
+    qc.invalidateQueries({ queryKey: getGetInventoryQueryKey({ type: "pribadi" }) });
+    qc.invalidateQueries({ queryKey: getGetDashboardSummaryQueryKey() });
+  }
+
+  function canEdit(ownerName: string | null | undefined) {
+    return isLoggedIn && (selfName === ownerName || isPrivileged);
+  }
+
+  function openAdd() { setEditId(null); setForm(defaultInvForm()); setOpen(true); }
+  function openEdit(item: any) {
+    setEditId(item.id);
+    setForm({ name: item.name, category: item.category as InventoryItemInputCategory, quantity: item.quantity, unit: item.unit, notes: item.notes ?? "", ownerType: "bersama", ownerMember: "" });
+    setOpen(true);
+  }
+
+  function handleSave() {
+    const payload = { name: form.name, category: form.category, quantity: form.quantity, unit: form.unit, notes: form.notes || undefined, itemType: InventoryItemInputItemType.pribadi };
+    if (editId !== null) {
+      update.mutate({ id: editId, data: payload }, { onSuccess: () => { invalidate(); setOpen(false); toast({ title: "Barang diperbarui" }); } });
+    } else {
+      create.mutate({ data: payload }, { onSuccess: () => { invalidate(); setOpen(false); toast({ title: "Barang ditambahkan" }); } });
+    }
+  }
+
+  const filtered = filterCat === "all" ? (inventory ?? []) : (inventory ?? []).filter(i => i.category === filterCat);
+
+  return (
+    <div className="space-y-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div className="flex items-center gap-2">
+          <label className="text-xs font-semibold text-gray-500">Lihat milik:</label>
+          {isPrivileged ? (
+            <select value={selectedOwner} onChange={e => setSelectedOwner(e.target.value)}
+              className="text-sm px-3 py-1.5 rounded-xl border border-white/50 bg-white/60 focus:outline-none focus:border-emerald-300">
+              <option value="">-- Semua --</option>
+              {MEMBERS.map(m => <option key={m} value={m}>{m}</option>)}
+            </select>
+          ) : selfName ? (
+            <span className={cn("flex items-center gap-1 text-xs text-white px-3 py-1 rounded-full bg-gradient-to-r", getMemberColor(selfName))}>
+              {selfName}
+            </span>
+          ) : (
+            <span className="text-xs text-gray-400 italic">Login untuk lihat barang sendiri</span>
+          )}
+        </div>
+        {isLoggedIn && (
+          <Button size="sm" onClick={openAdd} className="bg-gradient-to-r from-violet-400 to-sky-400 text-white border-0 rounded-full gap-1">
+            <Plus className="w-4 h-4" />Tambah Barangku
+          </Button>
+        )}
+      </div>
+
+      <InvCategoryFilter value={filterCat} onChange={setFilterCat} />
+
+      {isLoading ? (
+        <div className="animate-pulse space-y-3">{[1,2].map(i => <div key={i} className="glass-card h-20" />)}</div>
+      ) : filtered.length === 0 ? (
+        <div className="text-center py-10 text-gray-400 text-sm">
+          {selectedOwner ? `${selectedOwner} belum mencatat barang pribadi.` : "Belum ada barang pribadi."}
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {filtered.map(item => {
+            const editable = canEdit(item.ownerName);
+            return (
+              <div key={item.id} className={cn("glass-card p-3 group transition-all hover:-translate-y-0.5 flex items-start gap-3",
+                selfName === item.ownerName && "ring-1 ring-violet-200")}>
+                <div className={cn("w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-xs shrink-0 bg-gradient-to-br", getMemberColor(item.ownerName ?? ""))}>
+                  {(item.ownerName ?? "?").charAt(0)}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <p className="font-semibold text-sm text-gray-900">{item.name}</p>
+                    <Badge className={cn("text-[10px] px-2 py-0.5 border", getCatColor(item.category))}>
+                      {getCatEmoji(item.category)} {getCatLabel(item.category)}
+                    </Badge>
+                  </div>
+                  <p className="text-xs text-gray-500 mt-0.5">
+                    <span className="text-lg font-bold text-gray-800">{item.quantity}</span> {item.unit}
+                    {item.ownerName && !selectedOwner && <span className="text-gray-400"> · {item.ownerName}</span>}
+                  </p>
+                  {item.notes && <p className="text-xs text-gray-400 mt-0.5">{item.notes}</p>}
+                </div>
+                {editable && (
+                  <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+                    <Button variant="ghost" size="icon" className="h-6 w-6 rounded-full" onClick={() => openEdit(item)}><Pencil className="w-3 h-3 text-sky-500" /></Button>
+                    <Button variant="ghost" size="icon" className="h-6 w-6 rounded-full" onClick={() => del.mutate({ id: item.id }, { onSuccess: () => { invalidate(); toast({ title: "Barang dihapus" }); } })}><Trash2 className="w-3 h-3 text-rose-500" /></Button>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent className="glass-panel border-white/50 max-w-md p-0 overflow-hidden max-h-[90vh] overflow-y-auto">
+          <div className="px-6 pt-6 pb-4 bg-gradient-to-r from-violet-400/20 to-sky-400/20">
+            <DialogHeader><DialogTitle className="flex items-center gap-2"><User className="w-5 h-5 text-violet-500" />{editId ? "Edit Barang Pribadi" : "Tambah Barang Pribadi"}</DialogTitle></DialogHeader>
+          </div>
+          <InvItemForm editId={editId} form={form} setForm={setForm} onSave={handleSave} onCancel={() => setOpen(false)} isPending={create.isPending || update.isPending} forKelompok={false} />
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
+
+// Parent inventaris tab with inner sub-tabs
+function InventarisTab({ isAdmin, selfName, isPrivileged, isLoggedIn }: { isAdmin?: boolean; selfName: string | null; isPrivileged: boolean; isLoggedIn: boolean }) {
+  const [invTab, setInvTab] = useState<"kelompok" | "pribadi">("kelompok");
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between flex-wrap gap-2">
+        <h2 className="text-lg font-semibold text-gray-700">Inventaris</h2>
+        <div className="flex gap-1 p-1 bg-white/40 rounded-xl border border-white/40">
+          <button onClick={() => setInvTab("kelompok")} className={cn("px-3 py-1.5 rounded-lg text-xs font-medium transition-all flex items-center gap-1.5",
+            invTab === "kelompok" ? "bg-gradient-to-r from-emerald-400 to-teal-400 text-white shadow-sm" : "text-gray-500 hover:text-gray-700")}>
+            🏠 Barang Kelompok
+          </button>
+          <button onClick={() => setInvTab("pribadi")} className={cn("px-3 py-1.5 rounded-lg text-xs font-medium transition-all flex items-center gap-1.5",
+            invTab === "pribadi" ? "bg-gradient-to-r from-violet-400 to-sky-400 text-white shadow-sm" : "text-gray-500 hover:text-gray-700")}>
+            👤 Barang Pribadi
+          </button>
+        </div>
+      </div>
+      {invTab === "kelompok"
+        ? <BrgKelompokTab isAdmin={isAdmin} />
+        : <BrgPribadiTab selfName={selfName} isPrivileged={isPrivileged} isLoggedIn={isLoggedIn} />
+      }
     </div>
   );
 }
@@ -816,6 +1026,7 @@ export default function OurLifePage() {
   const { can, memberName, role, isLoggedIn } = useAuth();
   const isAdmin = can("our-life");
   const isKetSek = role === "ketua" || role === "sekretaris";
+  const isPrivileged = role === "ketua" || role === "sekretaris" || role === "bendahara";
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
@@ -848,7 +1059,7 @@ export default function OurLifePage() {
       <div className="glass-card p-6">
         {activeTab === "masak" && <CookingTab isAdmin={isAdmin} />}
         {activeTab === "bersih" && <CleaningTab isAdmin={isAdmin} />}
-        {activeTab === "inventaris" && <InventarisTab isAdmin={isAdmin} />}
+        {activeTab === "inventaris" && <InventarisTab isAdmin={isAdmin} selfName={memberName} isPrivileged={isPrivileged} isLoggedIn={isLoggedIn} />}
         {activeTab === "kondisi" && <KondisiTab memberName={memberName} isKetSek={isKetSek} />}
         {activeTab === "absensi" && <AbsensiTab memberName={memberName} isKetSek={isKetSek} isLoggedIn={isLoggedIn} />}
       </div>

@@ -62,6 +62,9 @@ export const inventoryTable = pgTable("inventory", {
   quantity: integer("quantity").notNull().default(0),
   unit: text("unit").notNull(),
   notes: text("notes"),
+  itemType: text("item_type").notNull().default("kelompok"), // kelompok | pribadi
+  ownerName: text("owner_name"), // pribadi: pemilik; kelompok: opsional
+  ownerLabel: text("owner_label"), // kelompok: "Milik Bersama" | nama anggota
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 

@@ -6,6 +6,7 @@
  * OpenAPI spec version: 0.1.0
  */
 import type { InventoryItemCategory } from './inventoryItemCategory';
+import type { InventoryItemItemType } from './inventoryItemItemType';
 
 export interface InventoryItem {
   id: number;
@@ -15,5 +16,10 @@ export interface InventoryItem {
   unit: string;
   /** @nullable */
   notes?: string | null;
+  itemType: InventoryItemItemType;
+  /** @nullable */
+  ownerName?: string | null;
+  /** @nullable */
+  ownerLabel?: string | null;
   createdAt: string;
 }

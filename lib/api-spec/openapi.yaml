@@ -420,6 +420,18 @@ paths:
       operationId: getInventory
       tags: [inventory]
       summary: Get inventory list (list barang)
+      parameters:
+        - name: type
+          in: query
+          schema:
+            type: string
+            enum: [kelompok, pribadi]
+          description: Filter by item type
+        - name: owner
+          in: query
+          schema:
+            type: string
+          description: Filter by owner name (for pribadi items)
       responses:
         "200":
           description: Inventory items
@@ -432,7 +444,7 @@ paths:
     post:
       operationId: createInventoryItem
       tags: [inventory]
-      summary: Add inventory item (admin)
+      summary: Add inventory item (admin for kelompok, login for pribadi)
       requestBody:
         required: true
         content:
@@ -1575,7 +1587,7 @@ components:
 
     InventoryItem:
       type: object
-      required: [id, name, category, quantity, unit, createdAt]
+      required: [id, name, category, quantity, unit, itemType, createdAt]
       properties:
         id:
           type: integer
@@ -1589,6 +1601,13 @@ components:
         unit:
           type: string
         notes:
+          type: ["string", "null"]
+        itemType:
+          type: string
+          enum: [kelompok, pribadi]
+        ownerName:
+          type: ["string", "null"]
+        ownerLabel:
           type: ["string", "null"]
         createdAt:
           type: string
@@ -1608,6 +1627,13 @@ components:
           type: string
         notes:
           type: string
+        itemType:
+          type: string
+          enum: [kelompok, pribadi]
+        ownerName:
+          type: string
+        ownerLabel:
+          type: string
 
     InventoryItemUpdate:
       type: object
@@ -1622,6 +1648,10 @@ components:
         unit:
           type: string
         notes:
+          type: string
+        ownerName:
+          type: string
+        ownerLabel:
           type: string
 
     Deadline:

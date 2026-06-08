@@ -44,6 +44,7 @@ import type {
   DeadlineUpdate,
   ErrorEnvelope,
   GetAttendanceParams,
+  GetInventoryParams,
   HealthStatus,
   InventoryItem,
   InventoryItemInput,
@@ -1689,20 +1690,27 @@ export const useDeleteProgramSchedule = <TError = ErrorType<unknown>,
       return useMutation(getDeleteProgramScheduleMutationOptions(options));
     }
 
-export const getGetInventoryUrl = () => {
+export const getGetInventoryUrl = (params?: GetInventoryParams,) => {
+  const normalizedParams = new URLSearchParams();
 
+  Object.entries(params || {}).forEach(([key, value]) => {
 
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
 
+  const stringifiedParams = normalizedParams.toString();
 
-  return `/api/inventory`
+  return stringifiedParams.length > 0 ? `/api/inventory?${stringifiedParams}` : `/api/inventory`
 }
 
 /**
  * @summary Get inventory list (list barang)
  */
-export const getInventory = async ( options?: RequestInit): Promise<InventoryItem[]> => {
+export const getInventory = async (params?: GetInventoryParams, options?: RequestInit): Promise<InventoryItem[]> => {
 
-  return customFetch<InventoryItem[]>(getGetInventoryUrl(),
+  return customFetch<InventoryItem[]>(getGetInventoryUrl(params),
   {
     ...options,
     method: 'GET'
@@ -1715,23 +1723,23 @@ export const getInventory = async ( options?: RequestInit): Promise<InventoryIte
 
 
 
-export const getGetInventoryQueryKey = () => {
+export const getGetInventoryQueryKey = (params?: GetInventoryParams,) => {
     return [
-    `/api/inventory`
+    `/api/inventory`, ...(params ? [params] : [])
     ] as const;
     }
 
 
-export const getGetInventoryQueryOptions = <TData = Awaited<ReturnType<typeof getInventory>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getInventory>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+export const getGetInventoryQueryOptions = <TData = Awaited<ReturnType<typeof getInventory>>, TError = ErrorType<unknown>>(params?: GetInventoryParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getInventory>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
 ) => {
 
 const {query: queryOptions, request: requestOptions} = options ?? {};
 
-  const queryKey =  queryOptions?.queryKey ?? getGetInventoryQueryKey();
+  const queryKey =  queryOptions?.queryKey ?? getGetInventoryQueryKey(params);
 
 
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getInventory>>> = ({ signal }) => getInventory({ signal, ...requestOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getInventory>>> = ({ signal }) => getInventory(params, { signal, ...requestOptions });
 
 
 
@@ -1749,11 +1757,11 @@ export type GetInventoryQueryError = ErrorType<unknown>
  */
 
 export function useGetInventory<TData = Awaited<ReturnType<typeof getInventory>>, TError = ErrorType<unknown>>(
-  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getInventory>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+ params?: GetInventoryParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getInventory>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
 
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
-  const queryOptions = getGetInventoryQueryOptions(options)
+  const queryOptions = getGetInventoryQueryOptions(params,options)
 
   const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
 
@@ -1775,7 +1783,7 @@ export const getCreateInventoryItemUrl = () => {
 }
 
 /**
- * @summary Add inventory item (admin)
+ * @summary Add inventory item (admin for kelompok, login for pribadi)
  */
 export const createInventoryItem = async (inventoryItemInput: InventoryItemInput, options?: RequestInit): Promise<InventoryItem> => {
 
@@ -1824,7 +1832,7 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
     export type CreateInventoryItemMutationError = ErrorType<unknown>
 
     /**
- * @summary Add inventory item (admin)
+ * @summary Add inventory item (admin for kelompok, login for pribadi)
  */
 export const useCreateInventoryItem = <TError = ErrorType<unknown>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createInventoryItem>>, TError,{data: BodyType<InventoryItemInput>}, TContext>, request?: SecondParameter<typeof customFetch>}

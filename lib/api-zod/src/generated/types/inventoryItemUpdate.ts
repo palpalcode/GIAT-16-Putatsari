@@ -13,4 +13,6 @@ export interface InventoryItemUpdate {
   quantity?: number;
   unit?: string;
   notes?: string;
+  ownerName?: string;
+  ownerLabel?: string;
 }
