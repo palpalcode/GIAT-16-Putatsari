@@ -36,7 +36,7 @@ tags:
   - name: storage
     description: Object storage upload dan serving
   - name: conditions
-    description: Kondisi pribadi anggota (alergi, fobia, kondisi, catatan)
+    description: Kondisi pribadi anggota (alergi, sakit bawaan, fobia, lainnya)
   - name: attendance
     description: Absensi harian anggota
 
@@ -2344,7 +2344,7 @@ components:
           type: string
         type:
           type: string
-          enum: [alergi, kondisi, fobia, catatan]
+          enum: [alergi, sakit bawaan, fobia, lainnya]
         description:
           type: string
         createdAt:
@@ -2358,7 +2358,7 @@ components:
           type: string
         type:
           type: string
-          enum: [alergi, kondisi, fobia, catatan]
+          enum: [alergi, sakit bawaan, fobia, lainnya]
         description:
           type: string
 
@@ -2367,7 +2367,7 @@ components:
       properties:
         type:
           type: string
-          enum: [alergi, kondisi, fobia, catatan]
+          enum: [alergi, sakit bawaan, fobia, lainnya]
         description:
           type: string
 

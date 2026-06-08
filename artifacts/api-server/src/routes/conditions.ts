@@ -29,7 +29,7 @@ router.post("/conditions", requireLogin, async (req, res) => {
     res.status(400).json({ error: "memberName, type, dan description wajib diisi" });
     return;
   }
-  const validTypes = ["alergi", "kondisi", "fobia", "catatan"];
+  const validTypes = ["alergi", "sakit bawaan", "fobia", "lainnya"];
   if (!validTypes.includes(type)) {
     res.status(400).json({ error: `type harus salah satu dari: ${validTypes.join(", ")}` });
     return;
@@ -59,7 +59,7 @@ router.patch("/conditions/:id", requireLogin, async (req, res) => {
   }
 
   const { type, description } = req.body;
-  const validTypes = ["alergi", "kondisi", "fobia", "catatan"];
+  const validTypes = ["alergi", "sakit bawaan", "fobia", "lainnya"];
   if (type && !validTypes.includes(type)) {
     res.status(400).json({ error: `type harus salah satu dari: ${validTypes.join(", ")}` }); return;
   }

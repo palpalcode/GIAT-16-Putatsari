@@ -220,7 +220,7 @@ export type Member = typeof membersTable.$inferSelect;
 export const memberConditionsTable = pgTable("member_conditions", {
   id: serial("id").primaryKey(),
   memberName: text("member_name").notNull(),
-  type: text("type").notNull(), // alergi | kondisi | fobia | catatan
+  type: text("type").notNull(), // alergi | sakit bawaan | fobia | lainnya
   description: text("description").notNull(),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
