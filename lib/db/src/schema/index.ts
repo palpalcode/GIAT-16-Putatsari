@@ -132,7 +132,7 @@ export const kasTable = pgTable("kas", {
   type: text("type").notNull(),
   amount: integer("amount").notNull(),
   description: text("description").notNull(),
-  category: text("category").notNull().default("lainnya"),
+  category: text("category").default("lainnya"),
   date: text("date").notNull(),
   notes: text("notes"),
   fund: text("fund").notNull().default("umum"), // umum | darurat | iuran_makan | proker

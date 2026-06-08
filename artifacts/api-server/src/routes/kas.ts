@@ -61,7 +61,7 @@ router.post("/kas", requireEdit("kas"), async (req, res) => {
       res.status(400).json({ error: "Data tidak valid", details: parsed.error.flatten() });
       return;
     }
-    const { type, amount, description, category, date, notes, fund, prokerId, items } = parsed.data;
+    const { type, amount, description, date, notes, fund, prokerId, items } = parsed.data;
     const targetFund = fund ?? "umum";
     if (type === "pengeluaran") {
       const balance = await getFundBalance(targetFund);
@@ -72,7 +72,7 @@ router.post("/kas", requireEdit("kas"), async (req, res) => {
     }
     const { row, insertedItems } = await db.transaction(async (tx) => {
       const [row] = await tx.insert(kasTable).values({
-        type, amount, description, category, date, notes,
+        type, amount, description, date, notes,
         fund: targetFund,
         prokerId: prokerId ?? null,
       }).returning();
@@ -99,12 +99,11 @@ router.patch("/kas/:id", requireEdit("kas"), async (req, res) => {
       res.status(400).json({ error: "Data tidak valid", details: parsed.error.flatten() });
       return;
     }
-    const { type, amount, description, category, date, notes, fund, prokerId, items } = parsed.data;
+    const { type, amount, description, date, notes, fund, prokerId, items } = parsed.data;
     const updates: any = {};
     if (type !== undefined) updates.type = type;
     if (amount !== undefined) updates.amount = amount;
     if (description !== undefined) updates.description = description;
-    if (category !== undefined) updates.category = category;
     if (date !== undefined) updates.date = date;
     if (notes !== undefined) updates.notes = notes;
     if (fund !== undefined) updates.fund = fund;

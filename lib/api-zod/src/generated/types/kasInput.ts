@@ -5,7 +5,6 @@
  * KKN Team Website API
  * OpenAPI spec version: 0.1.0
  */
-import type { KasInputCategory } from './kasInputCategory';
 import type { KasInputFund } from './kasInputFund';
 import type { KasInputType } from './kasInputType';
 import type { KasItemInput } from './kasItemInput';
@@ -14,7 +13,6 @@ export interface KasInput {
   type: KasInputType;
   amount: number;
   description: string;
-  category: KasInputCategory;
   date: string;
   notes?: string;
   fund?: KasInputFund;

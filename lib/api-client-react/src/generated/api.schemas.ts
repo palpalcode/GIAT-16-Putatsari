@@ -691,17 +691,6 @@ export const KasInputType = {
   pengeluaran: 'pengeluaran',
 } as const;
 
-export type KasInputCategory = typeof KasInputCategory[keyof typeof KasInputCategory];
-
-
-export const KasInputCategory = {
-  makan: 'makan',
-  transport: 'transport',
-  perlengkapan: 'perlengkapan',
-  administrasi: 'administrasi',
-  lainnya: 'lainnya',
-} as const;
-
 export type KasInputFund = typeof KasInputFund[keyof typeof KasInputFund];
 
 
@@ -716,7 +705,6 @@ export interface KasInput {
   type: KasInputType;
   amount: number;
   description: string;
-  category: KasInputCategory;
   date: string;
   notes?: string;
   fund?: KasInputFund;
@@ -730,17 +718,6 @@ export type KasUpdateType = typeof KasUpdateType[keyof typeof KasUpdateType];
 export const KasUpdateType = {
   pemasukan: 'pemasukan',
   pengeluaran: 'pengeluaran',
-} as const;
-
-export type KasUpdateCategory = typeof KasUpdateCategory[keyof typeof KasUpdateCategory];
-
-
-export const KasUpdateCategory = {
-  makan: 'makan',
-  transport: 'transport',
-  perlengkapan: 'perlengkapan',
-  administrasi: 'administrasi',
-  lainnya: 'lainnya',
 } as const;
 
 export type KasUpdateFund = typeof KasUpdateFund[keyof typeof KasUpdateFund];
@@ -757,7 +734,6 @@ export interface KasUpdate {
   type?: KasUpdateType;
   amount?: number;
   description?: string;
-  category?: KasUpdateCategory;
   date?: string;
   notes?: string;
   fund?: KasUpdateFund;

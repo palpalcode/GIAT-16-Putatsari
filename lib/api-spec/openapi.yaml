@@ -2331,7 +2331,7 @@ components:
 
     KasInput:
       type: object
-      required: [type, amount, description, category, date]
+      required: [type, amount, description, date]
       properties:
         type:
           type: string
@@ -2340,9 +2340,6 @@ components:
           type: integer
         description:
           type: string
-        category:
-          type: string
-          enum: [makan, transport, perlengkapan, administrasi, lainnya]
         date:
           type: string
         notes:
@@ -2367,9 +2364,6 @@ components:
           type: integer
         description:
           type: string
-        category:
-          type: string
-          enum: [makan, transport, perlengkapan, administrasi, lainnya]
         date:
           type: string
         notes:

@@ -2,7 +2,6 @@ import { useState, useMemo, useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   type KasInputType,
-  type KasInputCategory,
   KasInputFund,
   type KasInputFund as KasFundType,
   useGetKas,
@@ -105,21 +104,11 @@ function toRelativeWeekNumber(label: string): number {
   return Math.round(diffMs / (7 * 86400000)) + 1;
 }
 
-const KAS_CATEGORIES = [
-  { id: "makan", label: "Makan", emoji: "🍽️", color: "bg-amber-100 text-amber-700 border-amber-200" },
-  { id: "transport", label: "Transport", emoji: "🚗", color: "bg-sky-100 text-sky-700 border-sky-200" },
-  { id: "perlengkapan", label: "Perlengkapan", emoji: "🛒", color: "bg-amber-100 text-amber-700 border-amber-200" },
-  { id: "administrasi", label: "Administrasi", emoji: "📄", color: "bg-amber-100 text-amber-700 border-amber-200" },
-  { id: "lainnya", label: "Lainnya", emoji: "📦", color: "bg-gray-100 text-gray-700 border-gray-200" },
-];
-function getCatInfo(cat: string) { return KAS_CATEGORIES.find(c => c.id === cat) ?? KAS_CATEGORIES[4]; }
-
 type ItemRow = { name: string; amount: string };
 type KasForm = {
   type: KasInputType;
   amount: string;
   description: string;
-  category: KasInputCategory;
   date: string;
   notes: string;
   fund: KasFundType;
@@ -128,7 +117,7 @@ type KasForm = {
 };
 
 function defaultForm(fund: KasFundType = KasInputFund.umum): KasForm {
-  return { type: "pemasukan", amount: "", description: "", category: "lainnya", date: today(), notes: "", fund, prokerId: "", items: [] };
+  return { type: "pemasukan", amount: "", description: "", date: today(), notes: "", fund, prokerId: "", items: [] };
 }
 
 function itemsTotal(items: ItemRow[]): number {
@@ -243,19 +232,17 @@ function TxList({ items, isAdmin, onEdit, onDelete }: {
             </div>
             <div className="flex flex-col gap-2.5">
               {monthItems.map((item: any) => {
-                const cat = getCatInfo(item.category);
                 const hasItems = Array.isArray(item.items) && item.items.length > 0;
                 const isOpen = expanded[item.id];
                 return (
                   <div key={item.id} className="glass-card p-3.5 group hover:-translate-y-0.5 transition-all">
                     <div className="flex items-center gap-3">
                       <div className={cn("w-9 h-9 rounded-xl flex items-center justify-center text-base shrink-0", item.type === "pemasukan" ? "bg-emerald-100" : "bg-rose-100")}>
-                        {cat.emoji}
+                        {item.type === "pemasukan" ? "💰" : "💸"}
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-1.5 mb-0.5">
                           <p className="font-semibold text-sm text-gray-900 truncate">{item.description}</p>
-                          <Badge className={cn("text-[10px] border shrink-0 px-1.5 py-0", cat.color)}>{cat.label}</Badge>
                           {hasItems && (
                             <Badge className="text-[10px] border shrink-0 px-1.5 py-0 bg-gray-50 text-gray-500 border-gray-200">
                               {item.items.length} item
@@ -346,20 +333,6 @@ function AddEditDialog({
             <Input placeholder="Deskripsi transaksi..." value={form.description} onChange={e => set("description", e.target.value)} className="bg-white/90" />
             {serverFieldErrors.description && <p className="text-xs text-rose-500 mt-1">{serverFieldErrors.description}</p>}
           </div>
-          <div>
-            <label className="text-xs font-semibold text-amber-800 uppercase tracking-wide mb-1.5 block">Kategori</label>
-            <div className="flex flex-wrap gap-2">
-              {KAS_CATEGORIES.map(cat => (
-                <button key={cat.id} onClick={() => set("category", cat.id as KasInputCategory)} className={cn(
-                  "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border-2 transition-all",
-                  form.category === cat.id ? cat.color + " border-current shadow-sm scale-105" : "bg-white text-amber-700 border-amber-200/50 hover:bg-white/90"
-                )}>
-                  <span>{cat.emoji}</span>{cat.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
           {/* Items Editor */}
           <ItemsEditor items={form.items} onChange={handleItemsChange} />
 
@@ -430,7 +403,7 @@ function UmumTab({ isAdmin, summary }: { isAdmin?: boolean; summary: any }) {
     setEditId(item.id);
     setInitForm({
       type: item.type, amount: String(item.amount), description: item.description,
-      category: item.category, date: item.date, notes: item.notes ?? "",
+      date: item.date, notes: item.notes ?? "",
       fund: KasInputFund.umum, prokerId: "",
       items: (item.items ?? []).map((it: any) => ({ name: it.name, amount: String(it.amount) })),
     });
@@ -440,7 +413,7 @@ function UmumTab({ isAdmin, summary }: { isAdmin?: boolean; summary: any }) {
   function handleSave(form: KasForm) {
     const payload = {
       type: form.type, amount: Number(form.amount), description: form.description,
-      category: form.category, date: form.date, notes: form.notes || undefined,
+      date: form.date, notes: form.notes || undefined,
       fund: KasInputFund.umum,
       items: toItemsPayload(form.items),
     };
@@ -517,10 +490,10 @@ function UmumTab({ isAdmin, summary }: { isAdmin?: boolean; summary: any }) {
 // ─── SIMPLE TX DIALOG (used in Makan, Darurat, Proker tabs) ──────────────────
 type SimpleTxState = {
   amount: string; description: string; type: KasInputType;
-  category: KasInputCategory; date: string; notes: string; items: ItemRow[];
+  date: string; notes: string; items: ItemRow[];
 };
 function defaultSimpleTx(overrides?: Partial<SimpleTxState>): SimpleTxState {
-  return { amount: "", description: "", type: "pengeluaran", category: "lainnya", date: today(), notes: "", items: [], ...overrides };
+  return { amount: "", description: "", type: "pengeluaran", date: today(), notes: "", items: [], ...overrides };
 }
 
 function SimpleTxDialog({ open, onClose, title, headerColor, isPending, onSave, state, setState, jatahHarian }: {
@@ -682,7 +655,7 @@ function IuranMakanTab({ isAdmin, summary }: { isAdmin?: boolean; summary: any }
   const [openTransferDana, setOpenTransferDana] = useState(false);
   const [transferDanaInit, setTransferDanaInit] = useState<TransferDanaForm>({ fromFund: "iuran_makan" as KasFundType, toFund: "darurat" as KasFundType, amount: "", description: "", date: today(), notes: "" });
   const [activeSubTab, setActiveSubTab] = useState<"rekap" | "transaksi">("rekap");
-  const [txState, setTxState] = useState<SimpleTxState>(defaultSimpleTx({ description: "Belanja makan", category: "makan" }));
+  const [txState, setTxState] = useState<SimpleTxState>(defaultSimpleTx({ description: "Belanja makan" }));
   const [configForm, setConfigForm] = useState({ weeklyAmount: String(summary?.weeklyFoodAmount ?? 0) });
   const [transferForm, setTransferForm] = useState({ date: today(), terpakai: "", target: "darurat" as "darurat" | "umum" });
   const transferKas = useTransferKas();
@@ -709,11 +682,11 @@ function IuranMakanTab({ isAdmin, summary }: { isAdmin?: boolean; summary: any }
   function saveTx() {
     if (!txState.amount || !txState.description) return;
     create.mutate({
-      data: { type: txState.type, amount: Number(txState.amount), description: txState.description, category: txState.category, date: txState.date, notes: txState.notes || undefined, fund: KasInputFund.iuran_makan, items: toItemsPayload(txState.items) }
+      data: { type: txState.type, amount: Number(txState.amount), description: txState.description, date: txState.date, notes: txState.notes || undefined, fund: KasInputFund.iuran_makan, items: toItemsPayload(txState.items) }
     }, {
       onSuccess: () => {
         invalidate(); setOpenTx(false);
-        setTxState(defaultSimpleTx({ description: "Belanja makan", category: "makan" }));
+        setTxState(defaultSimpleTx({ description: "Belanja makan" }));
         toast({ title: "Transaksi dicatat" });
       },
       onError: (err) => toast({ title: "Gagal menyimpan", description: getApiErrorDesc(err), variant: "destructive" }),
@@ -903,11 +876,11 @@ function IuranMakanTab({ isAdmin, summary }: { isAdmin?: boolean; summary: any }
           <div className="flex gap-2 flex-wrap">
             {isAdmin && (
               <>
-                <Button size="sm" onClick={() => { setTxState(defaultSimpleTx({ type: "pengeluaran", description: "Belanja makan", category: "makan" })); setOpenTx(true); }}
+                <Button size="sm" onClick={() => { setTxState(defaultSimpleTx({ type: "pengeluaran", description: "Belanja makan" })); setOpenTx(true); }}
                   className="bg-gradient-to-r from-sky-400 to-blue-400 text-white border-0 rounded-full gap-1">
                   <Plus className="w-4 h-4" />Catat Pengeluaran Makan
                 </Button>
-                <Button size="sm" onClick={() => { setTxState(defaultSimpleTx({ type: "pemasukan", description: "Iuran makan mingguan", category: "makan" })); setOpenTx(true); }}
+                <Button size="sm" onClick={() => { setTxState(defaultSimpleTx({ type: "pemasukan", description: "Iuran makan mingguan" })); setOpenTx(true); }}
                   variant="outline" className="rounded-full gap-1 text-emerald-700 border-emerald-200 hover:bg-emerald-50">
                   <ArrowUpCircle className="w-4 h-4" />Catat Pemasukan
                 </Button>
@@ -1055,7 +1028,7 @@ function DanadaruratTab({ isAdmin, summary }: { isAdmin?: boolean; summary: any 
   function saveTx() {
     if (!txState.amount || !txState.description) return;
     create.mutate({
-      data: { type: txState.type, amount: Number(txState.amount), description: txState.description, category: "lainnya", date: txState.date, notes: txState.notes || undefined, fund: KasInputFund.darurat, items: toItemsPayload(txState.items) }
+      data: { type: txState.type, amount: Number(txState.amount), description: txState.description, date: txState.date, notes: txState.notes || undefined, fund: KasInputFund.darurat, items: toItemsPayload(txState.items) }
     }, {
       onSuccess: () => {
         invalidate(); setOpenTx(false);
@@ -1222,7 +1195,7 @@ function DanaProkerTab({ isAdmin }: { isAdmin?: boolean }) {
   function saveTx() {
     if (!txState.amount || !txState.description || selectedProker === null) return;
     create.mutate({
-      data: { type: txState.type, amount: Number(txState.amount), description: txState.description, category: "lainnya", date: txState.date, notes: txState.notes || undefined, fund: KasInputFund.proker, prokerId: selectedProker, items: toItemsPayload(txState.items) }
+      data: { type: txState.type, amount: Number(txState.amount), description: txState.description, date: txState.date, notes: txState.notes || undefined, fund: KasInputFund.proker, prokerId: selectedProker, items: toItemsPayload(txState.items) }
     }, {
       onSuccess: () => {
         invalidateAll(); setOpenAddTx(false);
