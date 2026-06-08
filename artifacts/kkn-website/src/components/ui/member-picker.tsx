@@ -5,7 +5,7 @@ export const MEMBER_COLORS = [
   "from-rose-400 to-pink-400",
   "from-sky-400 to-blue-400",
   "from-violet-400 to-purple-400",
-  "from-violet-400 to-violet-400",
+  "from-amber-400 to-orange-400",
   "from-emerald-400 to-teal-400",
   "from-fuchsia-400 to-pink-400",
   "from-cyan-400 to-sky-400",

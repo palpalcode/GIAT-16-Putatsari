@@ -42,7 +42,7 @@ const MEMBERS = [
 
 const MEMBER_COLORS = [
   "from-rose-400 to-pink-400", "from-sky-400 to-blue-400", "from-violet-400 to-purple-400",
-  "from-violet-400 to-violet-400", "from-emerald-400 to-teal-400", "from-fuchsia-400 to-pink-400",
+  "from-amber-400 to-orange-400", "from-emerald-400 to-teal-400", "from-fuchsia-400 to-pink-400",
   "from-cyan-400 to-sky-400", "from-lime-400 to-green-400", "from-indigo-400 to-violet-400",
 ];
 
@@ -58,7 +58,7 @@ function formatDate(d: string) {
 
 const STATUS_OPTIONS = [
   { id: "planned", label: "Direncanakan", icon: Clock, color: "bg-violet-100 text-violet-700 border-violet-200", activeGrad: "from-violet-400 to-purple-500" },
-  { id: "ongoing", label: "Berjalan", icon: Loader2, color: "bg-violet-100 text-violet-700 border-violet-200", activeGrad: "from-violet-400 to-slate-500" },
+  { id: "ongoing", label: "Berjalan", icon: Loader2, color: "bg-amber-100 text-amber-700 border-amber-200", activeGrad: "from-amber-400 to-orange-500" },
   { id: "done", label: "Selesai", icon: CheckCircle2, color: "bg-emerald-100 text-emerald-700 border-emerald-200", activeGrad: "from-emerald-400 to-teal-500" },
 ];
 
