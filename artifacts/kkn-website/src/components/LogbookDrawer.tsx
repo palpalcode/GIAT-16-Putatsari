@@ -21,7 +21,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Plus, Pencil, Trash2, Download, Camera, X, ImageIcon, Loader2 } from "lucide-react";
+import { Plus, Pencil, Trash2, Download, Camera, X, ImageIcon, Loader2, ChevronLeft, ChevronRight, ZoomIn } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { cn, TEAM_MEMBERS } from "@/lib/utils";
 
@@ -432,6 +432,119 @@ function LogbookFormDialog({ open, onClose, editEntry, program, onSaved }: Logbo
   );
 }
 
+type LightboxState = { photos: LogbookPhoto[]; index: number } | null;
+
+function PhotoLightbox({ state, onClose, goTo }: { state: LightboxState; onClose: () => void; goTo: (i: number) => void }) {
+  const photo = state ? state.photos[state.index] : null;
+
+  useEffect(() => {
+    if (!state) return;
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape") onClose();
+      if (e.key === "ArrowLeft" && state && state.index > 0) goTo(state.index - 1);
+      if (e.key === "ArrowRight" && state && state.index < state.photos.length - 1) goTo(state.index + 1);
+    }
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [state, onClose, goTo]);
+
+  if (!state || !photo) return null;
+
+  const hasPrev = state.index > 0;
+  const hasNext = state.index < state.photos.length - 1;
+
+  return (
+    <div
+      className="fixed inset-0 z-[9999] bg-black/85 flex items-center justify-center"
+      onClick={onClose}
+    >
+      <button
+        type="button"
+        onClick={onClose}
+        className="absolute top-4 right-4 w-9 h-9 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center text-white transition-colors"
+        aria-label="Tutup"
+      >
+        <X className="w-5 h-5" />
+      </button>
+
+      {hasPrev && (
+        <button
+          type="button"
+          onClick={(e) => { e.stopPropagation(); goTo(state.index - 1); }}
+          className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center text-white transition-colors"
+          aria-label="Foto sebelumnya"
+        >
+          <ChevronLeft className="w-6 h-6" />
+        </button>
+      )}
+
+      {hasNext && (
+        <button
+          type="button"
+          onClick={(e) => { e.stopPropagation(); goTo(state.index + 1); }}
+          className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center text-white transition-colors"
+          aria-label="Foto berikutnya"
+        >
+          <ChevronRight className="w-6 h-6" />
+        </button>
+      )}
+
+      <div
+        className="flex flex-col items-center gap-3 max-w-[90vw] max-h-[90vh]"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <img
+          src={`${BASE_URL}api/storage${photo.storageKey}`}
+          alt={photo.fileName}
+          className="max-w-full max-h-[80vh] rounded-xl object-contain shadow-2xl"
+        />
+        <div className="flex items-center gap-3">
+          {state.photos.length > 1 && (
+            <p className="text-white/70 text-sm">
+              {state.index + 1} / {state.photos.length}
+            </p>
+          )}
+          <p className="text-white/60 text-xs truncate max-w-xs">{photo.fileName}</p>
+        </div>
+        {state.photos.length > 1 && (
+          <div className="flex gap-1.5">
+            {state.photos.map((_, i) => (
+              <button
+                key={i}
+                type="button"
+                onClick={(e) => { e.stopPropagation(); goTo(i); }}
+                className={cn(
+                  "w-2 h-2 rounded-full transition-colors",
+                  i === state.index ? "bg-white" : "bg-white/40 hover:bg-white/60"
+                )}
+                aria-label={`Foto ${i + 1}`}
+              />
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function useLightbox() {
+  const [lightbox, setLightbox] = useState<LightboxState>(null);
+
+  function open(photos: LogbookPhoto[], index: number) {
+    setLightbox({ photos, index });
+  }
+
+  function close() {
+    setLightbox(null);
+  }
+
+  function goTo(index: number) {
+    setLightbox((prev) => prev ? { ...prev, index } : null);
+  }
+
+  return { lightbox, open, close, goTo };
+}
+
 type Props = {
   open: boolean;
   onClose: () => void;
@@ -446,6 +559,7 @@ export function LogbookDrawer({ open, onClose, program, isKetSek, canEdit }: Pro
   const [formOpen, setFormOpen] = useState(false);
   const [editEntry, setEditEntry] = useState<LogbookEntry | null>(null);
   const delEntry = useDeleteLogbookEntry();
+  const { lightbox, open: openLightbox, close: closeLightbox, goTo } = useLightbox();
 
   const { data: entries, isLoading } = useGetLogbookEntries(
     { programId: program?.id ?? 0 },
@@ -565,8 +679,14 @@ export function LogbookDrawer({ open, onClose, program, isKetSek, canEdit }: Pro
 
                       {entry.photos.length > 0 && (
                         <div className="flex flex-wrap gap-2 mt-3">
-                          {entry.photos.map((p) => (
-                            <div key={p.id} className="w-16 h-16 rounded-lg overflow-hidden border border-gray-200 bg-gray-100">
+                          {entry.photos.map((p, photoIdx) => (
+                            <button
+                              key={p.id}
+                              type="button"
+                              onClick={() => openLightbox(entry.photos as LogbookPhoto[], photoIdx)}
+                              className="relative group/photo w-16 h-16 rounded-lg overflow-hidden border border-gray-200 bg-gray-100 hover:border-emerald-300 transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-400"
+                              aria-label={`Lihat foto ${p.fileName}`}
+                            >
                               <img
                                 src={`${BASE_URL}api/storage${p.storageKey}`}
                                 alt={p.fileName}
@@ -576,7 +696,10 @@ export function LogbookDrawer({ open, onClose, program, isKetSek, canEdit }: Pro
                                   if (parent) parent.innerHTML = `<div class="w-full h-full flex items-center justify-center text-gray-400 text-[10px] p-1 text-center">${p.fileName}</div>`;
                                 }}
                               />
-                            </div>
+                              <div className="absolute inset-0 bg-black/0 group-hover/photo:bg-black/30 transition-colors flex items-center justify-center">
+                                <ZoomIn className="w-4 h-4 text-white opacity-0 group-hover/photo:opacity-100 transition-opacity" />
+                              </div>
+                            </button>
                           ))}
                         </div>
                       )}
@@ -608,6 +731,8 @@ export function LogbookDrawer({ open, onClose, program, isKetSek, canEdit }: Pro
           onSaved={invalidate}
         />
       )}
+
+      <PhotoLightbox state={lightbox} onClose={closeLightbox} goTo={goTo} />
     </>
   );
 }
