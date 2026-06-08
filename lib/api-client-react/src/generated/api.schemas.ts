@@ -602,6 +602,16 @@ export const KasCategory = {
   lainnya: 'lainnya',
 } as const;
 
+export type KasFund = typeof KasFund[keyof typeof KasFund];
+
+
+export const KasFund = {
+  umum: 'umum',
+  darurat: 'darurat',
+  iuran_makan: 'iuran_makan',
+  proker: 'proker',
+} as const;
+
 export interface Kas {
   id: number;
   type: KasType;
@@ -611,6 +621,9 @@ export interface Kas {
   date: string;
   /** @nullable */
   notes?: string | null;
+  fund: KasFund;
+  /** @nullable */
+  prokerId?: number | null;
   createdAt: string;
 }
 
@@ -633,6 +646,16 @@ export const KasInputCategory = {
   lainnya: 'lainnya',
 } as const;
 
+export type KasInputFund = typeof KasInputFund[keyof typeof KasInputFund];
+
+
+export const KasInputFund = {
+  umum: 'umum',
+  darurat: 'darurat',
+  iuran_makan: 'iuran_makan',
+  proker: 'proker',
+} as const;
+
 export interface KasInput {
   type: KasInputType;
   amount: number;
@@ -640,6 +663,8 @@ export interface KasInput {
   category: KasInputCategory;
   date: string;
   notes?: string;
+  fund?: KasInputFund;
+  prokerId?: number;
 }
 
 export type KasUpdateType = typeof KasUpdateType[keyof typeof KasUpdateType];
@@ -661,12 +686,99 @@ export const KasUpdateCategory = {
   lainnya: 'lainnya',
 } as const;
 
+export type KasUpdateFund = typeof KasUpdateFund[keyof typeof KasUpdateFund];
+
+
+export const KasUpdateFund = {
+  umum: 'umum',
+  darurat: 'darurat',
+  iuran_makan: 'iuran_makan',
+  proker: 'proker',
+} as const;
+
 export interface KasUpdate {
   type?: KasUpdateType;
   amount?: number;
   description?: string;
   category?: KasUpdateCategory;
   date?: string;
+  notes?: string;
+  fund?: KasUpdateFund;
+  prokerId?: number;
+}
+
+export interface KasConfig {
+  weeklyFoodAmount: number;
+  emergencyFundTarget: number;
+}
+
+export interface KasConfigInput {
+  weeklyFoodAmount?: number;
+  emergencyFundTarget?: number;
+}
+
+export type KasSummaryEmergencyFundStatus = typeof KasSummaryEmergencyFundStatus[keyof typeof KasSummaryEmergencyFundStatus];
+
+
+export const KasSummaryEmergencyFundStatus = {
+  kurang: 'kurang',
+  cukup: 'cukup',
+  sangat_cukup: 'sangat_cukup',
+} as const;
+
+export interface KasSummary {
+  saldoUmum: number;
+  saldoDarurat: number;
+  saldoIuranMakan: number;
+  weeklyFoodAmount: number;
+  emergencyFundTarget: number;
+  dailyFoodAllowance: number;
+  emergencyFundStatus: KasSummaryEmergencyFundStatus;
+  totalPemasukan: number;
+  totalPengeluaran: number;
+}
+
+export interface TransferSisaMakanInput {
+  date: string;
+  terpakai: number;
+}
+
+export interface TransferSisaMakanResult {
+  sisa: number;
+  txOut: Kas;
+  txIn: Kas;
+}
+
+export interface ProkerFund {
+  id: number;
+  name: string;
+  budget: number;
+  /** @nullable */
+  notes?: string | null;
+  createdAt: string;
+}
+
+export interface ProkerFundWithStats {
+  id: number;
+  name: string;
+  budget: number;
+  /** @nullable */
+  notes?: string | null;
+  pengeluaran: number;
+  pemasukan: number;
+  sisa: number;
+  createdAt: string;
+}
+
+export interface ProkerFundInput {
+  name: string;
+  budget?: number;
+  notes?: string;
+}
+
+export interface ProkerFundUpdate {
+  name?: string;
+  budget?: number;
   notes?: string;
 }
 
@@ -843,6 +955,23 @@ export type GetInventoryType = typeof GetInventoryType[keyof typeof GetInventory
 export const GetInventoryType = {
   kelompok: 'kelompok',
   pribadi: 'pribadi',
+} as const;
+
+export type GetKasParams = {
+/**
+ * Filter by fund
+ */
+fund?: GetKasFund;
+};
+
+export type GetKasFund = typeof GetKasFund[keyof typeof GetKasFund];
+
+
+export const GetKasFund = {
+  umum: 'umum',
+  darurat: 'darurat',
+  iuran_makan: 'iuran_makan',
+  proker: 'proker',
 } as const;
 
 export type GetAttendanceParams = {

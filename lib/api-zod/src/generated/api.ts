@@ -627,6 +627,10 @@ export const DeleteTemplateParams = zod.object({
 /**
  * @summary Get all kas transactions
  */
+export const GetKasQueryParams = zod.object({
+  "fund": zod.enum(['umum', 'darurat', 'iuran_makan', 'proker']).optional().describe('Filter by fund')
+})
+
 export const GetKasResponseItem = zod.object({
   "id": zod.number(),
   "type": zod.enum(['pemasukan', 'pengeluaran']),
@@ -635,6 +639,8 @@ export const GetKasResponseItem = zod.object({
   "category": zod.enum(['makan', 'transport', 'perlengkapan', 'administrasi', 'lainnya']),
   "date": zod.string(),
   "notes": zod.string().nullish(),
+  "fund": zod.enum(['umum', 'darurat', 'iuran_makan', 'proker']),
+  "prokerId": zod.number().nullish(),
   "createdAt": zod.string()
 })
 export const GetKasResponse = zod.array(GetKasResponseItem)
@@ -649,7 +655,9 @@ export const CreateKasBody = zod.object({
   "description": zod.string(),
   "category": zod.enum(['makan', 'transport', 'perlengkapan', 'administrasi', 'lainnya']),
   "date": zod.string(),
-  "notes": zod.string().optional()
+  "notes": zod.string().optional(),
+  "fund": zod.enum(['umum', 'darurat', 'iuran_makan', 'proker']).optional(),
+  "prokerId": zod.number().optional()
 })
 
 
@@ -666,7 +674,9 @@ export const UpdateKasBody = zod.object({
   "description": zod.string().optional(),
   "category": zod.enum(['makan', 'transport', 'perlengkapan', 'administrasi', 'lainnya']).optional(),
   "date": zod.string().optional(),
-  "notes": zod.string().optional()
+  "notes": zod.string().optional(),
+  "fund": zod.enum(['umum', 'darurat', 'iuran_makan', 'proker']).optional(),
+  "prokerId": zod.number().optional()
 })
 
 export const UpdateKasResponse = zod.object({
@@ -677,6 +687,8 @@ export const UpdateKasResponse = zod.object({
   "category": zod.enum(['makan', 'transport', 'perlengkapan', 'administrasi', 'lainnya']),
   "date": zod.string(),
   "notes": zod.string().nullish(),
+  "fund": zod.enum(['umum', 'darurat', 'iuran_makan', 'proker']),
+  "prokerId": zod.number().nullish(),
   "createdAt": zod.string()
 })
 
@@ -685,6 +697,110 @@ export const UpdateKasResponse = zod.object({
  * @summary Delete kas entry (admin)
  */
 export const DeleteKasParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+
+/**
+ * @summary Get kas config (iuran makan mingguan, target dana darurat)
+ */
+export const GetKasConfigResponse = zod.object({
+  "weeklyFoodAmount": zod.number(),
+  "emergencyFundTarget": zod.number()
+})
+
+
+/**
+ * @summary Update kas config (admin)
+ */
+export const UpdateKasConfigBody = zod.object({
+  "weeklyFoodAmount": zod.number().optional(),
+  "emergencyFundTarget": zod.number().optional()
+})
+
+export const UpdateKasConfigResponse = zod.object({
+  "weeklyFoodAmount": zod.number(),
+  "emergencyFundTarget": zod.number()
+})
+
+
+/**
+ * @summary Get kas summary per fund + jatah makan harian + status darurat
+ */
+export const GetKasSummaryResponse = zod.object({
+  "saldoUmum": zod.number(),
+  "saldoDarurat": zod.number(),
+  "saldoIuranMakan": zod.number(),
+  "weeklyFoodAmount": zod.number(),
+  "emergencyFundTarget": zod.number(),
+  "dailyFoodAllowance": zod.number(),
+  "emergencyFundStatus": zod.enum(['kurang', 'cukup', 'sangat_cukup']),
+  "totalPemasukan": zod.number(),
+  "totalPengeluaran": zod.number()
+})
+
+
+/**
+ * @summary Transfer sisa makan hari ini ke dana darurat (admin)
+ */
+export const TransferSisaMakanBody = zod.object({
+  "date": zod.string(),
+  "terpakai": zod.number()
+})
+
+
+/**
+ * @summary Get list proker dengan ringkasan anggaran
+ */
+export const GetProkerFundsResponseItem = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "budget": zod.number(),
+  "notes": zod.string().nullish(),
+  "pengeluaran": zod.number(),
+  "pemasukan": zod.number(),
+  "sisa": zod.number(),
+  "createdAt": zod.string()
+})
+export const GetProkerFundsResponse = zod.array(GetProkerFundsResponseItem)
+
+
+/**
+ * @summary Tambah proker baru (admin)
+ */
+export const CreateProkerFundBody = zod.object({
+  "name": zod.string(),
+  "budget": zod.number().optional(),
+  "notes": zod.string().optional()
+})
+
+
+/**
+ * @summary Update proker (admin)
+ */
+export const UpdateProkerFundParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const UpdateProkerFundBody = zod.object({
+  "name": zod.string().optional(),
+  "budget": zod.number().optional(),
+  "notes": zod.string().optional()
+})
+
+export const UpdateProkerFundResponse = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "budget": zod.number(),
+  "notes": zod.string().nullish(),
+  "createdAt": zod.string()
+})
+
+
+/**
+ * @summary Hapus proker (admin)
+ */
+export const DeleteProkerFundParams = zod.object({
   "id": zod.coerce.number()
 })
 

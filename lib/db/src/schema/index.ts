@@ -134,12 +134,33 @@ export const kasTable = pgTable("kas", {
   category: text("category").notNull().default("lainnya"),
   date: text("date").notNull(),
   notes: text("notes"),
+  fund: text("fund").notNull().default("umum"), // umum | darurat | iuran_makan | proker
+  prokerId: integer("proker_id"), // nullable, FK to proker_funds
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
 export const insertKasSchema = createInsertSchema(kasTable).omit({ id: true, createdAt: true });
 export type InsertKas = z.infer<typeof insertKasSchema>;
 export type Kas = typeof kasTable.$inferSelect;
+
+export const kasConfigTable = pgTable("kas_config", {
+  key: text("key").primaryKey(),
+  value: text("value").notNull(),
+});
+
+export type KasConfig = typeof kasConfigTable.$inferSelect;
+
+export const prokerFundsTable = pgTable("proker_funds", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  budget: integer("budget").notNull().default(0),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const insertProkerFundSchema = createInsertSchema(prokerFundsTable).omit({ id: true, createdAt: true });
+export type InsertProkerFund = z.infer<typeof insertProkerFundSchema>;
+export type ProkerFund = typeof prokerFundsTable.$inferSelect;
 
 export const notulensiTable = pgTable("notulensi", {
   id: serial("id").primaryKey(),

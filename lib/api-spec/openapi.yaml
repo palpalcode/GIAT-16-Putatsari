@@ -782,6 +782,13 @@ paths:
       operationId: getKas
       tags: [kas]
       summary: Get all kas transactions
+      parameters:
+        - name: fund
+          in: query
+          schema:
+            type: string
+            enum: [umum, darurat, iuran_makan, proker]
+          description: Filter by fund
       responses:
         "200":
           description: Kas list
@@ -837,6 +844,140 @@ paths:
       operationId: deleteKas
       tags: [kas]
       summary: Delete kas entry (admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /kas/config:
+    get:
+      operationId: getKasConfig
+      tags: [kas]
+      summary: Get kas config (iuran makan mingguan, target dana darurat)
+      responses:
+        "200":
+          description: Config values
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/KasConfig"
+    post:
+      operationId: updateKasConfig
+      tags: [kas]
+      summary: Update kas config (admin)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/KasConfigInput"
+      responses:
+        "200":
+          description: Updated config
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/KasConfig"
+
+  /kas/summary:
+    get:
+      operationId: getKasSummary
+      tags: [kas]
+      summary: Get kas summary per fund + jatah makan harian + status darurat
+      responses:
+        "200":
+          description: Summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/KasSummary"
+
+  /kas/transfer-sisa-makan:
+    post:
+      operationId: transferSisaMakan
+      tags: [kas]
+      summary: Transfer sisa makan hari ini ke dana darurat (admin)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TransferSisaMakanInput"
+      responses:
+        "201":
+          description: Transfer berhasil
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TransferSisaMakanResult"
+        "400":
+          description: Tidak ada sisa
+
+  /proker-funds:
+    get:
+      operationId: getProkerFunds
+      tags: [kas]
+      summary: Get list proker dengan ringkasan anggaran
+      responses:
+        "200":
+          description: Proker funds
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ProkerFundWithStats"
+    post:
+      operationId: createProkerFund
+      tags: [kas]
+      summary: Tambah proker baru (admin)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProkerFundInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProkerFund"
+
+  /proker-funds/{id}:
+    patch:
+      operationId: updateProkerFund
+      tags: [kas]
+      summary: Update proker (admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProkerFundUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProkerFund"
+    delete:
+      operationId: deleteProkerFund
+      tags: [kas]
+      summary: Hapus proker (admin)
       parameters:
         - name: id
           in: path
@@ -1860,7 +2001,7 @@ components:
 
     Kas:
       type: object
-      required: [id, type, amount, description, category, date, createdAt]
+      required: [id, type, amount, description, category, date, fund, createdAt]
       properties:
         id:
           type: integer
@@ -1878,6 +2019,11 @@ components:
           type: string
         notes:
           type: ["string", "null"]
+        fund:
+          type: string
+          enum: [umum, darurat, iuran_makan, proker]
+        prokerId:
+          type: ["integer", "null"]
         createdAt:
           type: string
 
@@ -1899,6 +2045,11 @@ components:
           type: string
         notes:
           type: string
+        fund:
+          type: string
+          enum: [umum, darurat, iuran_makan, proker]
+        prokerId:
+          type: integer
 
     KasUpdate:
       type: object
@@ -1915,6 +2066,129 @@ components:
           enum: [makan, transport, perlengkapan, administrasi, lainnya]
         date:
           type: string
+        notes:
+          type: string
+        fund:
+          type: string
+          enum: [umum, darurat, iuran_makan, proker]
+        prokerId:
+          type: integer
+
+    KasConfig:
+      type: object
+      required: [weeklyFoodAmount, emergencyFundTarget]
+      properties:
+        weeklyFoodAmount:
+          type: integer
+        emergencyFundTarget:
+          type: integer
+
+    KasConfigInput:
+      type: object
+      properties:
+        weeklyFoodAmount:
+          type: integer
+        emergencyFundTarget:
+          type: integer
+
+    KasSummary:
+      type: object
+      required: [saldoUmum, saldoDarurat, saldoIuranMakan, weeklyFoodAmount, emergencyFundTarget, dailyFoodAllowance, emergencyFundStatus, totalPemasukan, totalPengeluaran]
+      properties:
+        saldoUmum:
+          type: integer
+        saldoDarurat:
+          type: integer
+        saldoIuranMakan:
+          type: integer
+        weeklyFoodAmount:
+          type: integer
+        emergencyFundTarget:
+          type: integer
+        dailyFoodAllowance:
+          type: integer
+        emergencyFundStatus:
+          type: string
+          enum: [kurang, cukup, sangat_cukup]
+        totalPemasukan:
+          type: integer
+        totalPengeluaran:
+          type: integer
+
+    TransferSisaMakanInput:
+      type: object
+      required: [date, terpakai]
+      properties:
+        date:
+          type: string
+        terpakai:
+          type: integer
+
+    TransferSisaMakanResult:
+      type: object
+      required: [sisa, txOut, txIn]
+      properties:
+        sisa:
+          type: integer
+        txOut:
+          $ref: "#/components/schemas/Kas"
+        txIn:
+          $ref: "#/components/schemas/Kas"
+
+    ProkerFund:
+      type: object
+      required: [id, name, budget, createdAt]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        budget:
+          type: integer
+        notes:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+
+    ProkerFundWithStats:
+      type: object
+      required: [id, name, budget, pengeluaran, pemasukan, sisa, createdAt]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        budget:
+          type: integer
+        notes:
+          type: ["string", "null"]
+        pengeluaran:
+          type: integer
+        pemasukan:
+          type: integer
+        sisa:
+          type: integer
+        createdAt:
+          type: string
+
+    ProkerFundInput:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+        budget:
+          type: integer
+        notes:
+          type: string
+
+    ProkerFundUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+        budget:
+          type: integer
         notes:
           type: string
 

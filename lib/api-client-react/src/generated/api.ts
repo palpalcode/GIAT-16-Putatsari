@@ -45,6 +45,7 @@ import type {
   ErrorEnvelope,
   GetAttendanceParams,
   GetInventoryParams,
+  GetKasParams,
   HealthStatus,
   InventoryItem,
   InventoryItemInput,
@@ -53,7 +54,10 @@ import type {
   IssueInput,
   IssueUpdate,
   Kas,
+  KasConfig,
+  KasConfigInput,
   KasInput,
+  KasSummary,
   KasUpdate,
   LoginInput,
   MemberCondition,
@@ -68,9 +72,15 @@ import type {
   ProgramSchedule,
   ProgramScheduleInput,
   ProgramScheduleUpdate,
+  ProkerFund,
+  ProkerFundInput,
+  ProkerFundUpdate,
+  ProkerFundWithStats,
   Template,
   TemplateInput,
   TemplateUpdate,
+  TransferSisaMakanInput,
+  TransferSisaMakanResult,
   UploadUrlRequest,
   UploadUrlResponse
 } from './api.schemas';
@@ -3147,20 +3157,27 @@ export const useDeleteTemplate = <TError = ErrorType<unknown>,
       return useMutation(getDeleteTemplateMutationOptions(options));
     }
 
-export const getGetKasUrl = () => {
+export const getGetKasUrl = (params?: GetKasParams,) => {
+  const normalizedParams = new URLSearchParams();
 
+  Object.entries(params || {}).forEach(([key, value]) => {
 
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
 
+  const stringifiedParams = normalizedParams.toString();
 
-  return `/api/kas`
+  return stringifiedParams.length > 0 ? `/api/kas?${stringifiedParams}` : `/api/kas`
 }
 
 /**
  * @summary Get all kas transactions
  */
-export const getKas = async ( options?: RequestInit): Promise<Kas[]> => {
+export const getKas = async (params?: GetKasParams, options?: RequestInit): Promise<Kas[]> => {
 
-  return customFetch<Kas[]>(getGetKasUrl(),
+  return customFetch<Kas[]>(getGetKasUrl(params),
   {
     ...options,
     method: 'GET'
@@ -3173,23 +3190,23 @@ export const getKas = async ( options?: RequestInit): Promise<Kas[]> => {
 
 
 
-export const getGetKasQueryKey = () => {
+export const getGetKasQueryKey = (params?: GetKasParams,) => {
     return [
-    `/api/kas`
+    `/api/kas`, ...(params ? [params] : [])
     ] as const;
     }
 
 
-export const getGetKasQueryOptions = <TData = Awaited<ReturnType<typeof getKas>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getKas>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+export const getGetKasQueryOptions = <TData = Awaited<ReturnType<typeof getKas>>, TError = ErrorType<unknown>>(params?: GetKasParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getKas>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
 ) => {
 
 const {query: queryOptions, request: requestOptions} = options ?? {};
 
-  const queryKey =  queryOptions?.queryKey ?? getGetKasQueryKey();
+  const queryKey =  queryOptions?.queryKey ?? getGetKasQueryKey(params);
 
 
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getKas>>> = ({ signal }) => getKas({ signal, ...requestOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getKas>>> = ({ signal }) => getKas(params, { signal, ...requestOptions });
 
 
 
@@ -3207,11 +3224,11 @@ export type GetKasQueryError = ErrorType<unknown>
  */
 
 export function useGetKas<TData = Awaited<ReturnType<typeof getKas>>, TError = ErrorType<unknown>>(
-  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getKas>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+ params?: GetKasParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getKas>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
 
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
-  const queryOptions = getGetKasQueryOptions(options)
+  const queryOptions = getGetKasQueryOptions(params,options)
 
   const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
 
@@ -3435,6 +3452,592 @@ export const useDeleteKas = <TError = ErrorType<unknown>,
         TContext
       > => {
       return useMutation(getDeleteKasMutationOptions(options));
+    }
+
+export const getGetKasConfigUrl = () => {
+
+
+
+
+  return `/api/kas/config`
+}
+
+/**
+ * @summary Get kas config (iuran makan mingguan, target dana darurat)
+ */
+export const getKasConfig = async ( options?: RequestInit): Promise<KasConfig> => {
+
+  return customFetch<KasConfig>(getGetKasConfigUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetKasConfigQueryKey = () => {
+    return [
+    `/api/kas/config`
+    ] as const;
+    }
+
+
+export const getGetKasConfigQueryOptions = <TData = Awaited<ReturnType<typeof getKasConfig>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getKasConfig>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetKasConfigQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getKasConfig>>> = ({ signal }) => getKasConfig({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getKasConfig>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetKasConfigQueryResult = NonNullable<Awaited<ReturnType<typeof getKasConfig>>>
+export type GetKasConfigQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Get kas config (iuran makan mingguan, target dana darurat)
+ */
+
+export function useGetKasConfig<TData = Awaited<ReturnType<typeof getKasConfig>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getKasConfig>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetKasConfigQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getUpdateKasConfigUrl = () => {
+
+
+
+
+  return `/api/kas/config`
+}
+
+/**
+ * @summary Update kas config (admin)
+ */
+export const updateKasConfig = async (kasConfigInput: KasConfigInput, options?: RequestInit): Promise<KasConfig> => {
+
+  return customFetch<KasConfig>(getUpdateKasConfigUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      kasConfigInput,)
+  }
+);}
+
+
+
+
+export const getUpdateKasConfigMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateKasConfig>>, TError,{data: BodyType<KasConfigInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateKasConfig>>, TError,{data: BodyType<KasConfigInput>}, TContext> => {
+
+const mutationKey = ['updateKasConfig'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateKasConfig>>, {data: BodyType<KasConfigInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  updateKasConfig(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateKasConfigMutationResult = NonNullable<Awaited<ReturnType<typeof updateKasConfig>>>
+    export type UpdateKasConfigMutationBody = BodyType<KasConfigInput>
+    export type UpdateKasConfigMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Update kas config (admin)
+ */
+export const useUpdateKasConfig = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateKasConfig>>, TError,{data: BodyType<KasConfigInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateKasConfig>>,
+        TError,
+        {data: BodyType<KasConfigInput>},
+        TContext
+      > => {
+      return useMutation(getUpdateKasConfigMutationOptions(options));
+    }
+
+export const getGetKasSummaryUrl = () => {
+
+
+
+
+  return `/api/kas/summary`
+}
+
+/**
+ * @summary Get kas summary per fund + jatah makan harian + status darurat
+ */
+export const getKasSummary = async ( options?: RequestInit): Promise<KasSummary> => {
+
+  return customFetch<KasSummary>(getGetKasSummaryUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetKasSummaryQueryKey = () => {
+    return [
+    `/api/kas/summary`
+    ] as const;
+    }
+
+
+export const getGetKasSummaryQueryOptions = <TData = Awaited<ReturnType<typeof getKasSummary>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getKasSummary>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetKasSummaryQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getKasSummary>>> = ({ signal }) => getKasSummary({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getKasSummary>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetKasSummaryQueryResult = NonNullable<Awaited<ReturnType<typeof getKasSummary>>>
+export type GetKasSummaryQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Get kas summary per fund + jatah makan harian + status darurat
+ */
+
+export function useGetKasSummary<TData = Awaited<ReturnType<typeof getKasSummary>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getKasSummary>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetKasSummaryQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getTransferSisaMakanUrl = () => {
+
+
+
+
+  return `/api/kas/transfer-sisa-makan`
+}
+
+/**
+ * @summary Transfer sisa makan hari ini ke dana darurat (admin)
+ */
+export const transferSisaMakan = async (transferSisaMakanInput: TransferSisaMakanInput, options?: RequestInit): Promise<TransferSisaMakanResult> => {
+
+  return customFetch<TransferSisaMakanResult>(getTransferSisaMakanUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      transferSisaMakanInput,)
+  }
+);}
+
+
+
+
+export const getTransferSisaMakanMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof transferSisaMakan>>, TError,{data: BodyType<TransferSisaMakanInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof transferSisaMakan>>, TError,{data: BodyType<TransferSisaMakanInput>}, TContext> => {
+
+const mutationKey = ['transferSisaMakan'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof transferSisaMakan>>, {data: BodyType<TransferSisaMakanInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  transferSisaMakan(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type TransferSisaMakanMutationResult = NonNullable<Awaited<ReturnType<typeof transferSisaMakan>>>
+    export type TransferSisaMakanMutationBody = BodyType<TransferSisaMakanInput>
+    export type TransferSisaMakanMutationError = ErrorType<void>
+
+    /**
+ * @summary Transfer sisa makan hari ini ke dana darurat (admin)
+ */
+export const useTransferSisaMakan = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof transferSisaMakan>>, TError,{data: BodyType<TransferSisaMakanInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof transferSisaMakan>>,
+        TError,
+        {data: BodyType<TransferSisaMakanInput>},
+        TContext
+      > => {
+      return useMutation(getTransferSisaMakanMutationOptions(options));
+    }
+
+export const getGetProkerFundsUrl = () => {
+
+
+
+
+  return `/api/proker-funds`
+}
+
+/**
+ * @summary Get list proker dengan ringkasan anggaran
+ */
+export const getProkerFunds = async ( options?: RequestInit): Promise<ProkerFundWithStats[]> => {
+
+  return customFetch<ProkerFundWithStats[]>(getGetProkerFundsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetProkerFundsQueryKey = () => {
+    return [
+    `/api/proker-funds`
+    ] as const;
+    }
+
+
+export const getGetProkerFundsQueryOptions = <TData = Awaited<ReturnType<typeof getProkerFunds>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getProkerFunds>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetProkerFundsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getProkerFunds>>> = ({ signal }) => getProkerFunds({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getProkerFunds>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetProkerFundsQueryResult = NonNullable<Awaited<ReturnType<typeof getProkerFunds>>>
+export type GetProkerFundsQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Get list proker dengan ringkasan anggaran
+ */
+
+export function useGetProkerFunds<TData = Awaited<ReturnType<typeof getProkerFunds>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getProkerFunds>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetProkerFundsQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getCreateProkerFundUrl = () => {
+
+
+
+
+  return `/api/proker-funds`
+}
+
+/**
+ * @summary Tambah proker baru (admin)
+ */
+export const createProkerFund = async (prokerFundInput: ProkerFundInput, options?: RequestInit): Promise<ProkerFund> => {
+
+  return customFetch<ProkerFund>(getCreateProkerFundUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      prokerFundInput,)
+  }
+);}
+
+
+
+
+export const getCreateProkerFundMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createProkerFund>>, TError,{data: BodyType<ProkerFundInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createProkerFund>>, TError,{data: BodyType<ProkerFundInput>}, TContext> => {
+
+const mutationKey = ['createProkerFund'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createProkerFund>>, {data: BodyType<ProkerFundInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  createProkerFund(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateProkerFundMutationResult = NonNullable<Awaited<ReturnType<typeof createProkerFund>>>
+    export type CreateProkerFundMutationBody = BodyType<ProkerFundInput>
+    export type CreateProkerFundMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Tambah proker baru (admin)
+ */
+export const useCreateProkerFund = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createProkerFund>>, TError,{data: BodyType<ProkerFundInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createProkerFund>>,
+        TError,
+        {data: BodyType<ProkerFundInput>},
+        TContext
+      > => {
+      return useMutation(getCreateProkerFundMutationOptions(options));
+    }
+
+export const getUpdateProkerFundUrl = (id: number,) => {
+
+
+
+
+  return `/api/proker-funds/${id}`
+}
+
+/**
+ * @summary Update proker (admin)
+ */
+export const updateProkerFund = async (id: number,
+    prokerFundUpdate: ProkerFundUpdate, options?: RequestInit): Promise<ProkerFund> => {
+
+  return customFetch<ProkerFund>(getUpdateProkerFundUrl(id),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      prokerFundUpdate,)
+  }
+);}
+
+
+
+
+export const getUpdateProkerFundMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateProkerFund>>, TError,{id: number;data: BodyType<ProkerFundUpdate>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateProkerFund>>, TError,{id: number;data: BodyType<ProkerFundUpdate>}, TContext> => {
+
+const mutationKey = ['updateProkerFund'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateProkerFund>>, {id: number;data: BodyType<ProkerFundUpdate>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  updateProkerFund(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateProkerFundMutationResult = NonNullable<Awaited<ReturnType<typeof updateProkerFund>>>
+    export type UpdateProkerFundMutationBody = BodyType<ProkerFundUpdate>
+    export type UpdateProkerFundMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Update proker (admin)
+ */
+export const useUpdateProkerFund = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateProkerFund>>, TError,{id: number;data: BodyType<ProkerFundUpdate>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateProkerFund>>,
+        TError,
+        {id: number;data: BodyType<ProkerFundUpdate>},
+        TContext
+      > => {
+      return useMutation(getUpdateProkerFundMutationOptions(options));
+    }
+
+export const getDeleteProkerFundUrl = (id: number,) => {
+
+
+
+
+  return `/api/proker-funds/${id}`
+}
+
+/**
+ * @summary Hapus proker (admin)
+ */
+export const deleteProkerFund = async (id: number, options?: RequestInit): Promise<void> => {
+
+  return customFetch<void>(getDeleteProkerFundUrl(id),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+export const getDeleteProkerFundMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteProkerFund>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteProkerFund>>, TError,{id: number}, TContext> => {
+
+const mutationKey = ['deleteProkerFund'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteProkerFund>>, {id: number}> = (props) => {
+          const {id} = props ?? {};
+
+          return  deleteProkerFund(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteProkerFundMutationResult = NonNullable<Awaited<ReturnType<typeof deleteProkerFund>>>
+
+    export type DeleteProkerFundMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Hapus proker (admin)
+ */
+export const useDeleteProkerFund = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteProkerFund>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof deleteProkerFund>>,
+        TError,
+        {id: number},
+        TContext
+      > => {
+      return useMutation(getDeleteProkerFundMutationOptions(options));
     }
 
 export const getGetDashboardSummaryUrl = () => {

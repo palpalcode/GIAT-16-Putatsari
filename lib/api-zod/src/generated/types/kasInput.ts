@@ -6,6 +6,7 @@
  * OpenAPI spec version: 0.1.0
  */
 import type { KasInputCategory } from './kasInputCategory';
+import type { KasInputFund } from './kasInputFund';
 import type { KasInputType } from './kasInputType';
 
 export interface KasInput {
@@ -15,4 +16,6 @@ export interface KasInput {
   category: KasInputCategory;
   date: string;
   notes?: string;
+  fund?: KasInputFund;
+  prokerId?: number;
 }
