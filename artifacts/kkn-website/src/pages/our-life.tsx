@@ -42,6 +42,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Plus, Pencil, Trash2, ChefHat, SprayCan, Package, User, Heart, X, BookOpen } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 import { ItemCatalogCombobox } from "@/components/ItemCatalogCombobox";
 import { useToast } from "@/hooks/use-toast";
 import { cn, TEAM_MEMBERS, getMemberColor } from "@/lib/utils";
@@ -397,7 +398,7 @@ function InvCategoryFilter({ value, onChange }: { value: string; onChange: (v: s
 
 // ─── 3-tipe kepemilikan ───────────────────────────────────────────────────────
 const INV_TYPE_CONFIG = {
-  pribadi:  { label: "Barang Pribadi",          emoji: "👤", color: "border-violet-400 bg-violet-50 text-violet-700" },
+  pribadi:  { label: "Murni Barang Pribadi",     emoji: "👤", color: "border-violet-400 bg-violet-50 text-violet-700" },
   pinjaman: { label: "Dipinjamkan ke Kelompok", emoji: "🤝", color: "border-sky-400 bg-sky-50 text-sky-700" },
   kelompok: { label: "Milik Kelompok",          emoji: "🏠", color: "border-emerald-400 bg-emerald-50 text-emerald-700" },
 } as const;
@@ -665,6 +666,217 @@ function MultiItemDialog({
   );
 }
 
+// ─── Dialog: Pinjam dari Barang Anggota ───────────────────────────────────────
+function PinjamBrgAnggotaDialog({ open, onOpenChange, onSuccess }: { open: boolean; onOpenChange: (v: boolean) => void; onSuccess: () => void }) {
+  const { toast } = useToast();
+  const { data: pribadiItems = [], isLoading } = useGetInventory({ type: "pribadi" });
+  const update = useUpdateInventoryItem();
+  const [selected, setSelected] = useState<Set<number>>(new Set());
+  const [submitting, setSubmitting] = useState(false);
+
+  function toggle(id: number) {
+    setSelected(prev => { const n = new Set(prev); if (n.has(id)) n.delete(id); else n.add(id); return n; });
+  }
+
+  async function handleSubmit() {
+    if (selected.size === 0) return;
+    setSubmitting(true);
+    try {
+      await Promise.all([...selected].map(id =>
+        update.mutateAsync({ id, data: { itemType: InventoryItemInputItemType.pinjaman } })
+      ));
+      onSuccess();
+      onOpenChange(false);
+      setSelected(new Set());
+      toast({ title: `${selected.size} barang dipinjamkan ke kelompok` });
+    } catch (err) {
+      toast({ title: "Gagal meminjamkan", description: getApiErrorDesc(err), variant: "destructive" });
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={v => { if (!v) setSelected(new Set()); onOpenChange(v); }}>
+      <DialogContent className="form-dialog border-white/50 max-w-md p-0 overflow-hidden max-h-[90vh] flex flex-col">
+        <div className="px-6 pt-6 pb-4 bg-gradient-to-r from-sky-400/20 to-teal-400/20 shrink-0">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2"><span>🤝</span> Pinjam dari Barang Anggota</DialogTitle>
+          </DialogHeader>
+          <p className="text-xs text-gray-500 mt-1.5">Pilih barang pribadi anggota yang akan dipinjamkan ke kelompok.</p>
+        </div>
+        <div className="flex-1 overflow-y-auto px-6 py-3 space-y-1.5">
+          {isLoading ? (
+            <div className="animate-pulse space-y-2">{[1,2,3].map(i => <div key={i} className="h-12 bg-gray-100 rounded-xl" />)}</div>
+          ) : pribadiItems.length === 0 ? (
+            <div className="text-center py-8 text-gray-400 text-sm">Belum ada barang pribadi anggota.</div>
+          ) : (
+            pribadiItems.map(item => {
+              const checked = selected.has(item.id);
+              return (
+                <label key={item.id} className={cn("flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all", checked ? "bg-sky-50 border-sky-200" : "bg-white/80 border-white/50 hover:bg-white/90")}>
+                  <Checkbox checked={checked} onCheckedChange={() => toggle(item.id)} />
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium text-sm text-gray-900 truncate">{item.name}</p>
+                    <p className="text-xs text-gray-500"><span className="font-bold text-gray-700">{item.quantity}</span> {item.unit}</p>
+                  </div>
+                  {item.ownerName && (
+                    <span className={cn("text-[10px] px-2 py-0.5 rounded-full text-white font-medium bg-gradient-to-r shrink-0", getMemberColor(item.ownerName))}>
+                      {item.ownerName}
+                    </span>
+                  )}
+                </label>
+              );
+            })
+          )}
+        </div>
+        <div className="px-6 py-4 border-t border-gray-100 flex justify-between items-center shrink-0">
+          <span className="text-xs text-gray-500">{selected.size} dipilih</span>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => { setSelected(new Set()); onOpenChange(false); }} className="rounded-full text-sm">Batal</Button>
+            <Button onClick={handleSubmit} disabled={selected.size === 0 || submitting} className="bg-gradient-to-r from-sky-400 to-teal-400 text-white border-0 rounded-full text-sm">
+              {submitting ? "Meminjamkan..." : `Pinjamkan${selected.size > 0 ? ` (${selected.size})` : ""}`}
+            </Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+// ─── Dialog: Quick-add dari Katalog ───────────────────────────────────────────
+type CatalogDraft = { qty: number; itemType: "pribadi" | "pinjaman" };
+
+function CatalogQuickAddDialog({ open, onOpenChange, selfName, isPrivileged, onSubmitAll }: {
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+  selfName: string | null;
+  isPrivileged: boolean;
+  onSubmitAll: (items: DraftItem[]) => Promise<void>;
+}) {
+  const { toast } = useToast();
+  const { data: catalog = [], isLoading } = useGetItemCatalog();
+  const [drafts, setDrafts] = useState<Record<number, CatalogDraft>>({});
+  const [ownerName, setOwnerName] = useState(selfName ?? "");
+  const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => { if (open) { setDrafts({}); setOwnerName(selfName ?? ""); } }, [open, selfName]);
+
+  function setQty(id: number, qty: number) {
+    setDrafts(prev => ({ ...prev, [id]: { qty: Math.max(0, qty), itemType: prev[id]?.itemType ?? "pribadi" } }));
+  }
+  function toggleType(id: number) {
+    setDrafts(prev => ({ ...prev, [id]: { qty: prev[id]?.qty ?? 1, itemType: prev[id]?.itemType === "pinjaman" ? "pribadi" : "pinjaman" } }));
+  }
+
+  const toSubmit = catalog.filter(c => (drafts[c.id]?.qty ?? 0) > 0);
+
+  async function handleSubmit() {
+    if (toSubmit.length === 0) return;
+    if (!ownerName) { toast({ title: "Pilih nama pemilik", variant: "destructive" }); return; }
+    setSubmitting(true);
+    try {
+      const items: DraftItem[] = toSubmit.map(c => ({
+        id: `catalog-${c.id}`,
+        name: c.name,
+        category: c.category as InventoryItemInputCategory,
+        quantity: drafts[c.id]!.qty,
+        unit: c.unit,
+        notes: "",
+        itemType: drafts[c.id]!.itemType as InvItemType,
+        ownerName,
+      }));
+      await onSubmitAll(items);
+      onOpenChange(false);
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  const grouped = invCategories.reduce((acc, cat) => {
+    const items = catalog.filter(c => c.category === cat.id);
+    if (items.length > 0) acc[cat.id] = items;
+    return acc;
+  }, {} as Record<string, typeof catalog>);
+
+  return (
+    <Dialog open={open} onOpenChange={v => { if (!v) setDrafts({}); onOpenChange(v); }}>
+      <DialogContent className="form-dialog border-white/50 max-w-lg p-0 overflow-hidden max-h-[92vh] flex flex-col">
+        <div className="px-6 pt-6 pb-4 bg-gradient-to-r from-violet-400/20 to-sky-400/20 shrink-0">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2"><BookOpen className="w-5 h-5 text-violet-500" />Tambah dari Katalog</DialogTitle>
+          </DialogHeader>
+          {isPrivileged ? (
+            <div className="flex items-center gap-2 mt-3">
+              <label className="text-xs font-semibold text-gray-500">Pemilik:</label>
+              <select value={ownerName} onChange={e => setOwnerName(e.target.value)} className="text-sm px-2 py-1 rounded-lg border border-white/50 bg-white/90 focus:outline-none focus:border-violet-300">
+                <option value="">-- Pilih --</option>
+                {MEMBERS.map(m => <option key={m} value={m}>{m}</option>)}
+              </select>
+            </div>
+          ) : selfName ? (
+            <div className="flex items-center gap-2 mt-3">
+              <span className="text-xs font-semibold text-gray-500">Pemilik:</span>
+              <span className={cn("text-xs text-white px-2.5 py-0.5 rounded-full bg-gradient-to-r", getMemberColor(selfName))}>{selfName}</span>
+            </div>
+          ) : null}
+        </div>
+        <div className="flex-1 overflow-y-auto px-6 py-3 space-y-4">
+          {isLoading ? (
+            <div className="animate-pulse space-y-2">{[1,2,3].map(i => <div key={i} className="h-14 bg-gray-100 rounded-xl" />)}</div>
+          ) : (
+            Object.entries(grouped).map(([catId, items]) => (
+              <div key={catId}>
+                <div className="flex items-center gap-2 mb-2">
+                  <Badge className={cn("text-xs px-2 py-0.5 border", getCatColor(catId))}>
+                    {getCatEmoji(catId)} {getCatLabel(catId)}
+                  </Badge>
+                </div>
+                <div className="space-y-1.5">
+                  {items.map(item => {
+                    const draft = drafts[item.id];
+                    const qty = draft?.qty ?? 0;
+                    const isPinjaman = draft?.itemType === "pinjaman";
+                    const isActive = qty > 0;
+                    return (
+                      <div key={item.id} className={cn("flex items-center gap-2 p-2.5 rounded-xl border transition-all", isActive ? "bg-violet-50/80 border-violet-200" : "bg-white/70 border-white/50")}>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-gray-800 truncate">{item.name}</p>
+                          <p className="text-xs text-gray-400">{item.unit}</p>
+                        </div>
+                        <div className="flex items-center gap-1 shrink-0">
+                          <button type="button" onClick={() => setQty(item.id, qty - 1)} className="w-7 h-7 rounded-full border border-gray-200 bg-white hover:bg-gray-50 text-gray-600 font-bold flex items-center justify-center text-lg leading-none">−</button>
+                          <input type="number" min={0} value={qty === 0 ? "" : qty} onChange={e => setQty(item.id, Number(e.target.value) || 0)} placeholder="0" className="w-12 text-center text-sm font-semibold border border-gray-200 rounded-lg bg-white h-7 focus:outline-none focus:border-violet-400" />
+                          <button type="button" onClick={() => setQty(item.id, qty + 1)} className="w-7 h-7 rounded-full border border-violet-300 bg-violet-500 hover:bg-violet-600 text-white font-bold flex items-center justify-center text-lg leading-none">+</button>
+                        </div>
+                        {isActive && (
+                          <button type="button" onClick={() => toggleType(item.id)}
+                            className={cn("shrink-0 text-[10px] px-2 py-0.5 rounded-full border font-medium transition-all", isPinjaman ? INV_TYPE_CONFIG.pinjaman.color : INV_TYPE_CONFIG.pribadi.color)}>
+                            {isPinjaman ? "🤝 Pinjaman" : "👤 Pribadi"}
+                          </button>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+        <div className="px-6 py-4 border-t border-gray-100 flex justify-between items-center shrink-0">
+          <span className="text-xs text-gray-500">{toSubmit.length} item · {toSubmit.reduce((s, c) => s + (drafts[c.id]?.qty ?? 0), 0)} total</span>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => { setDrafts({}); onOpenChange(false); }} className="rounded-full text-sm">Batal</Button>
+            <Button onClick={handleSubmit} disabled={toSubmit.length === 0 || submitting || !ownerName} className="bg-gradient-to-r from-violet-400 to-sky-400 text-white border-0 rounded-full text-sm">
+              {submitting ? "Menyimpan..." : `Simpan${toSubmit.length > 0 ? ` (${toSubmit.length})` : ""}`}
+            </Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 // ─── Barang Kelompok sub-tab ──────────────────────────────────────────────────
 function BrgKelompokTab({ isAdmin, isKetSek }: { isAdmin?: boolean; isKetSek?: boolean }) {
   const qc = useQueryClient();
@@ -683,6 +895,7 @@ function BrgKelompokTab({ isAdmin, isKetSek }: { isAdmin?: boolean; isKetSek?: b
   const [editId, setEditId] = useState<number | null>(null);
   const [editForm, setEditForm] = useState<InvForm>(defaultInvForm);
   const [filterCat, setFilterCat] = useState("all");
+  const [pinjamOpen, setPinjamOpen] = useState(false);
 
   function invalidate() {
     qc.invalidateQueries({ queryKey: getGetInventoryQueryKey() });
@@ -726,9 +939,14 @@ function BrgKelompokTab({ isAdmin, isKetSek }: { isAdmin?: boolean; isKetSek?: b
       <div className="flex items-center justify-between flex-wrap gap-2">
         <p className="text-sm text-gray-500">Barang milik bersama dan barang anggota yang dipinjamkan ke kelompok</p>
         {isAdmin && (
-          <Button size="sm" onClick={() => setAddOpen(true)} className="bg-gradient-to-r from-emerald-400 to-teal-400 text-white border-0 rounded-full gap-1">
-            <Plus className="w-4 h-4" />Tambah Barang
-          </Button>
+          <div className="flex gap-2 flex-wrap">
+            <Button size="sm" onClick={() => setPinjamOpen(true)} variant="outline" className="rounded-full gap-1 text-sky-600 border-sky-300 hover:bg-sky-50">
+              🤝 Pinjam dari Barang Anggota
+            </Button>
+            <Button size="sm" onClick={() => setAddOpen(true)} className="bg-gradient-to-r from-emerald-400 to-teal-400 text-white border-0 rounded-full gap-1">
+              <Plus className="w-4 h-4" />Tambah Barang
+            </Button>
+          </div>
         )}
       </div>
 
@@ -780,6 +998,9 @@ function BrgKelompokTab({ isAdmin, isKetSek }: { isAdmin?: boolean; isKetSek?: b
         </div>
       )}
 
+      {/* Dialog pinjam dari barang pribadi anggota */}
+      <PinjamBrgAnggotaDialog open={pinjamOpen} onOpenChange={setPinjamOpen} onSuccess={invalidate} />
+
       {/* Dialog tambah multi-barang */}
       <MultiItemDialog
         open={addOpen}
@@ -827,6 +1048,7 @@ function BrgPribadiTab({ selfName, isPrivileged, isKetSek, isLoggedIn }: { selfN
   const inventory = (rawInventory ?? []).filter(i => i.itemType === "pribadi" || i.itemType === "pinjaman");
 
   const [addOpen, setAddOpen] = useState(false);
+  const [catalogQuickOpen, setCatalogQuickOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [editId, setEditId] = useState<number | null>(null);
   const [editForm, setEditForm] = useState<InvForm>(defaultInvForm);
@@ -891,9 +1113,14 @@ function BrgPribadiTab({ selfName, isPrivileged, isKetSek, isLoggedIn }: { selfN
           )}
         </div>
         {isLoggedIn && (
-          <Button size="sm" onClick={() => setAddOpen(true)} className="bg-gradient-to-r from-violet-400 to-sky-400 text-white border-0 rounded-full gap-1">
-            <Plus className="w-4 h-4" />Tambah Barangku
-          </Button>
+          <div className="flex gap-2 flex-wrap">
+            <Button size="sm" onClick={() => setCatalogQuickOpen(true)} variant="outline" className="rounded-full gap-1 text-violet-600 border-violet-300 hover:bg-violet-50">
+              <BookOpen className="w-3.5 h-3.5" />Dari Katalog
+            </Button>
+            <Button size="sm" onClick={() => setAddOpen(true)} className="bg-gradient-to-r from-violet-400 to-sky-400 text-white border-0 rounded-full gap-1">
+              <Plus className="w-4 h-4" />Tambah Barangku
+            </Button>
+          </div>
         )}
       </div>
 
@@ -946,6 +1173,15 @@ function BrgPribadiTab({ selfName, isPrivileged, isKetSek, isLoggedIn }: { selfN
         </div>
       )}
 
+      {/* Dialog quick-add dari katalog */}
+      <CatalogQuickAddDialog
+        open={catalogQuickOpen}
+        onOpenChange={setCatalogQuickOpen}
+        selfName={selfName}
+        isPrivileged={isPrivileged}
+        onSubmitAll={handleSubmitAll}
+      />
+
       {/* Dialog tambah multi-barang */}
       <MultiItemDialog
         open={addOpen}
@@ -957,7 +1193,7 @@ function BrgPribadiTab({ selfName, isPrivileged, isKetSek, isLoggedIn }: { selfN
         selfName={selfName}
         isLoggedIn={isLoggedIn}
         onSubmitAll={handleSubmitAll}
-        title="Tambah Barang Pribadi"
+        title="Tambah Murni Barang Pribadi"
         headerGradient="bg-gradient-to-r from-violet-400/20 to-sky-400/20"
       />
 
@@ -965,7 +1201,7 @@ function BrgPribadiTab({ selfName, isPrivileged, isKetSek, isLoggedIn }: { selfN
       <Dialog open={editOpen} onOpenChange={setEditOpen}>
         <DialogContent className="form-dialog border-white/50 max-w-md p-0 overflow-hidden max-h-[90vh] overflow-y-auto">
           <div className="px-6 pt-6 pb-4 bg-gradient-to-r from-violet-400/20 to-sky-400/20">
-            <DialogHeader><DialogTitle className="flex items-center gap-2"><User className="w-5 h-5 text-violet-500" />Edit Barang Pribadi</DialogTitle></DialogHeader>
+            <DialogHeader><DialogTitle className="flex items-center gap-2"><User className="w-5 h-5 text-violet-500" />Edit Murni Barang Pribadi</DialogTitle></DialogHeader>
           </div>
           <div className="px-6 pb-6 pt-4">
             <SingleItemFields form={editForm} setForm={setEditForm} allowedTypes={editAllowedTypes} isPrivileged={isPrivileged} isKetSek={isKetSek} selfName={selfName} isLoggedIn={true} />
@@ -1223,7 +1459,7 @@ function InventarisTab({ isAdmin, isKetSek, selfName, isPrivileged, isLoggedIn }
           </button>
           <button onClick={() => setInvTab("pribadi")} className={cn("px-3 py-1.5 rounded-lg text-xs font-medium transition-all flex items-center gap-1.5",
             invTab === "pribadi" ? "bg-gradient-to-r from-violet-400 to-sky-400 text-white shadow-sm" : "text-violet-700 hover:text-violet-900")}>
-            👤 Barang Pribadi
+            👤 Murni Barang Pribadi
           </button>
           {isKetSek && (
             <button onClick={() => setInvTab("katalog")} className={cn("px-3 py-1.5 rounded-lg text-xs font-medium transition-all flex items-center gap-1.5",

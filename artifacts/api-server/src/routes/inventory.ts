@@ -224,13 +224,16 @@ router.patch("/inventory/:id", async (req, res) => {
       }
     }
 
-    const { name, category, quantity, unit, notes, ownerName } = req.body;
+    const { name, category, quantity, unit, notes, ownerName, itemType } = req.body;
     const updates: any = {};
     if (category !== undefined) updates.category = category;
     if (quantity !== undefined) updates.quantity = quantity;
     if (notes !== undefined) updates.notes = notes;
     if (ownerName !== undefined && (item.itemType === "pribadi" || item.itemType === "pinjaman")) {
       if (ownerName === sessionName || isKetSek(divisionRole)) updates.ownerName = ownerName;
+    }
+    if (itemType !== undefined && (itemType === "pribadi" || itemType === "pinjaman" || itemType === "kelompok")) {
+      updates.itemType = itemType;
     }
 
     if (name !== undefined) {
