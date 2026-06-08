@@ -275,6 +275,8 @@ export default function OurWorkPage() {
 
   const [dlOpen, setDlOpen] = useState(false);
   const [dlEditId, setDlEditId] = useState<number | null>(null);
+  const [dlFilterType, setDlFilterType] = useState<string | null>(null);
+  const [dlFilterStatus, setDlFilterStatus] = useState<string | null>(null);
   const [dlForm, setDlForm] = useState<{ title: string; type: DeadlineInputType; dueDate: string; status: DeadlineInputStatus; assignedTo: string[]; notes: string }>({
     title: "", type: "tugas", dueDate: today(), status: "pending", assignedTo: [], notes: "",
   });
@@ -297,11 +299,19 @@ export default function OurWorkPage() {
     }
   }
 
-  const dlSorted = [...(deadlines ?? [])].sort((a, b) => {
+  const dlAll = deadlines ?? [];
+  const dlFiltered = dlAll
+    .filter(d => !dlFilterType || d.type === dlFilterType)
+    .filter(d => !dlFilterStatus || d.status === dlFilterStatus);
+  const dlSorted = [...dlFiltered].sort((a, b) => {
     if (a.status === "done" && b.status !== "done") return 1;
     if (a.status !== "done" && b.status === "done") return -1;
     return a.dueDate.localeCompare(b.dueDate);
   });
+  const dlCountTugas = dlAll.filter(d => d.type === "tugas").length;
+  const dlCountKegiatan = dlAll.filter(d => d.type === "kegiatan").length;
+  const dlCountPending = dlAll.filter(d => d.status === "pending").length;
+  const dlCountDone = dlAll.filter(d => d.status === "done").length;
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
@@ -450,8 +460,43 @@ export default function OurWorkPage() {
             )}
           </div>
 
+          {/* Deadline filter chips */}
+          <div className="flex flex-wrap gap-2">
+            {[
+              { id: "tugas", label: "Tugas", dot: "bg-purple-400", active: "bg-purple-50 border-purple-300 text-purple-700", count: dlCountTugas, kind: "type" as const },
+              { id: "kegiatan", label: "Kegiatan", dot: "bg-teal-400", active: "bg-teal-50 border-teal-300 text-teal-700", count: dlCountKegiatan, kind: "type" as const },
+            ].map(f => (
+              <button key={f.id} onClick={() => setDlFilterType(dlFilterType === f.id ? null : f.id)}
+                className={cn(
+                  "px-3 py-1.5 flex items-center gap-1.5 rounded-2xl border transition-all text-xs font-medium",
+                  dlFilterType === f.id ? f.active + " shadow-sm" : "bg-white/50 hover:bg-white/80 text-gray-600 border-white/50"
+                )}>
+                <div className={cn("w-2 h-2 rounded-full shrink-0", f.dot)} />
+                <span>{f.count} {f.label}</span>
+              </button>
+            ))}
+            {[
+              { id: "pending", label: "Belum Selesai", dot: "bg-amber-400", active: "bg-amber-50 border-amber-300 text-amber-700", count: dlCountPending },
+              { id: "done", label: "Selesai", dot: "bg-emerald-400", active: "bg-emerald-50 border-emerald-300 text-emerald-700", count: dlCountDone },
+            ].map(f => (
+              <button key={f.id} onClick={() => setDlFilterStatus(dlFilterStatus === f.id ? null : f.id)}
+                className={cn(
+                  "px-3 py-1.5 flex items-center gap-1.5 rounded-2xl border transition-all text-xs font-medium",
+                  dlFilterStatus === f.id ? f.active + " shadow-sm" : "bg-white/50 hover:bg-white/80 text-gray-600 border-white/50"
+                )}>
+                <div className={cn("w-2 h-2 rounded-full shrink-0", f.dot)} />
+                <span>{f.count} {f.label}</span>
+              </button>
+            ))}
+            {(dlFilterType || dlFilterStatus) && (
+              <button onClick={() => { setDlFilterType(null); setDlFilterStatus(null); }} className="px-2 py-1.5 text-xs text-gray-400 hover:text-gray-600 transition-colors">
+                × Hapus
+              </button>
+            )}
+          </div>
+
           {/* Deadline list */}
-          <div className="overflow-y-auto max-h-[552px] space-y-3 pr-0.5">
+          <div className="overflow-y-auto max-h-[480px] space-y-3 pr-0.5">
             {dlLoading ? (
               <div className="animate-pulse space-y-3">{[1,2,3].map(i => <div key={i} className="bg-white/40 rounded-xl h-20" />)}</div>
             ) : dlSorted.length === 0 ? (
