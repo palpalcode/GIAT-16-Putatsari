@@ -262,17 +262,26 @@ function TxList({ items, isAdmin, onEdit, onDelete, onCancelTransfer }: {
                             <ChevronDown className={cn("w-3.5 h-3.5 transition-transform", isOpen && "rotate-180")} />
                           </button>
                         )}
-                        {isAdmin && item.transferId && onCancelTransfer && (
-                          <div className="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity ml-0.5">
-                            <Button variant="ghost" size="icon" className="h-6 w-6 rounded-full" title="Batalkan transfer" onClick={() => { if (window.confirm("Batalkan transfer ini? Kedua catatan kas terkait akan dihapus.")) onCancelTransfer(item.transferId); }}><Undo2 className="w-3 h-3 text-rose-500" /></Button>
-                          </div>
-                        )}
-                        {isAdmin && (onEdit || onDelete) && !item.transferId && (
-                          <div className="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity ml-0.5">
-                            {onEdit && <Button variant="ghost" size="icon" className="h-6 w-6 rounded-full" onClick={() => onEdit(item)}><Pencil className="w-3 h-3 text-sky-500" /></Button>}
-                            {onDelete && <Button variant="ghost" size="icon" className="h-6 w-6 rounded-full" onClick={() => onDelete(item.id)}><Trash2 className="w-3 h-3 text-rose-500" /></Button>}
-                          </div>
-                        )}
+                        {(() => {
+                          const isTransfer = item.transferId != null ||
+                            /^(Transfer ke |Transfer dari |Sisa makan |Transfer sisa makan )/.test(item.description ?? "");
+                          if (isAdmin && isTransfer && item.transferId && onCancelTransfer) {
+                            return (
+                              <div className="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity ml-0.5">
+                                <Button variant="ghost" size="icon" className="h-6 w-6 rounded-full" title="Batalkan transfer" onClick={() => { if (window.confirm("Batalkan transfer ini? Kedua catatan kas terkait akan dihapus.")) onCancelTransfer(item.transferId); }}><Undo2 className="w-3 h-3 text-rose-500" /></Button>
+                              </div>
+                            );
+                          }
+                          if (isAdmin && !isTransfer && (onEdit || onDelete)) {
+                            return (
+                              <div className="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity ml-0.5">
+                                {onEdit && <Button variant="ghost" size="icon" className="h-6 w-6 rounded-full" onClick={() => onEdit(item)}><Pencil className="w-3 h-3 text-sky-500" /></Button>}
+                                {onDelete && <Button variant="ghost" size="icon" className="h-6 w-6 rounded-full" onClick={() => onDelete(item.id)}><Trash2 className="w-3 h-3 text-rose-500" /></Button>}
+                              </div>
+                            );
+                          }
+                          return null;
+                        })()}
                       </div>
                     </div>
                     {item.notes && <p className="text-xs text-gray-400 mt-1.5 ml-12">{item.notes}</p>}
