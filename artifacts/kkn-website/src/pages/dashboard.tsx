@@ -77,7 +77,7 @@ export default function Dashboard() {
                           : a.priority === "medium" ? "bg-amber-100 text-amber-700 border-amber-200"
                           : "bg-emerald-100 text-emerald-700 border-emerald-200"
                       )}>
-                        {a.priority === "high" ? "Penting" : a.priority === "medium" ? "Sedang" : "Biasa"}
+                        {a.priority === "high" ? "Mendesak" : a.priority === "medium" ? "Penting" : "Normal"}
                       </Badge>
                       <div className="min-w-0">
                         <p className="font-semibold text-sm text-gray-900 group-hover:text-rose-600 transition-colors truncate">{a.title}</p>

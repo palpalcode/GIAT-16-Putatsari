@@ -45,9 +45,9 @@ const SEKRETARIS_NAME = Object.keys(TEAM_ROLES).find((m) => TEAM_ROLES[m] === "S
 type Priority = "low" | "medium" | "high";
 
 const priorityLabel: Record<Priority, string> = {
-  high: "Penting",
-  medium: "Sedang",
-  low: "Biasa",
+  high: "Mendesak",
+  medium: "Penting",
+  low: "Normal",
 };
 
 const priorityClass: Record<Priority, string> = {
@@ -457,9 +457,9 @@ export default function PengumumanPage() {
                 <SelectValue placeholder="Prioritas" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="high">Penting</SelectItem>
-                <SelectItem value="medium">Sedang</SelectItem>
-                <SelectItem value="low">Biasa</SelectItem>
+                <SelectItem value="high">Mendesak</SelectItem>
+                <SelectItem value="medium">Penting</SelectItem>
+                <SelectItem value="low">Normal</SelectItem>
               </SelectContent>
             </Select>
             <div className="flex gap-3 justify-end">
