@@ -32,7 +32,7 @@ import {
 import { Plus, Pencil, Trash2, CalendarDays, CheckCircle2, Clock, Loader2, User, CalendarClock } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
-import { getApiErrorDesc } from "@/lib/api-error";
+import { getApiErrorDesc, extractApiFieldErrors } from "@/lib/api-error";
 
 const MEMBERS = [
   "Muhamad Naufal", "Fadhilah Apta Nur Safitri", "Lutfia Tri Rahmacahyani",
@@ -68,9 +68,9 @@ function getStatus(id: string) {
 
 type ProgramForm = { programName: string; date: string; leader: string; members: string[]; status: ProgramScheduleInputStatus; notes: string };
 
-function ProgramDialog({ open, onClose, editId, initial, onSave, isPending }: {
+function ProgramDialog({ open, onClose, editId, initial, onSave, isPending, fieldErrors = {} }: {
   open: boolean; onClose: () => void; editId: number | null; initial: ProgramForm;
-  onSave: (f: ProgramForm) => void; isPending: boolean;
+  onSave: (f: ProgramForm) => void; isPending: boolean; fieldErrors?: Record<string, string>;
 }) {
   const [form, setForm] = useState<ProgramForm>(initial);
   const setF = (k: keyof ProgramForm, v: any) => setForm(f => ({ ...f, [k]: v }));
@@ -96,11 +96,13 @@ function ProgramDialog({ open, onClose, editId, initial, onSave, isPending }: {
           <div>
             <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 block">Nama Program</label>
             <Input placeholder="Nama program kerja..." value={form.programName} onChange={e => setF("programName", e.target.value)} className="bg-white/60" />
+            {fieldErrors.programName && <p className="text-xs text-rose-500 mt-1">{fieldErrors.programName}</p>}
           </div>
 
           <div>
             <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 block">Tanggal Pelaksanaan</label>
             <Input type="date" value={form.date} onChange={e => setF("date", e.target.value)} className="bg-white/60" />
+            {fieldErrors.date && <p className="text-xs text-rose-500 mt-1">{fieldErrors.date}</p>}
           </div>
 
           <div>
@@ -231,16 +233,18 @@ export default function OurWorkPage() {
   const [filterStatus, setFilterStatus] = useState<string | null>(null);
   const defaultForm: ProgramForm = { programName: "", date: today(), leader: "", members: [], status: "planned", notes: "" };
   const [initForm, setInitForm] = useState<ProgramForm>(defaultForm);
+  const [progFieldErrors, setProgFieldErrors] = useState<Record<string, string>>({});
 
   function invalidateSched() {
     qc.invalidateQueries({ queryKey: getGetProgramSchedulesQueryKey() });
     qc.invalidateQueries({ queryKey: getGetDashboardSummaryQueryKey() });
   }
 
-  function openAdd() { setEditId(null); setInitForm(defaultForm); setOpen(true); }
+  function openAdd() { setEditId(null); setInitForm(defaultForm); setProgFieldErrors({}); setOpen(true); }
   function openEdit(s: any) {
     setEditId(s.id);
     setInitForm({ programName: s.programName, date: s.date, leader: s.leader, members: s.members as string[], status: s.status, notes: s.notes ?? "" });
+    setProgFieldErrors({});
     setOpen(true);
   }
 
@@ -249,12 +253,12 @@ export default function OurWorkPage() {
     if (editId !== null) {
       update.mutate({ id: editId, data: payload }, {
         onSuccess: () => { invalidateSched(); setOpen(false); toast({ title: "Program diperbarui" }); },
-        onError: (err) => toast({ title: "Gagal menyimpan", description: getApiErrorDesc(err), variant: "destructive" }),
+        onError: (err) => { setProgFieldErrors(extractApiFieldErrors(err)); toast({ title: "Gagal menyimpan", description: getApiErrorDesc(err), variant: "destructive" }); },
       });
     } else {
       create.mutate({ data: payload }, {
         onSuccess: () => { invalidateSched(); setOpen(false); toast({ title: "Program ditambahkan" }); },
-        onError: (err) => toast({ title: "Gagal menyimpan", description: getApiErrorDesc(err), variant: "destructive" }),
+        onError: (err) => { setProgFieldErrors(extractApiFieldErrors(err)); toast({ title: "Gagal menyimpan", description: getApiErrorDesc(err), variant: "destructive" }); },
       });
     }
   }
@@ -287,14 +291,15 @@ export default function OurWorkPage() {
   const [dlForm, setDlForm] = useState<{ title: string; type: DeadlineInputType; dueDate: string; status: DeadlineInputStatus; assignedTo: string[]; notes: string }>({
     title: "", type: "tugas", dueDate: today(), status: "pending", assignedTo: [], notes: "",
   });
+  const [dlFieldErrors, setDlFieldErrors] = useState<Record<string, string>>({});
 
   function invalidateDl() {
     qc.invalidateQueries({ queryKey: getGetDeadlinesQueryKey() });
     qc.invalidateQueries({ queryKey: getGetDashboardSummaryQueryKey() });
   }
 
-  function dlOpenAdd() { setDlEditId(null); setDlForm({ title: "", type: "tugas", dueDate: today(), status: "pending", assignedTo: [], notes: "" }); setDlOpen(true); }
-  function dlOpenEdit(d: any) { setDlEditId(d.id); setDlForm({ title: d.title, type: d.type, dueDate: d.dueDate, status: d.status, assignedTo: d.assignedTo as string[], notes: d.notes ?? "" }); setDlOpen(true); }
+  function dlOpenAdd() { setDlEditId(null); setDlForm({ title: "", type: "tugas", dueDate: today(), status: "pending", assignedTo: [], notes: "" }); setDlFieldErrors({}); setDlOpen(true); }
+  function dlOpenEdit(d: any) { setDlEditId(d.id); setDlForm({ title: d.title, type: d.type, dueDate: d.dueDate, status: d.status, assignedTo: d.assignedTo as string[], notes: d.notes ?? "" }); setDlFieldErrors({}); setDlOpen(true); }
 
   function handleDlSave() {
     if (!dlForm.title) return;
@@ -302,12 +307,12 @@ export default function OurWorkPage() {
     if (dlEditId !== null) {
       dlUpdate.mutate({ id: dlEditId, data: payload }, {
         onSuccess: () => { invalidateDl(); setDlOpen(false); toast({ title: "Deadline diperbarui" }); },
-        onError: (err) => toast({ title: "Gagal menyimpan", description: getApiErrorDesc(err), variant: "destructive" }),
+        onError: (err) => { setDlFieldErrors(extractApiFieldErrors(err)); toast({ title: "Gagal menyimpan", description: getApiErrorDesc(err), variant: "destructive" }); },
       });
     } else {
       dlCreate.mutate({ data: payload }, {
         onSuccess: () => { invalidateDl(); setDlOpen(false); toast({ title: "Deadline ditambahkan" }); },
-        onError: (err) => toast({ title: "Gagal menyimpan", description: getApiErrorDesc(err), variant: "destructive" }),
+        onError: (err) => { setDlFieldErrors(extractApiFieldErrors(err)); toast({ title: "Gagal menyimpan", description: getApiErrorDesc(err), variant: "destructive" }); },
       });
     }
   }
@@ -571,13 +576,16 @@ export default function OurWorkPage() {
       </div>
 
       {/* ── Dialogs ── */}
-      <ProgramDialog open={open} onClose={() => setOpen(false)} editId={editId} initial={initForm} onSave={handleSave} isPending={create.isPending || update.isPending} />
+      <ProgramDialog open={open} onClose={() => setOpen(false)} editId={editId} initial={initForm} onSave={handleSave} isPending={create.isPending || update.isPending} fieldErrors={progFieldErrors} />
 
       <Dialog open={dlOpen} onOpenChange={setDlOpen}>
         <DialogContent className="glass-panel border-white/50 max-h-[90vh] overflow-y-auto">
           <DialogHeader><DialogTitle>{dlEditId ? "Edit Deadline" : "Tambah Deadline"}</DialogTitle></DialogHeader>
           <div className="space-y-4 mt-2">
-            <Input placeholder="Judul deadline" value={dlForm.title} onChange={e => setDlForm(f => ({ ...f, title: e.target.value }))} className="bg-white/50" />
+            <div>
+              <Input placeholder="Judul deadline" value={dlForm.title} onChange={e => { setDlForm(f => ({ ...f, title: e.target.value })); setDlFieldErrors(fe => ({ ...fe, title: "" })); }} className="bg-white/50" />
+              {dlFieldErrors.title && <p className="text-xs text-rose-500 mt-1">{dlFieldErrors.title}</p>}
+            </div>
             <Select value={dlForm.type} onValueChange={v => setDlForm(f => ({ ...f, type: v as DeadlineInputType }))}>
               <SelectTrigger className="bg-white/50"><SelectValue /></SelectTrigger>
               <SelectContent>

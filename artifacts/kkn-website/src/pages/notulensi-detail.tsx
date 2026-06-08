@@ -45,7 +45,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
 import { MemberPicker } from "@/components/ui/member-picker";
-import { getApiErrorDesc } from "@/lib/api-error";
+import { getApiErrorDesc, extractApiFieldErrors } from "@/lib/api-error";
 
 function formatDate(d: string) {
   if (!d) return "-";
@@ -190,13 +190,16 @@ export default function NotulensiDetailPage() {
     content: "",
     author: "",
   });
+  const [editFieldErrors, setEditFieldErrors] = useState<Record<string, string>>({});
 
   function fE(k: keyof typeof editForm, v: string | string[]) {
     setEditForm((p) => ({ ...p, [k]: v }));
+    setEditFieldErrors((fe) => ({ ...fe, [k]: "" }));
   }
 
   function openEdit() {
     if (!notulensi) return;
+    setEditFieldErrors({});
     setEditForm({
       title: notulensi.title,
       meetingDate: notulensi.meetingDate.slice(0, 10),
@@ -229,7 +232,7 @@ export default function NotulensiDetailPage() {
           toast({ title: "Notulensi diperbarui" });
           setShowEdit(false);
         },
-        onError: (err) => toast({ title: "Gagal menyimpan", description: getApiErrorDesc(err), variant: "destructive" }),
+        onError: (err) => { setEditFieldErrors(extractApiFieldErrors(err)); toast({ title: "Gagal menyimpan", description: getApiErrorDesc(err), variant: "destructive" }); },
       }
     );
   }
@@ -477,6 +480,7 @@ export default function NotulensiDetailPage() {
                 value={editForm.title}
                 onChange={(e) => fE("title", e.target.value)}
               />
+              {editFieldErrors.title && <p className="text-xs text-rose-500">{editFieldErrors.title}</p>}
             </div>
             <div className="space-y-1.5">
               <Label className="text-sm font-medium text-gray-700">Tanggal Rapat</Label>
@@ -486,6 +490,7 @@ export default function NotulensiDetailPage() {
                 value={editForm.meetingDate}
                 onChange={(e) => fE("meetingDate", e.target.value)}
               />
+              {editFieldErrors.meetingDate && <p className="text-xs text-rose-500">{editFieldErrors.meetingDate}</p>}
             </div>
             <div className="space-y-1.5">
               <Label className="text-sm font-medium text-gray-700">Notulis</Label>
@@ -495,6 +500,7 @@ export default function NotulensiDetailPage() {
                 value={editForm.author}
                 onChange={(e) => fE("author", e.target.value)}
               />
+              {editFieldErrors.author && <p className="text-xs text-rose-500">{editFieldErrors.author}</p>}
             </div>
             <div className="space-y-1.5">
               <Label className="text-sm font-medium text-gray-700">Peserta</Label>
@@ -522,6 +528,7 @@ export default function NotulensiDetailPage() {
                 value={editForm.content}
                 onChange={(e) => fE("content", e.target.value)}
               />
+              {editFieldErrors.content && <p className="text-xs text-rose-500">{editFieldErrors.content}</p>}
             </div>
           </div>
           <DialogFooter className="gap-2">

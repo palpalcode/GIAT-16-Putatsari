@@ -36,7 +36,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Plus, Pencil, Trash2, ChefHat, SprayCan, Package, User, Heart, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
-import { getApiErrorDesc } from "@/lib/api-error";
+import { getApiErrorDesc, extractApiFieldErrors } from "@/lib/api-error";
 
 const MEMBERS = [
   "Muhamad Naufal", "Fadhilah Apta Nur Safitri", "Lutfia Tri Rahmacahyani",
@@ -104,26 +104,27 @@ function CookingTab({ isLoggedIn }: { isLoggedIn?: boolean }) {
   const [open, setOpen] = useState(false);
   const [editId, setEditId] = useState<number | null>(null);
   const [form, setForm] = useState({ date: today(), persons: [] as string[], menu: "", notes: "" });
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
   function invalidate() {
     qc.invalidateQueries({ queryKey: getGetCookingSchedulesQueryKey() });
     qc.invalidateQueries({ queryKey: getGetDashboardSummaryQueryKey() });
   }
 
-  function openAdd() { setEditId(null); setForm({ date: today(), persons: [], menu: "", notes: "" }); setOpen(true); }
-  function openEdit(s: any) { setEditId(s.id); setForm({ date: s.date, persons: s.persons as string[], menu: s.menu ?? "", notes: s.notes ?? "" }); setOpen(true); }
+  function openAdd() { setEditId(null); setForm({ date: today(), persons: [], menu: "", notes: "" }); setFieldErrors({}); setOpen(true); }
+  function openEdit(s: any) { setEditId(s.id); setForm({ date: s.date, persons: s.persons as string[], menu: s.menu ?? "", notes: s.notes ?? "" }); setFieldErrors({}); setOpen(true); }
 
   function handleSave() {
     const payload = { date: form.date, persons: form.persons, menu: form.menu || undefined, notes: form.notes || undefined };
     if (editId !== null) {
       update.mutate({ id: editId, data: payload }, {
         onSuccess: () => { invalidate(); setOpen(false); toast({ title: "Jadwal diperbarui" }); },
-        onError: (err) => toast({ title: "Gagal menyimpan", description: getApiErrorDesc(err), variant: "destructive" }),
+        onError: (err) => { setFieldErrors(extractApiFieldErrors(err)); toast({ title: "Gagal menyimpan", description: getApiErrorDesc(err), variant: "destructive" }); },
       });
     } else {
       create.mutate({ data: payload }, {
         onSuccess: () => { invalidate(); setOpen(false); toast({ title: "Jadwal ditambahkan" }); },
-        onError: (err) => toast({ title: "Gagal menyimpan", description: getApiErrorDesc(err), variant: "destructive" }),
+        onError: (err) => { setFieldErrors(extractApiFieldErrors(err)); toast({ title: "Gagal menyimpan", description: getApiErrorDesc(err), variant: "destructive" }); },
       });
     }
   }
@@ -193,7 +194,8 @@ function CookingTab({ isLoggedIn }: { isLoggedIn?: boolean }) {
           <div className="px-6 pb-6 pt-4 space-y-5">
             <div>
               <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 block">Tanggal</label>
-              <Input type="date" value={form.date} onChange={e => setForm(f => ({ ...f, date: e.target.value }))} className="bg-white/60" />
+              <Input type="date" value={form.date} onChange={e => { setForm(f => ({ ...f, date: e.target.value })); setFieldErrors(fe => ({ ...fe, date: "" })); }} className="bg-white/60" />
+              {fieldErrors.date && <p className="text-xs text-rose-500 mt-1">{fieldErrors.date}</p>}
             </div>
             <div>
               <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2 block">Petugas Masak</label>
@@ -240,26 +242,27 @@ function CleaningTab({ isAdmin }: { isAdmin?: boolean }) {
   const [open, setOpen] = useState(false);
   const [editId, setEditId] = useState<number | null>(null);
   const [form, setForm] = useState({ date: today(), persons: [] as string[], area: "", notes: "" });
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
   function invalidate() {
     qc.invalidateQueries({ queryKey: getGetCleaningSchedulesQueryKey() });
     qc.invalidateQueries({ queryKey: getGetDashboardSummaryQueryKey() });
   }
 
-  function openAdd() { setEditId(null); setForm({ date: today(), persons: [], area: "", notes: "" }); setOpen(true); }
-  function openEdit(s: any) { setEditId(s.id); setForm({ date: s.date, persons: s.persons as string[], area: s.area ?? "", notes: s.notes ?? "" }); setOpen(true); }
+  function openAdd() { setEditId(null); setForm({ date: today(), persons: [], area: "", notes: "" }); setFieldErrors({}); setOpen(true); }
+  function openEdit(s: any) { setEditId(s.id); setForm({ date: s.date, persons: s.persons as string[], area: s.area ?? "", notes: s.notes ?? "" }); setFieldErrors({}); setOpen(true); }
 
   function handleSave() {
     const payload = { date: form.date, persons: form.persons, area: form.area || undefined, notes: form.notes || undefined };
     if (editId !== null) {
       update.mutate({ id: editId, data: payload }, {
         onSuccess: () => { invalidate(); setOpen(false); toast({ title: "Jadwal diperbarui" }); },
-        onError: (err) => toast({ title: "Gagal menyimpan", description: getApiErrorDesc(err), variant: "destructive" }),
+        onError: (err) => { setFieldErrors(extractApiFieldErrors(err)); toast({ title: "Gagal menyimpan", description: getApiErrorDesc(err), variant: "destructive" }); },
       });
     } else {
       create.mutate({ data: payload }, {
         onSuccess: () => { invalidate(); setOpen(false); toast({ title: "Jadwal ditambahkan" }); },
-        onError: (err) => toast({ title: "Gagal menyimpan", description: getApiErrorDesc(err), variant: "destructive" }),
+        onError: (err) => { setFieldErrors(extractApiFieldErrors(err)); toast({ title: "Gagal menyimpan", description: getApiErrorDesc(err), variant: "destructive" }); },
       });
     }
   }
@@ -329,7 +332,8 @@ function CleaningTab({ isAdmin }: { isAdmin?: boolean }) {
           <div className="px-6 pb-6 pt-4 space-y-5">
             <div>
               <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 block">Tanggal</label>
-              <Input type="date" value={form.date} onChange={e => setForm(f => ({ ...f, date: e.target.value }))} className="bg-white/60" />
+              <Input type="date" value={form.date} onChange={e => { setForm(f => ({ ...f, date: e.target.value })); setFieldErrors(fe => ({ ...fe, date: "" })); }} className="bg-white/60" />
+              {fieldErrors.date && <p className="text-xs text-rose-500 mt-1">{fieldErrors.date}</p>}
             </div>
             <div>
               <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2 block">Petugas</label>
@@ -979,6 +983,7 @@ function KondisiTab({ memberName: selfName, isKetSek }: { memberName: string | n
   const [form, setForm] = useState<{ memberName: string; type: ConditionType; description: string }>({
     memberName: "", type: MemberConditionInputType.alergi, description: ""
   });
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
   function invalidate() { qc.invalidateQueries({ queryKey: getGetConditionsQueryKey() }); }
 
@@ -987,11 +992,13 @@ function KondisiTab({ memberName: selfName, isKetSek }: { memberName: string | n
   function openAdd(forMember: string) {
     setEditId(null);
     setForm({ memberName: forMember, type: MemberConditionInputType.alergi, description: "" });
+    setFieldErrors({});
     setOpen(true);
   }
   function openEdit(c: any) {
     setEditId(c.id);
     setForm({ memberName: c.memberName, type: c.type as ConditionType, description: c.description });
+    setFieldErrors({});
     setOpen(true);
   }
 
@@ -1000,12 +1007,12 @@ function KondisiTab({ memberName: selfName, isKetSek }: { memberName: string | n
     if (editId !== null) {
       updateCond.mutate({ id: editId, data: { type: form.type, description: form.description } }, {
         onSuccess: () => { invalidate(); setOpen(false); toast({ title: "Kondisi diperbarui" }); },
-        onError: (err) => toast({ title: "Gagal menyimpan", description: getApiErrorDesc(err), variant: "destructive" }),
+        onError: (err) => { setFieldErrors(extractApiFieldErrors(err)); toast({ title: "Gagal menyimpan", description: getApiErrorDesc(err), variant: "destructive" }); },
       });
     } else {
       createCond.mutate({ data: form }, {
         onSuccess: () => { invalidate(); setOpen(false); toast({ title: "Kondisi ditambahkan" }); },
-        onError: (err) => toast({ title: "Gagal menyimpan", description: getApiErrorDesc(err), variant: "destructive" }),
+        onError: (err) => { setFieldErrors(extractApiFieldErrors(err)); toast({ title: "Gagal menyimpan", description: getApiErrorDesc(err), variant: "destructive" }); },
       });
     }
   }
@@ -1107,7 +1114,8 @@ function KondisiTab({ memberName: selfName, isKetSek }: { memberName: string | n
             <div>
               <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 block">Keterangan</label>
               <Input placeholder={`Contoh: ${CONDITION_CONFIG[form.type].label} ${CONDITION_CONFIG[form.type].placeholder}...`} value={form.description}
-                onChange={e => setForm(f => ({ ...f, description: e.target.value }))} className="bg-white/60" />
+                onChange={e => { setForm(f => ({ ...f, description: e.target.value })); setFieldErrors(fe => ({ ...fe, description: "" })); }} className="bg-white/60" />
+              {fieldErrors.description && <p className="text-xs text-rose-500 mt-1">{fieldErrors.description}</p>}
             </div>
             <div className="flex gap-3 justify-end pt-1">
               <Button variant="outline" onClick={() => setOpen(false)} className="rounded-full">Batal</Button>

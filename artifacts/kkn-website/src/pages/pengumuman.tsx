@@ -34,7 +34,7 @@ import { Plus, Pencil, Trash2, Megaphone, FileText, Calendar, User, Users, Chevr
 import { useToast } from "@/hooks/use-toast";
 import { cn, TEAM_ROLES } from "@/lib/utils";
 import { MemberPicker } from "@/components/ui/member-picker";
-import { getApiErrorDesc } from "@/lib/api-error";
+import { getApiErrorDesc, extractApiFieldErrors } from "@/lib/api-error";
 import {
   useCreateNotulensi,
   useUpdateNotulensi,
@@ -110,6 +110,7 @@ export default function PengumumanPage() {
   const [openA, setOpenA] = useState(false);
   const [editingAId, setEditingAId] = useState<number | null>(null);
   const [formA, setFormA] = useState<FormState>(defaultForm);
+  const [aFieldErrors, setAFieldErrors] = useState<Record<string, string>>({});
 
   // Notulensi
   const { data: notulensiList, isLoading: loadingN } = useGetNotulensiList();
@@ -123,6 +124,7 @@ export default function PengumumanPage() {
     content: "",
     author: SEKRETARIS_NAME,
   });
+  const [nFieldErrors, setNFieldErrors] = useState<Record<string, string>>({});
 
   const createN = useCreateNotulensi();
   const updateN = useUpdateNotulensi();
@@ -140,11 +142,13 @@ export default function PengumumanPage() {
   function openAddA() {
     setEditingAId(null);
     setFormA(defaultForm);
+    setAFieldErrors({});
     setOpenA(true);
   }
   function openEditA(a: any) {
     setEditingAId(a.id);
     setFormA({ title: a.title, content: a.content, priority: a.priority as Priority });
+    setAFieldErrors({});
     setOpenA(true);
   }
   function handleSaveA() {
@@ -154,7 +158,7 @@ export default function PengumumanPage() {
         { id: editingAId, data: formA },
         {
           onSuccess: () => { invalidateA(); setOpenA(false); toast({ title: "Pengumuman diperbarui" }); },
-          onError: (err) => toast({ title: "Gagal menyimpan", description: getApiErrorDesc(err), variant: "destructive" }),
+          onError: (err) => { setAFieldErrors(extractApiFieldErrors(err)); toast({ title: "Gagal menyimpan", description: getApiErrorDesc(err), variant: "destructive" }); },
         }
       );
     } else {
@@ -162,7 +166,7 @@ export default function PengumumanPage() {
         { data: formA },
         {
           onSuccess: () => { invalidateA(); setOpenA(false); toast({ title: "Pengumuman ditambahkan" }); },
-          onError: (err) => toast({ title: "Gagal menyimpan", description: getApiErrorDesc(err), variant: "destructive" }),
+          onError: (err) => { setAFieldErrors(extractApiFieldErrors(err)); toast({ title: "Gagal menyimpan", description: getApiErrorDesc(err), variant: "destructive" }); },
         }
       );
     }
@@ -184,6 +188,7 @@ export default function PengumumanPage() {
   function openAddN() {
     setEditingNId(null);
     setFormN({ title: "", meetingDate: "", attendeesSelected: [], agenda: "", content: "", author: SEKRETARIS_NAME });
+    setNFieldErrors({});
     setOpenN(true);
   }
   function openEditN(n: Notulensi, e: React.MouseEvent) {
@@ -197,6 +202,7 @@ export default function PengumumanPage() {
       content: n.content,
       author: n.author,
     });
+    setNFieldErrors({});
     setOpenN(true);
   }
   function handleSaveN() {
@@ -214,7 +220,7 @@ export default function PengumumanPage() {
         { id: editingNId, data: payload },
         {
           onSuccess: () => { invalidateN(); setOpenN(false); toast({ title: "Notulensi diperbarui" }); },
-          onError: (err) => toast({ title: "Gagal menyimpan", description: getApiErrorDesc(err), variant: "destructive" }),
+          onError: (err) => { setNFieldErrors(extractApiFieldErrors(err)); toast({ title: "Gagal menyimpan", description: getApiErrorDesc(err), variant: "destructive" }); },
         }
       );
     } else {
@@ -222,7 +228,7 @@ export default function PengumumanPage() {
         { data: payload },
         {
           onSuccess: () => { invalidateN(); setOpenN(false); toast({ title: "Notulensi ditambahkan" }); },
-          onError: (err) => toast({ title: "Gagal menyimpan", description: getApiErrorDesc(err), variant: "destructive" }),
+          onError: (err) => { setNFieldErrors(extractApiFieldErrors(err)); toast({ title: "Gagal menyimpan", description: getApiErrorDesc(err), variant: "destructive" }); },
         }
       );
     }
@@ -434,19 +440,25 @@ export default function PengumumanPage() {
             <DialogTitle>{editingAId ? "Edit Pengumuman" : "Tambah Pengumuman"}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 mt-2">
-            <Input
-              placeholder="Judul pengumuman"
-              value={formA.title}
-              onChange={(e) => setFormA(f => ({ ...f, title: e.target.value }))}
-              className="bg-white/50"
-            />
-            <Textarea
-              placeholder="Isi pengumuman..."
-              value={formA.content}
-              onChange={(e) => setFormA(f => ({ ...f, content: e.target.value }))}
-              rows={4}
-              className="bg-white/50"
-            />
+            <div>
+              <Input
+                placeholder="Judul pengumuman"
+                value={formA.title}
+                onChange={(e) => { setFormA(f => ({ ...f, title: e.target.value })); setAFieldErrors(fe => ({ ...fe, title: "" })); }}
+                className="bg-white/50"
+              />
+              {aFieldErrors.title && <p className="text-xs text-rose-500 mt-1">{aFieldErrors.title}</p>}
+            </div>
+            <div>
+              <Textarea
+                placeholder="Isi pengumuman..."
+                value={formA.content}
+                onChange={(e) => { setFormA(f => ({ ...f, content: e.target.value })); setAFieldErrors(fe => ({ ...fe, content: "" })); }}
+                rows={4}
+                className="bg-white/50"
+              />
+              {aFieldErrors.content && <p className="text-xs text-rose-500 mt-1">{aFieldErrors.content}</p>}
+            </div>
             <Select value={formA.priority} onValueChange={(v) => setFormA(f => ({ ...f, priority: v as Priority }))}>
               <SelectTrigger className="bg-white/50">
                 <SelectValue placeholder="Prioritas" />
@@ -477,12 +489,15 @@ export default function PengumumanPage() {
             <DialogTitle>{editingNId ? "Edit Notulensi" : "Tambah Notulensi"}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 mt-2">
-            <Input
-              placeholder="Judul notulensi / nama rapat"
-              value={formN.title}
-              onChange={(e) => fN("title", e.target.value)}
-              className="bg-white/50"
-            />
+            <div>
+              <Input
+                placeholder="Judul notulensi / nama rapat"
+                value={formN.title}
+                onChange={(e) => { fN("title", e.target.value); setNFieldErrors(fe => ({ ...fe, title: "" })); }}
+                className="bg-white/50"
+              />
+              {nFieldErrors.title && <p className="text-xs text-rose-500 mt-1">{nFieldErrors.title}</p>}
+            </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 block">
@@ -491,9 +506,10 @@ export default function PengumumanPage() {
                 <Input
                   type="date"
                   value={formN.meetingDate}
-                  onChange={(e) => fN("meetingDate", e.target.value)}
+                  onChange={(e) => { fN("meetingDate", e.target.value); setNFieldErrors(fe => ({ ...fe, meetingDate: "" })); }}
                   className="bg-white/50"
                 />
+                {nFieldErrors.meetingDate && <p className="text-xs text-rose-500 mt-1">{nFieldErrors.meetingDate}</p>}
               </div>
               <div>
                 <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 block">
@@ -502,9 +518,10 @@ export default function PengumumanPage() {
                 <Input
                   placeholder="Nama notulis"
                   value={formN.author}
-                  onChange={(e) => fN("author", e.target.value)}
+                  onChange={(e) => { fN("author", e.target.value); setNFieldErrors(fe => ({ ...fe, author: "" })); }}
                   className="bg-white/50"
                 />
+                {nFieldErrors.author && <p className="text-xs text-rose-500 mt-1">{nFieldErrors.author}</p>}
               </div>
             </div>
             <div>
@@ -537,10 +554,11 @@ export default function PengumumanPage() {
               <Textarea
                 placeholder="Tulis isi notulensi di sini..."
                 value={formN.content}
-                onChange={(e) => fN("content", e.target.value)}
+                onChange={(e) => { fN("content", e.target.value); setNFieldErrors(fe => ({ ...fe, content: "" })); }}
                 rows={10}
                 className="bg-white/50"
               />
+              {nFieldErrors.content && <p className="text-xs text-rose-500 mt-1">{nFieldErrors.content}</p>}
             </div>
             <div className="flex gap-3 justify-end pt-2">
               <Button variant="outline" onClick={() => setOpenN(false)}>Batal</Button>

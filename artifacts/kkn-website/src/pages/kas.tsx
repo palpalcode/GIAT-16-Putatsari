@@ -40,7 +40,7 @@ import {
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
-import { getApiErrorDesc } from "@/lib/api-error";
+import { getApiErrorDesc, extractApiFieldErrors } from "@/lib/api-error";
 
 function today() { return new Date().toISOString().split("T")[0]; }
 function formatRp(n: number) { return "Rp " + Math.abs(n).toLocaleString("id-ID"); }
@@ -282,10 +282,10 @@ function TxList({ items, isAdmin, onEdit, onDelete }: {
 
 // ─── ADD/EDIT DIALOG ──────────────────────────────────────────────────────────
 function AddEditDialog({
-  open, onClose, editId, initial, onSave, isPending,
+  open, onClose, editId, initial, onSave, isPending, serverFieldErrors = {},
 }: {
   open: boolean; onClose: () => void; editId: number | null; initial: KasForm;
-  onSave: (f: KasForm) => void; isPending: boolean;
+  onSave: (f: KasForm) => void; isPending: boolean; serverFieldErrors?: Record<string, string>;
 }) {
   const [form, setForm] = useState<KasForm>(initial);
   const set = <K extends keyof KasForm>(k: K, v: KasForm[K]) => setForm(f => ({ ...f, [k]: v }));
@@ -321,6 +321,7 @@ function AddEditDialog({
           <div>
             <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 block">Keterangan</label>
             <Input placeholder="Deskripsi transaksi..." value={form.description} onChange={e => set("description", e.target.value)} className="bg-white/60" />
+            {serverFieldErrors.description && <p className="text-xs text-rose-500 mt-1">{serverFieldErrors.description}</p>}
           </div>
           <div>
             <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 block">Kategori</label>
@@ -350,6 +351,7 @@ function AddEditDialog({
               <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-medium text-gray-500">Rp</span>
               <Input type="number" min={0} placeholder="0" value={form.amount} onChange={e => set("amount", e.target.value)} className="bg-white/60 pl-10 text-lg font-bold" />
             </div>
+            {serverFieldErrors.amount && <p className="text-xs text-rose-500 mt-1">{serverFieldErrors.amount}</p>}
           </div>
 
           <div>
@@ -390,13 +392,14 @@ function UmumTab({ isAdmin, summary }: { isAdmin?: boolean; summary: any }) {
   const [editId, setEditId] = useState<number | null>(null);
   const [initForm, setInitForm] = useState<KasForm>(defaultForm(KasInputFund.umum));
   const [filterType, setFilterType] = useState("all");
+  const [kasFieldErrors, setKasFieldErrors] = useState<Record<string, string>>({});
 
   function invalidate() {
     qc.invalidateQueries({ queryKey: getGetKasQueryKey({ fund: "umum" }) });
     qc.invalidateQueries({ queryKey: getGetKasSummaryQueryKey() });
   }
 
-  function openAdd() { setEditId(null); setInitForm(defaultForm(KasInputFund.umum)); setOpen(true); }
+  function openAdd() { setEditId(null); setInitForm(defaultForm(KasInputFund.umum)); setKasFieldErrors({}); setOpen(true); }
   function openEdit(item: any) {
     setEditId(item.id);
     setInitForm({
@@ -405,6 +408,7 @@ function UmumTab({ isAdmin, summary }: { isAdmin?: boolean; summary: any }) {
       fund: KasInputFund.umum, prokerId: "",
       items: (item.items ?? []).map((it: any) => ({ name: it.name, amount: String(it.amount) })),
     });
+    setKasFieldErrors({});
     setOpen(true);
   }
   function handleSave(form: KasForm) {
@@ -417,12 +421,12 @@ function UmumTab({ isAdmin, summary }: { isAdmin?: boolean; summary: any }) {
     if (editId !== null) {
       update.mutate({ id: editId, data: payload }, {
         onSuccess: () => { invalidate(); setOpen(false); toast({ title: "Transaksi diperbarui" }); },
-        onError: (err) => toast({ title: "Gagal menyimpan", description: getApiErrorDesc(err), variant: "destructive" }),
+        onError: (err) => { setKasFieldErrors(extractApiFieldErrors(err)); toast({ title: "Gagal menyimpan", description: getApiErrorDesc(err), variant: "destructive" }); },
       });
     } else {
       create.mutate({ data: payload }, {
         onSuccess: () => { invalidate(); setOpen(false); setInitForm(defaultForm(KasInputFund.umum)); toast({ title: "Transaksi dicatat" }); },
-        onError: (err) => toast({ title: "Gagal menyimpan", description: getApiErrorDesc(err), variant: "destructive" }),
+        onError: (err) => { setKasFieldErrors(extractApiFieldErrors(err)); toast({ title: "Gagal menyimpan", description: getApiErrorDesc(err), variant: "destructive" }); },
       });
     }
   }
@@ -462,7 +466,7 @@ function UmumTab({ isAdmin, summary }: { isAdmin?: boolean; summary: any }) {
           onDelete={id => del.mutate({ id }, { onSuccess: () => { invalidate(); toast({ title: "Transaksi dihapus" }); } })} />
       )}
 
-      <AddEditDialog open={open} onClose={() => setOpen(false)} editId={editId} initial={initForm} onSave={handleSave} isPending={create.isPending || update.isPending} />
+      <AddEditDialog open={open} onClose={() => { setOpen(false); setKasFieldErrors({}); }} editId={editId} initial={initForm} onSave={handleSave} isPending={create.isPending || update.isPending} serverFieldErrors={kasFieldErrors} />
     </div>
   );
 }

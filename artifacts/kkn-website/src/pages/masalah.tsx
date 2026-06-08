@@ -26,7 +26,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Plus, Pencil, Trash2, Home, Briefcase, CheckCircle2, User } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
-import { getApiErrorDesc } from "@/lib/api-error";
+import { getApiErrorDesc, extractApiFieldErrors } from "@/lib/api-error";
 
 const MEMBERS = [
   "Muhamad Naufal", "Fadhilah Apta Nur Safitri", "Lutfia Tri Rahmacahyani",
@@ -62,14 +62,15 @@ function LifeTab({ isAdmin }: { isAdmin?: boolean }) {
   const [open, setOpen] = useState(false);
   const [editId, setEditId] = useState<number | null>(null);
   const [form, setForm] = useState<{ title: string; description: string; reportedBy: string; status: ComplaintInputStatus }>({ title: "", description: "", reportedBy: "", status: "open" });
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
   function invalidate() {
     qc.invalidateQueries({ queryKey: getGetComplaintsQueryKey() });
     qc.invalidateQueries({ queryKey: getGetDashboardSummaryQueryKey() });
   }
 
-  function openAdd() { setEditId(null); setForm({ title: "", description: "", reportedBy: "", status: "open" }); setOpen(true); }
-  function openEdit(c: any) { setEditId(c.id); setForm({ title: c.title, description: c.description, reportedBy: c.reportedBy, status: c.status }); setOpen(true); }
+  function openAdd() { setEditId(null); setForm({ title: "", description: "", reportedBy: "", status: "open" }); setFieldErrors({}); setOpen(true); }
+  function openEdit(c: any) { setEditId(c.id); setForm({ title: c.title, description: c.description, reportedBy: c.reportedBy, status: c.status }); setFieldErrors({}); setOpen(true); }
 
   function handleSave() {
     if (!form.title || !form.description || !form.reportedBy) return;
@@ -77,12 +78,12 @@ function LifeTab({ isAdmin }: { isAdmin?: boolean }) {
     if (editId !== null) {
       update.mutate({ id: editId, data: payload }, {
         onSuccess: () => { invalidate(); setOpen(false); toast({ title: "Keluhan diperbarui" }); },
-        onError: (err) => toast({ title: "Gagal menyimpan", description: getApiErrorDesc(err), variant: "destructive" }),
+        onError: (err) => { setFieldErrors(extractApiFieldErrors(err)); toast({ title: "Gagal menyimpan", description: getApiErrorDesc(err), variant: "destructive" }); },
       });
     } else {
       create.mutate({ data: payload }, {
         onSuccess: () => { invalidate(); setOpen(false); toast({ title: "Keluhan dicatat" }); },
-        onError: (err) => toast({ title: "Gagal menyimpan", description: getApiErrorDesc(err), variant: "destructive" }),
+        onError: (err) => { setFieldErrors(extractApiFieldErrors(err)); toast({ title: "Gagal menyimpan", description: getApiErrorDesc(err), variant: "destructive" }); },
       });
     }
   }
@@ -169,11 +170,13 @@ function LifeTab({ isAdmin }: { isAdmin?: boolean }) {
           <div className="px-6 pb-6 pt-4 space-y-4">
             <div>
               <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 block">Judul Keluhan</label>
-              <Input placeholder="Judul keluhan..." value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} className="bg-white/60" />
+              <Input placeholder="Judul keluhan..." value={form.title} onChange={e => { setForm(f => ({ ...f, title: e.target.value })); setFieldErrors(fe => ({ ...fe, title: "" })); }} className="bg-white/60" />
+              {fieldErrors.title && <p className="text-xs text-rose-500 mt-1">{fieldErrors.title}</p>}
             </div>
             <div>
               <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 block">Deskripsi</label>
-              <Textarea placeholder="Ceritakan keluhannya..." value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} rows={3} className="bg-white/60" />
+              <Textarea placeholder="Ceritakan keluhannya..." value={form.description} onChange={e => { setForm(f => ({ ...f, description: e.target.value })); setFieldErrors(fe => ({ ...fe, description: "" })); }} rows={3} className="bg-white/60" />
+              {fieldErrors.description && <p className="text-xs text-rose-500 mt-1">{fieldErrors.description}</p>}
             </div>
             <div>
               <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2 block">Dilaporkan Oleh</label>
@@ -249,26 +252,27 @@ function WorkTab({ isAdmin }: { isAdmin?: boolean }) {
   const [open, setOpen] = useState(false);
   const [editId, setEditId] = useState<number | null>(null);
   const [form, setForm] = useState<{ title: string; description: string; category: IssueInputCategory; priority: IssueInputPriority; status: IssueInputStatus }>({ title: "", description: "", category: "proker", priority: "medium", status: "open" });
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
   function invalidate() {
     qc.invalidateQueries({ queryKey: getGetIssuesQueryKey() });
     qc.invalidateQueries({ queryKey: getGetDashboardSummaryQueryKey() });
   }
 
-  function openAdd() { setEditId(null); setForm({ title: "", description: "", category: "proker", priority: "medium", status: "open" }); setOpen(true); }
-  function openEdit(i: any) { setEditId(i.id); setForm({ title: i.title, description: i.description, category: i.category, priority: i.priority, status: i.status }); setOpen(true); }
+  function openAdd() { setEditId(null); setForm({ title: "", description: "", category: "proker", priority: "medium", status: "open" }); setFieldErrors({}); setOpen(true); }
+  function openEdit(i: any) { setEditId(i.id); setForm({ title: i.title, description: i.description, category: i.category, priority: i.priority, status: i.status }); setFieldErrors({}); setOpen(true); }
 
   function handleSave() {
     if (!form.title || !form.description) return;
     if (editId !== null) {
       update.mutate({ id: editId, data: form }, {
         onSuccess: () => { invalidate(); setOpen(false); toast({ title: "Masalah diperbarui" }); },
-        onError: (err) => toast({ title: "Gagal menyimpan", description: getApiErrorDesc(err), variant: "destructive" }),
+        onError: (err) => { setFieldErrors(extractApiFieldErrors(err)); toast({ title: "Gagal menyimpan", description: getApiErrorDesc(err), variant: "destructive" }); },
       });
     } else {
       create.mutate({ data: form }, {
         onSuccess: () => { invalidate(); setOpen(false); toast({ title: "Masalah dicatat" }); },
-        onError: (err) => toast({ title: "Gagal menyimpan", description: getApiErrorDesc(err), variant: "destructive" }),
+        onError: (err) => { setFieldErrors(extractApiFieldErrors(err)); toast({ title: "Gagal menyimpan", description: getApiErrorDesc(err), variant: "destructive" }); },
       });
     }
   }
@@ -360,11 +364,13 @@ function WorkTab({ isAdmin }: { isAdmin?: boolean }) {
           <div className="px-6 pb-6 pt-4 space-y-4">
             <div>
               <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 block">Judul Masalah</label>
-              <Input placeholder="Judul masalah..." value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} className="bg-white/60" />
+              <Input placeholder="Judul masalah..." value={form.title} onChange={e => { setForm(f => ({ ...f, title: e.target.value })); setFieldErrors(fe => ({ ...fe, title: "" })); }} className="bg-white/60" />
+              {fieldErrors.title && <p className="text-xs text-rose-500 mt-1">{fieldErrors.title}</p>}
             </div>
             <div>
               <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 block">Deskripsi</label>
-              <Textarea placeholder="Ceritakan masalahnya..." value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} rows={3} className="bg-white/60" />
+              <Textarea placeholder="Ceritakan masalahnya..." value={form.description} onChange={e => { setForm(f => ({ ...f, description: e.target.value })); setFieldErrors(fe => ({ ...fe, description: "" })); }} rows={3} className="bg-white/60" />
+              {fieldErrors.description && <p className="text-xs text-rose-500 mt-1">{fieldErrors.description}</p>}
             </div>
             <div>
               <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 block">Kategori</label>
