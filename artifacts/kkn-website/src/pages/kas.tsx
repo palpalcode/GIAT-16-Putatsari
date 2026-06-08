@@ -526,11 +526,13 @@ function defaultSimpleTx(overrides?: Partial<SimpleTxState>): SimpleTxState {
   return { amount: "", description: "", type: "pengeluaran", date: today(), notes: "", items: [], ...overrides };
 }
 
-function SimpleTxDialog({ open, onClose, title, headerColor, isPending, onSave, state, setState, jatahHarian }: {
+function SimpleTxDialog({ open, onClose, title, headerColor, isPending, onSave, state, setState, jatahHarian, fieldErrors, onClearFieldError }: {
   open: boolean; onClose: () => void; title: string; headerColor: string;
   isPending: boolean; onSave: () => void;
   state: SimpleTxState; setState: (s: SimpleTxState) => void;
   jatahHarian?: number;
+  fieldErrors?: Record<string, string>;
+  onClearFieldError?: (field: string) => void;
 }) {
   const set = (patch: Partial<SimpleTxState>) => setState({ ...state, ...patch });
 
@@ -567,9 +569,14 @@ function SimpleTxDialog({ open, onClose, title, headerColor, isPending, onSave, 
             </label>
             <div className="relative">
               <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-medium text-amber-600">Rp</span>
-              <Input type="number" min={0} value={state.amount} onChange={e => set({ amount: e.target.value })} className="bg-white/90 pl-10 font-bold" />
+              <Input type="number" min={0} value={state.amount}
+                onChange={e => { set({ amount: e.target.value }); onClearFieldError?.("amount"); }}
+                className={cn("bg-white/90 pl-10 font-bold", fieldErrors?.amount && "border-rose-400 focus-visible:ring-rose-300")} />
             </div>
-            {state.type === "pengeluaran" && jatahHarian && jatahHarian > 0 && (
+            {fieldErrors?.amount && (
+              <p className="text-xs text-rose-500 mt-1">{fieldErrors.amount}</p>
+            )}
+            {!fieldErrors?.amount && state.type === "pengeluaran" && jatahHarian && jatahHarian > 0 && (
               <p className="text-xs text-amber-600 mt-1">Jatah hari ini: {formatRp(jatahHarian)}</p>
             )}
           </div>
@@ -709,6 +716,7 @@ function IuranMakanTab({ isAdmin, summary }: { isAdmin?: boolean; summary: any }
   const [transferDanaInit, setTransferDanaInit] = useState<TransferDanaForm>({ fromFund: "iuran_makan" as KasFundType, toFund: "darurat" as KasFundType, toFundProkerId: null, amount: "", description: "", date: today(), notes: "" });
   const [activeSubTab, setActiveSubTab] = useState<"rekap" | "transaksi">("rekap");
   const [txState, setTxState] = useState<SimpleTxState>(defaultSimpleTx({ description: "Belanja makan" }));
+  const [txFieldErrors, setTxFieldErrors] = useState<Record<string, string>>({});
   const [configForm, setConfigForm] = useState({ weeklyAmount: String(summary?.weeklyFoodAmount ?? 0) });
   const [transferForm, setTransferForm] = useState({ date: today(), terpakai: "", target: "darurat" as "darurat" | "umum" });
   const transferKas = useTransferKas();
@@ -740,9 +748,10 @@ function IuranMakanTab({ isAdmin, summary }: { isAdmin?: boolean; summary: any }
       onSuccess: () => {
         invalidate(); setOpenTx(false);
         setTxState(defaultSimpleTx({ description: "Belanja makan" }));
+        setTxFieldErrors({});
         toast({ title: "Transaksi dicatat" });
       },
-      onError: (err) => toast({ title: "Gagal menyimpan", description: getApiErrorDesc(err), variant: "destructive" }),
+      onError: (err) => { setTxFieldErrors(buildFormErrors(err)); toast({ title: "Gagal menyimpan", description: getApiErrorDesc(err), variant: "destructive" }); },
     });
   }
 
@@ -957,9 +966,10 @@ function IuranMakanTab({ isAdmin, summary }: { isAdmin?: boolean; summary: any }
         </div>
       )}
 
-      <SimpleTxDialog open={openTx} onClose={() => setOpenTx(false)} title="Catat Transaksi Makan"
+      <SimpleTxDialog open={openTx} onClose={() => { setOpenTx(false); setTxFieldErrors({}); }} title="Catat Transaksi Makan"
         headerColor="bg-gradient-to-r from-sky-400/20 to-blue-400/20"
-        isPending={create.isPending} onSave={saveTx} state={txState} setState={setTxState} jatahHarian={jatahHarian} />
+        isPending={create.isPending} onSave={saveTx} state={txState} setState={setTxState} jatahHarian={jatahHarian}
+        fieldErrors={txFieldErrors} onClearFieldError={f => setTxFieldErrors(e => { const n = { ...e }; delete n[f]; return n; })} />
 
       <Dialog open={openConfig} onOpenChange={v => !v && setOpenConfig(false)}>
         <DialogContent className="form-dialog border-white/50 max-w-sm p-0 overflow-hidden">
@@ -1062,6 +1072,7 @@ function DanadaruratTab({ isAdmin, summary }: { isAdmin?: boolean; summary: any 
   const [openTarget, setOpenTarget] = useState(false);
   const [openTransferDana, setOpenTransferDana] = useState(false);
   const [txState, setTxState] = useState<SimpleTxState>(defaultSimpleTx({ type: "pemasukan" }));
+  const [txFieldErrors, setTxFieldErrors] = useState<Record<string, string>>({});
   const [targetForm, setTargetForm] = useState({ target: "" });
 
   const saldo = summary?.saldoDarurat ?? 0;
@@ -1090,9 +1101,10 @@ function DanadaruratTab({ isAdmin, summary }: { isAdmin?: boolean; summary: any 
       onSuccess: () => {
         invalidate(); setOpenTx(false);
         setTxState(defaultSimpleTx({ type: "pemasukan" }));
+        setTxFieldErrors({});
         toast({ title: "Transaksi dicatat" });
       },
-      onError: (err) => toast({ title: "Gagal menyimpan", description: getApiErrorDesc(err), variant: "destructive" }),
+      onError: (err) => { setTxFieldErrors(buildFormErrors(err)); toast({ title: "Gagal menyimpan", description: getApiErrorDesc(err), variant: "destructive" }); },
     });
   }
 
@@ -1161,9 +1173,10 @@ function DanadaruratTab({ isAdmin, summary }: { isAdmin?: boolean; summary: any 
           onCancelTransfer={id => cancelTransfer.mutate({ id }, { onSuccess: () => { invalidate(); toast({ title: "Transfer dibatalkan" }); } })} />
       )}
 
-      <SimpleTxDialog open={openTx} onClose={() => setOpenTx(false)} title="Transaksi Dana Darurat"
+      <SimpleTxDialog open={openTx} onClose={() => { setOpenTx(false); setTxFieldErrors({}); }} title="Transaksi Dana Darurat"
         headerColor={cn(txState.type === "pemasukan" ? "bg-gradient-to-r from-rose-400/20 to-pink-400/20" : "bg-gradient-to-r from-rose-600/20 to-pink-600/20")}
-        isPending={create.isPending} onSave={saveTx} state={txState} setState={setTxState} />
+        isPending={create.isPending} onSave={saveTx} state={txState} setState={setTxState}
+        fieldErrors={txFieldErrors} onClearFieldError={f => setTxFieldErrors(e => { const n = { ...e }; delete n[f]; return n; })} />
 
       <Dialog open={openTarget} onOpenChange={v => !v && setOpenTarget(false)}>
         <DialogContent className="form-dialog border-white/50 max-w-sm p-0 overflow-hidden">
@@ -1228,6 +1241,7 @@ function DanaProkerTab({ isAdmin }: { isAdmin?: boolean }) {
   const [editProkerForm, setEditProkerForm] = useState({ name: "", budget: "", notes: "" });
   const [editProkerId, setEditProkerId] = useState<number | null>(null);
   const [txState, setTxState] = useState<SimpleTxState>(defaultSimpleTx({ type: "pengeluaran" }));
+  const [txFieldErrors, setTxFieldErrors] = useState<Record<string, string>>({});
 
   function invalidateAll() {
     qc.invalidateQueries({ queryKey: getGetProkerFundsQueryKey() });
@@ -1263,9 +1277,10 @@ function DanaProkerTab({ isAdmin }: { isAdmin?: boolean }) {
       onSuccess: () => {
         invalidateAll(); setOpenAddTx(false);
         setTxState(defaultSimpleTx({ type: "pengeluaran" }));
+        setTxFieldErrors({});
         toast({ title: "Transaksi dicatat" });
       },
-      onError: (err) => toast({ title: "Gagal menyimpan", description: getApiErrorDesc(err), variant: "destructive" }),
+      onError: (err) => { setTxFieldErrors(buildFormErrors(err)); toast({ title: "Gagal menyimpan", description: getApiErrorDesc(err), variant: "destructive" }); },
     });
   }
 
@@ -1403,10 +1418,11 @@ function DanaProkerTab({ isAdmin }: { isAdmin?: boolean }) {
           </div>
         )}
 
-        <SimpleTxDialog open={openAddTx} onClose={() => setOpenAddTx(false)}
+        <SimpleTxDialog open={openAddTx} onClose={() => { setOpenAddTx(false); setTxFieldErrors({}); }}
           title={`Transaksi: ${selectedProkerData.name}`}
           headerColor="bg-gradient-to-r from-sky-400/20 to-teal-400/20"
-          isPending={create.isPending} onSave={saveTx} state={txState} setState={setTxState} />
+          isPending={create.isPending} onSave={saveTx} state={txState} setState={setTxState}
+          fieldErrors={txFieldErrors} onClearFieldError={f => setTxFieldErrors(e => { const n = { ...e }; delete n[f]; return n; })} />
 
         <Dialog open={openEditProker} onOpenChange={v => !v && setOpenEditProker(false)}>
           <DialogContent className="form-dialog border-white/50 max-w-sm p-0 overflow-hidden">
