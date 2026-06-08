@@ -223,8 +223,8 @@ export default function Dashboard() {
       </div>
 
       {/* ── KAS RINGKASAN ─────────────────────────────────────────────────── */}
-      <Link href="/kas">
-        <div className="glass-card p-4 hover:-translate-y-0.5 transition-all cursor-pointer group">
+      <Link href="/kas" className="block">
+        <div className="glass-card p-5 hover:-translate-y-0.5 transition-all cursor-pointer group">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
               <div className="w-6 h-6 rounded-lg bg-emerald-100 flex items-center justify-center">
