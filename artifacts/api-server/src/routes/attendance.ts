@@ -166,7 +166,7 @@ function buildWeekSheet(
       bottom: { style: "thin", color: { argb: "D1D5DB" } },
       left: { style: "thin", color: { argb: "D1D5DB" } },
       right: { style: "thin", color: { argb: "D1D5DB" } },
-    }};
+    }} as ExcelJS.Style;
     const hCell = row.getCell(summaryStart); hCell.value = hadir; hCell.style = summaryStyle;
     const iCell = row.getCell(summaryStart + 1); iCell.value = izin; iCell.style = summaryStyle;
     const sCell = row.getCell(summaryStart + 2); sCell.value = sakit; sCell.style = summaryStyle;
@@ -177,7 +177,7 @@ function buildWeekSheet(
       bottom: { style: "thin", color: { argb: "D1D5DB" } },
       left: { style: "thin", color: { argb: "D1D5DB" } },
       right: { style: "thin", color: { argb: "D1D5DB" } },
-    }};
+    }} as ExcelJS.Style;
   }
 
   // Totals row

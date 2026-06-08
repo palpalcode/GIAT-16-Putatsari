@@ -78,7 +78,7 @@ router.post("/auth/change-password", requireLogin, async (req, res) => {
 });
 
 router.post("/auth/change-password/:id", requireLogin, requireManage, async (req, res) => {
-  const targetId = parseInt(req.params.id, 10);
+  const targetId = parseInt(req.params.id as string, 10);
   const { newPassword } = req.body;
 
   if (!newPassword || typeof newPassword !== "string" || newPassword.length < 6) {
