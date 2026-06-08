@@ -1,9 +1,11 @@
-import { useGetDashboardSummary, useGetMembers } from "@workspace/api-client-react";
+import { useGetDashboardSummary, useGetMembers, useGetKasSummary } from "@workspace/api-client-react";
 import { Badge } from "@/components/ui/badge";
-import { Megaphone, Calendar, AlertTriangle, CheckCircle2, ChefHat, SprayCan, Package, CalendarCheck } from "lucide-react";
+import { Megaphone, Calendar, AlertTriangle, CheckCircle2, ChefHat, SprayCan, Package, CalendarCheck, Wallet, ShieldCheck, Utensils } from "lucide-react";
 import { Link } from "wouter";
 import { cn } from "@/lib/utils";
 import { getMemberColor } from "@/components/ui/member-picker";
+
+function formatRp(n: number) { return "Rp " + Math.abs(n).toLocaleString("id-ID"); }
 
 function daysLeft(dueDate: string): number {
   const now = new Date();
@@ -50,6 +52,7 @@ function MemberCard({ member }: { member: { id: number; name: string; divisionRo
 export default function Dashboard() {
   const { data: summary, isLoading } = useGetDashboardSummary();
   const { data: members, isLoading: membersLoading } = useGetMembers();
+  const { data: kasSummary, isLoading: kasLoading } = useGetKasSummary();
 
   return (
     <div className="space-y-10 animate-in fade-in duration-500">
@@ -218,6 +221,69 @@ export default function Dashboard() {
           </>
         )}
       </div>
+
+      {/* ── KAS RINGKASAN ─────────────────────────────────────────────────── */}
+      <Link href="/kas">
+        <div className="glass-card p-4 hover:-translate-y-0.5 transition-all cursor-pointer group">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <div className="w-6 h-6 rounded-lg bg-emerald-100 flex items-center justify-center">
+                <Wallet className="w-3 h-3 text-emerald-600" />
+              </div>
+              <span className="text-sm font-semibold text-gray-600">Kas Tim</span>
+            </div>
+            <span className="text-xs text-emerald-500 group-hover:text-emerald-700 font-medium transition-colors">Lihat Lengkap →</span>
+          </div>
+          {kasLoading ? (
+            <div className="animate-pulse space-y-2">
+              <div className="h-4 bg-gray-100 rounded w-1/2" />
+              <div className="h-2 bg-gray-100 rounded w-full" />
+            </div>
+          ) : (
+            <div className="grid grid-cols-3 gap-3">
+              {/* Saldo umum */}
+              <div className="text-center">
+                <div className="flex items-center justify-center gap-1 mb-0.5">
+                  <Wallet className="w-3.5 h-3.5 text-sky-400" />
+                  <p className="text-[10px] text-gray-400 uppercase tracking-wide">Saldo Umum</p>
+                </div>
+                <p className={cn("font-bold text-sm", (kasSummary?.saldoUmum ?? 0) >= 0 ? "text-sky-700" : "text-amber-600")}>
+                  {formatRp(kasSummary?.saldoUmum ?? 0)}
+                </p>
+              </div>
+              {/* Dana darurat */}
+              <div className="text-center">
+                <div className="flex items-center justify-center gap-1 mb-0.5">
+                  <ShieldCheck className="w-3.5 h-3.5 text-rose-400" />
+                  <p className="text-[10px] text-gray-400 uppercase tracking-wide">Dana Darurat</p>
+                </div>
+                <p className="font-bold text-sm text-rose-700">{formatRp(kasSummary?.saldoDarurat ?? 0)}</p>
+                {(kasSummary?.emergencyFundTarget ?? 0) > 0 && (
+                  <div className="mt-1">
+                    <div className="w-full h-1 bg-gray-200 rounded-full overflow-hidden">
+                      <div
+                        className={cn("h-full rounded-full transition-all", kasSummary?.emergencyFundStatus === "sangat_cukup" ? "bg-emerald-400" : kasSummary?.emergencyFundStatus === "cukup" ? "bg-amber-400" : "bg-rose-400")}
+                        style={{ width: `${Math.min(100, Math.round(((kasSummary?.saldoDarurat ?? 0) / (kasSummary?.emergencyFundTarget ?? 1)) * 100))}%` }}
+                      />
+                    </div>
+                    <p className={cn("text-[10px] mt-0.5", kasSummary?.emergencyFundStatus === "sangat_cukup" ? "text-emerald-500" : kasSummary?.emergencyFundStatus === "cukup" ? "text-amber-500" : "text-rose-500")}>
+                      {kasSummary?.emergencyFundStatus === "sangat_cukup" ? "Sangat Cukup ✓" : kasSummary?.emergencyFundStatus === "cukup" ? "Cukup" : "Perlu Penambahan"}
+                    </p>
+                  </div>
+                )}
+              </div>
+              {/* Jatah makan harian */}
+              <div className="text-center">
+                <div className="flex items-center justify-center gap-1 mb-0.5">
+                  <Utensils className="w-3.5 h-3.5 text-amber-400" />
+                  <p className="text-[10px] text-gray-400 uppercase tracking-wide">Jatah/Hari</p>
+                </div>
+                <p className="font-bold text-sm text-amber-700">{formatRp(kasSummary?.dailyFoodAllowance ?? 0)}</p>
+              </div>
+            </div>
+          )}
+        </div>
+      </Link>
 
       {/* ── TERTIARY: Hari ini + Quick nav ────────────────────────────────── */}
       <div className="grid md:grid-cols-3 gap-4">
