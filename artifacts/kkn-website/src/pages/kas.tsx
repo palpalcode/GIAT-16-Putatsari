@@ -417,6 +417,7 @@ function UmumTab({ isAdmin, summary }: { isAdmin?: boolean; summary: any }) {
   const [kasFieldErrors, setKasFieldErrors] = useState<Record<string, string>>({});
   const [openTransferDana, setOpenTransferDana] = useState(false);
   const [transferDanaInit, setTransferDanaInit] = useState<TransferDanaForm>({ fromFund: "umum", toFund: "darurat", toFundProkerId: null, amount: "", description: "", date: today(), notes: "" });
+  const [transferBalanceError, setTransferBalanceError] = useState("");
   const transferKas = useTransferKas();
   const { data: prokerList } = useGetProkerFunds();
 
@@ -500,17 +501,22 @@ function UmumTab({ isAdmin, summary }: { isAdmin?: boolean; summary: any }) {
 
       <AddEditDialog open={open} onClose={() => { setOpen(false); setKasFieldErrors({}); }} editId={editId} initial={initForm} onSave={handleSave} isPending={create.isPending || update.isPending} serverFieldErrors={kasFieldErrors} />
 
-      <TransferDanaDialog open={openTransferDana} onClose={() => setOpenTransferDana(false)} isPending={transferKas.isPending}
+      <TransferDanaDialog open={openTransferDana} onClose={() => { setOpenTransferDana(false); setTransferBalanceError(""); }} isPending={transferKas.isPending}
         initial={transferDanaInit} prokers={prokerList ?? []}
+        balanceError={transferBalanceError} onClearBalanceError={() => setTransferBalanceError("")}
         onSave={(form) => {
           transferKas.mutate({ data: { fromFund: form.fromFund, toFund: form.toFund, toFundProkerId: form.toFundProkerId ?? undefined, amount: Number(form.amount), description: form.description, date: form.date, notes: form.notes || undefined } }, {
             onSuccess: () => {
               qc.invalidateQueries({ queryKey: getGetProkerFundsQueryKey() });
               qc.invalidateQueries({ queryKey: getGetKasQueryKey({ fund: "proker" }) });
-              invalidate(); setOpenTransferDana(false);
+              invalidate(); setOpenTransferDana(false); setTransferBalanceError("");
               toast({ title: `Transfer ${formatRp(Number(form.amount))} berhasil` });
             },
-            onError: (err) => toast({ title: "Transfer gagal", description: getApiErrorDesc(err), variant: "destructive" }),
+            onError: (err) => {
+              const bal = extractBalanceError(err);
+              if (bal) setTransferBalanceError(`Saldo tidak cukup — tersedia ${formatRp(bal.available)}, diminta ${formatRp(bal.requested)}`);
+              toast({ title: "Transfer gagal", description: getApiErrorDesc(err), variant: "destructive" });
+            },
           });
         }} />
     </div>
@@ -602,9 +608,10 @@ type TransferDanaForm = {
   fromFund: KasFundType; toFund: KasFundType; toFundProkerId: number | null;
   amount: string; description: string; date: string; notes: string;
 };
-function TransferDanaDialog({ open, onClose, onSave, isPending, initial, prokers }: {
+function TransferDanaDialog({ open, onClose, onSave, isPending, initial, prokers, balanceError, onClearBalanceError }: {
   open: boolean; onClose: () => void; onSave: (form: TransferDanaForm) => void; isPending: boolean;
   initial: TransferDanaForm; prokers?: { id: number; name: string }[];
+  balanceError?: string; onClearBalanceError?: () => void;
 }) {
   const [form, setForm] = useState<TransferDanaForm>(initial);
   useEffect(() => { setForm(initial); }, [initial, open]);
@@ -664,8 +671,11 @@ function TransferDanaDialog({ open, onClose, onSave, isPending, initial, prokers
             <label className="text-xs font-semibold text-sky-800 uppercase tracking-wide mb-1.5 block">Nominal (Rp)</label>
             <div className="relative">
               <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-medium text-sky-600">Rp</span>
-              <Input type="number" min={0} value={form.amount} onChange={e => set({ amount: e.target.value })} className="bg-white/90 pl-10 font-bold" />
+              <Input type="number" min={0} value={form.amount}
+                onChange={e => { set({ amount: e.target.value }); onClearBalanceError?.(); }}
+                className={cn("bg-white/90 pl-10 font-bold", balanceError && "border-rose-400 focus-visible:ring-rose-300")} />
             </div>
+            {balanceError && <p className="text-xs text-rose-500 mt-1">{balanceError}</p>}
           </div>
           <div>
             <label className="text-xs font-semibold text-sky-800 uppercase tracking-wide mb-1.5 block">Keterangan</label>
@@ -714,6 +724,7 @@ function IuranMakanTab({ isAdmin, summary }: { isAdmin?: boolean; summary: any }
   const [openTransfer, setOpenTransfer] = useState(false);
   const [openTransferDana, setOpenTransferDana] = useState(false);
   const [transferDanaInit, setTransferDanaInit] = useState<TransferDanaForm>({ fromFund: "iuran_makan" as KasFundType, toFund: "darurat" as KasFundType, toFundProkerId: null, amount: "", description: "", date: today(), notes: "" });
+  const [transferBalanceError, setTransferBalanceError] = useState("");
   const [activeSubTab, setActiveSubTab] = useState<"rekap" | "transaksi">("rekap");
   const [txState, setTxState] = useState<SimpleTxState>(defaultSimpleTx({ description: "Belanja makan" }));
   const [txFieldErrors, setTxFieldErrors] = useState<Record<string, string>>({});
@@ -1040,17 +1051,22 @@ function IuranMakanTab({ isAdmin, summary }: { isAdmin?: boolean; summary: any }
         </DialogContent>
       </Dialog>
 
-      <TransferDanaDialog open={openTransferDana} onClose={() => setOpenTransferDana(false)} isPending={transferKas.isPending}
+      <TransferDanaDialog open={openTransferDana} onClose={() => { setOpenTransferDana(false); setTransferBalanceError(""); }} isPending={transferKas.isPending}
         initial={transferDanaInit} prokers={prokers ?? []}
+        balanceError={transferBalanceError} onClearBalanceError={() => setTransferBalanceError("")}
         onSave={(form) => {
           transferKas.mutate({ data: { fromFund: form.fromFund, toFund: form.toFund, toFundProkerId: form.toFundProkerId ?? undefined, amount: Number(form.amount), description: form.description, date: form.date, notes: form.notes || undefined } }, {
             onSuccess: () => {
               qc.invalidateQueries({ queryKey: getGetProkerFundsQueryKey() });
               qc.invalidateQueries({ queryKey: getGetKasQueryKey({ fund: "proker" }) });
-              invalidate(); setOpenTransferDana(false);
+              invalidate(); setOpenTransferDana(false); setTransferBalanceError("");
               toast({ title: `Transfer ${formatRp(Number(form.amount))} berhasil` });
             },
-            onError: (err) => toast({ title: "Transfer gagal", description: getApiErrorDesc(err), variant: "destructive" }),
+            onError: (err) => {
+              const bal = extractBalanceError(err);
+              if (bal) setTransferBalanceError(`Saldo tidak cukup — tersedia ${formatRp(bal.available)}, diminta ${formatRp(bal.requested)}`);
+              toast({ title: "Transfer gagal", description: getApiErrorDesc(err), variant: "destructive" });
+            },
           });
         }} />
     </div>
@@ -1071,6 +1087,7 @@ function DanadaruratTab({ isAdmin, summary }: { isAdmin?: boolean; summary: any 
   const [openTx, setOpenTx] = useState(false);
   const [openTarget, setOpenTarget] = useState(false);
   const [openTransferDana, setOpenTransferDana] = useState(false);
+  const [transferBalanceError, setTransferBalanceError] = useState("");
   const [txState, setTxState] = useState<SimpleTxState>(defaultSimpleTx({ type: "pemasukan" }));
   const [txFieldErrors, setTxFieldErrors] = useState<Record<string, string>>({});
   const [targetForm, setTargetForm] = useState({ target: "" });
@@ -1199,17 +1216,22 @@ function DanadaruratTab({ isAdmin, summary }: { isAdmin?: boolean; summary: any 
         </DialogContent>
       </Dialog>
 
-      <TransferDanaDialog open={openTransferDana} onClose={() => setOpenTransferDana(false)} isPending={transferKas.isPending}
+      <TransferDanaDialog open={openTransferDana} onClose={() => { setOpenTransferDana(false); setTransferBalanceError(""); }} isPending={transferKas.isPending}
         initial={{ fromFund: "darurat", toFund: "umum", toFundProkerId: null, amount: "", description: "Transfer Dana Darurat → Umum", date: today(), notes: "" }}
+        balanceError={transferBalanceError} onClearBalanceError={() => setTransferBalanceError("")}
         onSave={(form) => {
           transferKas.mutate({ data: { fromFund: form.fromFund, toFund: form.toFund, toFundProkerId: form.toFundProkerId ?? undefined, amount: Number(form.amount), description: form.description, date: form.date, notes: form.notes || undefined } }, {
             onSuccess: () => {
               qc.invalidateQueries({ queryKey: getGetProkerFundsQueryKey() });
               qc.invalidateQueries({ queryKey: getGetKasQueryKey({ fund: "proker" }) });
-              invalidate(); setOpenTransferDana(false);
+              invalidate(); setOpenTransferDana(false); setTransferBalanceError("");
               toast({ title: `Transfer ${formatRp(Number(form.amount))} berhasil` });
             },
-            onError: (err) => toast({ title: "Transfer gagal", description: getApiErrorDesc(err), variant: "destructive" }),
+            onError: (err) => {
+              const bal = extractBalanceError(err);
+              if (bal) setTransferBalanceError(`Saldo tidak cukup — tersedia ${formatRp(bal.available)}, diminta ${formatRp(bal.requested)}`);
+              toast({ title: "Transfer gagal", description: getApiErrorDesc(err), variant: "destructive" });
+            },
           });
         }} />
     </div>
@@ -1238,6 +1260,7 @@ function DanaProkerTab({ isAdmin }: { isAdmin?: boolean }) {
   const [openEditProker, setOpenEditProker] = useState(false);
   const [openAddTx, setOpenAddTx] = useState(false);
   const [openTransferDana, setOpenTransferDana] = useState(false);
+  const [transferBalanceError, setTransferBalanceError] = useState("");
   const [editProkerForm, setEditProkerForm] = useState({ name: "", budget: "", notes: "" });
   const [editProkerId, setEditProkerId] = useState<number | null>(null);
   const [txState, setTxState] = useState<SimpleTxState>(defaultSimpleTx({ type: "pengeluaran" }));
@@ -1454,15 +1477,20 @@ function DanaProkerTab({ isAdmin }: { isAdmin?: boolean }) {
           </DialogContent>
         </Dialog>
 
-        <TransferDanaDialog open={openTransferDana} onClose={() => setOpenTransferDana(false)} isPending={transferKas.isPending}
+        <TransferDanaDialog open={openTransferDana} onClose={() => { setOpenTransferDana(false); setTransferBalanceError(""); }} isPending={transferKas.isPending}
           initial={{ fromFund: "proker", toFund: "umum", toFundProkerId: null, amount: "", description: `Kembalikan Sisa Proker: ${selectedProkerData.name}`, date: today(), notes: "" }}
+          balanceError={transferBalanceError} onClearBalanceError={() => setTransferBalanceError("")}
           onSave={(form) => {
             transferKas.mutate({ data: { fromFund: form.fromFund, toFund: form.toFund, toFundProkerId: form.toFundProkerId ?? undefined, amount: Number(form.amount), description: form.description, date: form.date, notes: form.notes || undefined } }, {
               onSuccess: () => {
-                invalidateAll(); setOpenTransferDana(false);
+                invalidateAll(); setOpenTransferDana(false); setTransferBalanceError("");
                 toast({ title: `Transfer ${formatRp(Number(form.amount))} berhasil` });
               },
-              onError: (err) => toast({ title: "Transfer gagal", description: getApiErrorDesc(err), variant: "destructive" }),
+              onError: (err) => {
+                const bal = extractBalanceError(err);
+                if (bal) setTransferBalanceError(`Saldo tidak cukup — tersedia ${formatRp(bal.available)}, diminta ${formatRp(bal.requested)}`);
+                toast({ title: "Transfer gagal", description: getApiErrorDesc(err), variant: "destructive" });
+              },
             });
           }} />
       </div>
