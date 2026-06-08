@@ -89,6 +89,9 @@ import type {
   Template,
   TemplateInput,
   TemplateUpdate,
+  TransferKas,
+  TransferKasInput,
+  TransferKasResult,
   TransferSisaMakanInput,
   TransferSisaMakanResult,
   UploadUrlRequest,
@@ -4440,7 +4443,7 @@ export const getTransferSisaMakanUrl = () => {
 }
 
 /**
- * @summary Transfer sisa makan hari ini ke dana darurat (admin)
+ * @summary Transfer sisa makan hari ini ke dana darurat atau kas umum (admin)
  */
 export const transferSisaMakan = async (transferSisaMakanInput: TransferSisaMakanInput, options?: RequestInit): Promise<TransferSisaMakanResult> => {
 
@@ -4489,7 +4492,7 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
     export type TransferSisaMakanMutationError = ErrorType<void>
 
     /**
- * @summary Transfer sisa makan hari ini ke dana darurat (admin)
+ * @summary Transfer sisa makan hari ini ke dana darurat atau kas umum (admin)
  */
 export const useTransferSisaMakan = <TError = ErrorType<void>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof transferSisaMakan>>, TError,{data: BodyType<TransferSisaMakanInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
@@ -4500,6 +4503,154 @@ export const useTransferSisaMakan = <TError = ErrorType<void>,
         TContext
       > => {
       return useMutation(getTransferSisaMakanMutationOptions(options));
+    }
+
+export const getGetTransfersUrl = () => {
+
+
+
+
+  return `/api/kas/transfer`
+}
+
+/**
+ * @summary Get list transfer kas antar-fund
+ */
+export const getTransfers = async ( options?: RequestInit): Promise<TransferKas[]> => {
+
+  return customFetch<TransferKas[]>(getGetTransfersUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetTransfersQueryKey = () => {
+    return [
+    `/api/kas/transfer`
+    ] as const;
+    }
+
+
+export const getGetTransfersQueryOptions = <TData = Awaited<ReturnType<typeof getTransfers>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getTransfers>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetTransfersQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getTransfers>>> = ({ signal }) => getTransfers({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getTransfers>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetTransfersQueryResult = NonNullable<Awaited<ReturnType<typeof getTransfers>>>
+export type GetTransfersQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Get list transfer kas antar-fund
+ */
+
+export function useGetTransfers<TData = Awaited<ReturnType<typeof getTransfers>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getTransfers>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetTransfersQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getTransferKasUrl = () => {
+
+
+
+
+  return `/api/kas/transfer`
+}
+
+/**
+ * @summary Transfer dana antar kas (admin)
+ */
+export const transferKas = async (transferKasInput: TransferKasInput, options?: RequestInit): Promise<TransferKasResult> => {
+
+  return customFetch<TransferKasResult>(getTransferKasUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      transferKasInput,)
+  }
+);}
+
+
+
+
+export const getTransferKasMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof transferKas>>, TError,{data: BodyType<TransferKasInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof transferKas>>, TError,{data: BodyType<TransferKasInput>}, TContext> => {
+
+const mutationKey = ['transferKas'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof transferKas>>, {data: BodyType<TransferKasInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  transferKas(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type TransferKasMutationResult = NonNullable<Awaited<ReturnType<typeof transferKas>>>
+    export type TransferKasMutationBody = BodyType<TransferKasInput>
+    export type TransferKasMutationError = ErrorType<void>
+
+    /**
+ * @summary Transfer dana antar kas (admin)
+ */
+export const useTransferKas = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof transferKas>>, TError,{data: BodyType<TransferKasInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof transferKas>>,
+        TError,
+        {data: BodyType<TransferKasInput>},
+        TContext
+      > => {
+      return useMutation(getTransferKasMutationOptions(options));
     }
 
 export const getGetProkerFundsUrl = () => {

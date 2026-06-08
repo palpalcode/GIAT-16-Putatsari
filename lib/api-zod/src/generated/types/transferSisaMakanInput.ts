@@ -5,8 +5,10 @@
  * KKN Team Website API
  * OpenAPI spec version: 0.1.0
  */
+import type { TransferSisaMakanInputTarget } from './transferSisaMakanInputTarget';
 
 export interface TransferSisaMakanInput {
   date: string;
   terpakai: number;
+  target?: TransferSisaMakanInputTarget;
 }

@@ -12,6 +12,7 @@ import {
   useUpdateKasConfig,
   useGetKasSummary,
   useTransferSisaMakan,
+  useTransferKas,
   useGetProkerFunds,
   useCreateProkerFund,
   useUpdateProkerFund,
@@ -33,10 +34,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   Plus, Pencil, Trash2, TrendingUp, TrendingDown, Wallet,
   ArrowUpCircle, ArrowDownCircle, ShieldCheck, Utensils,
-  Folder, ChevronLeft, ChevronRight, ChevronDown, Settings, ArrowRightLeft, Check, X,
+  Folder, ChevronLeft, ChevronRight, ChevronDown, Settings, ArrowRightLeft, ArrowRight, Check, X,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
@@ -414,6 +416,9 @@ function UmumTab({ isAdmin, summary }: { isAdmin?: boolean; summary: any }) {
   const [initForm, setInitForm] = useState<KasForm>(defaultForm(KasInputFund.umum));
   const [filterType, setFilterType] = useState("all");
   const [kasFieldErrors, setKasFieldErrors] = useState<Record<string, string>>({});
+  const [openTransferDana, setOpenTransferDana] = useState(false);
+  const [transferDanaInit, setTransferDanaInit] = useState<TransferDanaForm>({ fromFund: "umum", toFund: "darurat", amount: "", description: "", date: today(), notes: "" });
+  const transferKas = useTransferKas();
 
   function invalidate() {
     qc.invalidateQueries({ queryKey: getGetKasQueryKey({ fund: "umum" }) });
@@ -467,9 +472,14 @@ function UmumTab({ isAdmin, summary }: { isAdmin?: boolean; summary: any }) {
           </div>
         </div>
         {isAdmin && (
-          <Button size="sm" onClick={openAdd} className="bg-gradient-to-r from-emerald-400 to-teal-500 text-white border-0 rounded-full gap-1">
-            <Plus className="w-4 h-4" />Catat Transaksi
-          </Button>
+          <div className="flex gap-2">
+            <Button size="sm" onClick={openAdd} className="bg-gradient-to-r from-emerald-400 to-teal-500 text-white border-0 rounded-full gap-1">
+              <Plus className="w-4 h-4" />Catat Transaksi
+            </Button>
+            <Button size="sm" onClick={() => setOpenTransferDana(true)} variant="outline" className="rounded-full gap-1 text-sky-700 border-sky-200 hover:bg-sky-50">
+              <ArrowRightLeft className="w-4 h-4" />Transfer Dana
+            </Button>
+          </div>
         )}
       </div>
 
@@ -488,6 +498,18 @@ function UmumTab({ isAdmin, summary }: { isAdmin?: boolean; summary: any }) {
       )}
 
       <AddEditDialog open={open} onClose={() => { setOpen(false); setKasFieldErrors({}); }} editId={editId} initial={initForm} onSave={handleSave} isPending={create.isPending || update.isPending} serverFieldErrors={kasFieldErrors} />
+
+      <TransferDanaDialog open={openTransferDana} onClose={() => setOpenTransferDana(false)} isPending={transferKas.isPending}
+        initial={transferDanaInit}
+        onSave={(form) => {
+          transferKas.mutate({ data: { fromFund: form.fromFund, toFund: form.toFund, amount: Number(form.amount), description: form.description, date: form.date, notes: form.notes || undefined } }, {
+            onSuccess: () => {
+              invalidate(); setOpenTransferDana(false);
+              toast({ title: `Transfer ${formatRp(Number(form.amount))} berhasil` });
+            },
+            onError: (err) => toast({ title: "Transfer gagal", description: getApiErrorDesc(err), variant: "destructive" }),
+          });
+        }} />
     </div>
   );
 }
@@ -565,6 +587,78 @@ function SimpleTxDialog({ open, onClose, title, headerColor, isPending, onSave, 
   );
 }
 
+// ─── TRANSFER DANA DIALOG ─────────────────────────────────────────────────────
+type TransferDanaForm = {
+  fromFund: KasFundType; toFund: KasFundType; amount: string; description: string; date: string; notes: string;
+};
+function TransferDanaDialog({ open, onClose, onSave, isPending, initial }: {
+  open: boolean; onClose: () => void; onSave: (form: TransferDanaForm) => void; isPending: boolean; initial: TransferDanaForm;
+}) {
+  const [form, setForm] = useState<TransferDanaForm>(initial);
+  useEffect(() => { setForm(initial); }, [initial, open]);
+  const set = (patch: Partial<TransferDanaForm>) => setForm(f => ({ ...f, ...patch }));
+  const fundOptions: { id: KasFundType; label: string }[] = [
+    { id: "umum", label: "Kas Umum" },
+    { id: "darurat", label: "Dana Darurat" },
+    { id: "iuran_makan", label: "Iuran Makan" },
+    { id: "proker", label: "Dana Proker" },
+  ];
+  const validTargets = fundOptions.filter(o => o.id !== form.fromFund);
+  return (
+    <Dialog open={open} onOpenChange={v => !v && onClose()}>
+      <DialogContent className="form-dialog border-white/50 max-w-sm p-0 overflow-hidden">
+        <div className="px-6 pt-6 pb-4 bg-gradient-to-r from-sky-400/20 to-blue-400/20">
+          <DialogHeader><DialogTitle className="flex items-center gap-2"><ArrowRightLeft className="w-5 h-5 text-sky-500" />Transfer Dana</DialogTitle></DialogHeader>
+        </div>
+        <div className="px-6 pb-6 pt-4 space-y-3">
+          <div>
+            <label className="text-xs font-semibold text-sky-800 uppercase tracking-wide mb-1.5 block">Dari</label>
+            <Select value={form.fromFund} onValueChange={v => set({ fromFund: v as KasFundType })}>
+              <SelectTrigger className="bg-white/90"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {fundOptions.map(o => <SelectItem key={o.id} value={o.id}>{o.label}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <label className="text-xs font-semibold text-sky-800 uppercase tracking-wide mb-1.5 block">Ke</label>
+            <Select value={form.toFund} onValueChange={v => set({ toFund: v as KasFundType })}>
+              <SelectTrigger className="bg-white/90"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {validTargets.map(o => <SelectItem key={o.id} value={o.id}>{o.label}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <label className="text-xs font-semibold text-sky-800 uppercase tracking-wide mb-1.5 block">Nominal (Rp)</label>
+            <div className="relative">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-medium text-sky-600">Rp</span>
+              <Input type="number" min={0} value={form.amount} onChange={e => set({ amount: e.target.value })} className="bg-white/90 pl-10 font-bold" />
+            </div>
+          </div>
+          <div>
+            <label className="text-xs font-semibold text-sky-800 uppercase tracking-wide mb-1.5 block">Keterangan</label>
+            <Input value={form.description} onChange={e => set({ description: e.target.value })} className="bg-white/90" placeholder="Contoh: Alokasi untuk proker" />
+          </div>
+          <div>
+            <label className="text-xs font-semibold text-sky-800 uppercase tracking-wide mb-1.5 block">Tanggal</label>
+            <Input type="date" value={form.date} onChange={e => set({ date: e.target.value })} className="bg-white/90" />
+          </div>
+          <div>
+            <label className="text-xs font-semibold text-sky-800 uppercase tracking-wide mb-1.5 block">Catatan (opsional)</label>
+            <Input value={form.notes} onChange={e => set({ notes: e.target.value })} className="bg-white/90" placeholder="Opsional" />
+          </div>
+          <div className="flex gap-3 justify-end pt-1">
+            <Button variant="outline" onClick={onClose} className="rounded-full">Batal</Button>
+            <Button onClick={() => onSave(form)} disabled={isPending || !form.amount || !form.description || !form.fromFund || !form.toFund || form.fromFund === form.toFund}
+              className="rounded-full text-white border-0 bg-gradient-to-r from-sky-400 to-blue-500">Transfer</Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 // ─── IURAN MAKAN TAB ──────────────────────────────────────────────────────────
 function IuranMakanTab({ isAdmin, summary }: { isAdmin?: boolean; summary: any }) {
   const qc = useQueryClient();
@@ -585,10 +679,13 @@ function IuranMakanTab({ isAdmin, summary }: { isAdmin?: boolean; summary: any }
   const [openTx, setOpenTx] = useState(false);
   const [openConfig, setOpenConfig] = useState(false);
   const [openTransfer, setOpenTransfer] = useState(false);
+  const [openTransferDana, setOpenTransferDana] = useState(false);
+  const [transferDanaInit, setTransferDanaInit] = useState<TransferDanaForm>({ fromFund: "iuran_makan" as KasFundType, toFund: "darurat" as KasFundType, amount: "", description: "", date: today(), notes: "" });
   const [activeSubTab, setActiveSubTab] = useState<"rekap" | "transaksi">("rekap");
   const [txState, setTxState] = useState<SimpleTxState>(defaultSimpleTx({ description: "Belanja makan", category: "makan" }));
   const [configForm, setConfigForm] = useState({ weeklyAmount: String(summary?.weeklyFoodAmount ?? 0) });
-  const [transferForm, setTransferForm] = useState({ date: today(), terpakai: "" });
+  const [transferForm, setTransferForm] = useState({ date: today(), terpakai: "", target: "darurat" as "darurat" | "umum" });
+  const transferKas = useTransferKas();
 
   const jatahHarian = summary?.dailyFoodAllowance ?? 0;
   const saldoMakan = summary?.saldoIuranMakan ?? 0;
@@ -599,6 +696,8 @@ function IuranMakanTab({ isAdmin, summary }: { isAdmin?: boolean; summary: any }
     qc.invalidateQueries({ queryKey: getGetKasSummaryQueryKey() });
     qc.invalidateQueries({ queryKey: getGetKasConfigQueryKey() });
     qc.invalidateQueries({ queryKey: getGetKasQueryKey({ fund: "darurat" }) });
+    qc.invalidateQueries({ queryKey: getGetKasQueryKey({ fund: "umum" }) });
+    qc.invalidateQueries({ queryKey: getGetKasQueryKey({ fund: "proker" }) });
   }
   function invalidatePayments() {
     qc.invalidateQueries({ queryKey: getGetIuranPaymentsQueryKey({ week: selectedWeek }) });
@@ -628,11 +727,12 @@ function IuranMakanTab({ isAdmin, summary }: { isAdmin?: boolean; summary: any }
 
   function doTransfer() {
     if (!transferForm.terpakai) return;
-    transferSisa.mutate({ data: { date: transferForm.date, terpakai: Number(transferForm.terpakai) } }, {
+    transferSisa.mutate({ data: { date: transferForm.date, terpakai: Number(transferForm.terpakai), target: transferForm.target } }, {
       onSuccess: (res) => {
         invalidate(); setOpenTransfer(false);
-        setTransferForm({ date: today(), terpakai: "" });
-        toast({ title: `Sisa ${formatRp(res.sisa)} berhasil ditransfer ke dana darurat` });
+        setTransferForm({ date: today(), terpakai: "", target: "darurat" });
+        const targetLabel = transferForm.target === "darurat" ? "dana darurat" : "kas umum";
+        toast({ title: `Sisa ${formatRp(res.sisa)} berhasil ditransfer ke ${targetLabel}` });
       },
       onError: (err) => { toast({ title: "Tidak ada sisa untuk ditransfer", description: getApiErrorDesc(err), variant: "destructive" }); },
     });
@@ -809,9 +909,13 @@ function IuranMakanTab({ isAdmin, summary }: { isAdmin?: boolean; summary: any }
                   variant="outline" className="rounded-full gap-1 text-emerald-700 border-emerald-200 hover:bg-emerald-50">
                   <ArrowUpCircle className="w-4 h-4" />Catat Pemasukan
                 </Button>
-                <Button size="sm" onClick={() => { setTransferForm({ date: today(), terpakai: "" }); setOpenTransfer(true); }}
+                    <Button size="sm" onClick={() => { setTransferForm({ date: today(), terpakai: "", target: "darurat" }); setOpenTransfer(true); }}
                   variant="outline" className="rounded-full gap-1 text-sky-700 border-sky-200 hover:bg-sky-50">
-                  <ArrowRightLeft className="w-4 h-4" />Transfer Sisa ke Dana Darurat
+                  <ArrowRightLeft className="w-4 h-4" />Transfer Sisa
+                </Button>
+                <Button size="sm" onClick={() => setOpenTransferDana(true)}
+                  variant="outline" className="rounded-full gap-1 text-sky-700 border-sky-200 hover:bg-sky-50">
+                  <ArrowRightLeft className="w-4 h-4" />Transfer Dana
                 </Button>
               </>
             )}
@@ -878,6 +982,16 @@ function IuranMakanTab({ isAdmin, summary }: { isAdmin?: boolean; summary: any }
                 </p>
               )}
             </div>
+            <div>
+              <label className="text-xs font-semibold text-sky-800 uppercase tracking-wide mb-1.5 block">Transfer ke</label>
+              <Select value={transferForm.target} onValueChange={v => setTransferForm(f => ({ ...f, target: v as "darurat" | "umum" }))}>
+                <SelectTrigger className="bg-white/90"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="darurat">Dana Darurat</SelectItem>
+                  <SelectItem value="umum">Kas Umum</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
             <div className="flex gap-3 justify-end pt-1">
               <Button variant="outline" onClick={() => setOpenTransfer(false)} className="rounded-full">Batal</Button>
               <Button onClick={doTransfer} disabled={transferSisa.isPending || !transferForm.terpakai || (jatahHarian > 0 && Number(transferForm.terpakai) >= jatahHarian)}
@@ -886,6 +1000,18 @@ function IuranMakanTab({ isAdmin, summary }: { isAdmin?: boolean; summary: any }
           </div>
         </DialogContent>
       </Dialog>
+
+      <TransferDanaDialog open={openTransferDana} onClose={() => setOpenTransferDana(false)} isPending={transferKas.isPending}
+        initial={transferDanaInit}
+        onSave={(form) => {
+          transferKas.mutate({ data: { fromFund: form.fromFund, toFund: form.toFund, amount: Number(form.amount), description: form.description, date: form.date, notes: form.notes || undefined } }, {
+            onSuccess: () => {
+              invalidate(); setOpenTransferDana(false);
+              toast({ title: `Transfer ${formatRp(Number(form.amount))} berhasil` });
+            },
+            onError: (err) => toast({ title: "Transfer gagal", description: getApiErrorDesc(err), variant: "destructive" }),
+          });
+        }} />
     </div>
   );
 }
@@ -898,9 +1024,11 @@ function DanadaruratTab({ isAdmin, summary }: { isAdmin?: boolean; summary: any 
   const create = useCreateKas();
   const del = useDeleteKas();
   const updateConfig = useUpdateKasConfig();
+  const transferKas = useTransferKas();
 
   const [openTx, setOpenTx] = useState(false);
   const [openTarget, setOpenTarget] = useState(false);
+  const [openTransferDana, setOpenTransferDana] = useState(false);
   const [txState, setTxState] = useState<SimpleTxState>(defaultSimpleTx({ type: "pemasukan" }));
   const [targetForm, setTargetForm] = useState({ target: "" });
 
@@ -986,6 +1114,12 @@ function DanadaruratTab({ isAdmin, summary }: { isAdmin?: boolean; summary: any 
             variant="outline" className="rounded-full gap-1 text-rose-700 border-rose-200 hover:bg-rose-50">
             <ArrowDownCircle className="w-4 h-4" />Catat Pengeluaran Darurat
           </Button>
+          {saldo > 0 && (
+            <Button size="sm" variant="outline" onClick={() => setOpenTransferDana(true)}
+              className="rounded-full gap-1 text-sky-700 border-sky-200 hover:bg-sky-50">
+              <ArrowRight className="w-4 h-4" />Transfer ke Umum
+            </Button>
+          )}
         </div>
       )}
 
@@ -1018,6 +1152,18 @@ function DanadaruratTab({ isAdmin, summary }: { isAdmin?: boolean; summary: any 
           </div>
         </DialogContent>
       </Dialog>
+
+      <TransferDanaDialog open={openTransferDana} onClose={() => setOpenTransferDana(false)} isPending={transferKas.isPending}
+        initial={{ fromFund: "darurat", toFund: "umum", amount: "", description: "Transfer Dana Darurat → Umum", date: today(), notes: "" }}
+        onSave={(form) => {
+          transferKas.mutate({ data: { fromFund: form.fromFund, toFund: form.toFund, amount: Number(form.amount), description: form.description, date: form.date, notes: form.notes || undefined } }, {
+            onSuccess: () => {
+              invalidate(); setOpenTransferDana(false);
+              toast({ title: `Transfer ${formatRp(Number(form.amount))} berhasil` });
+            },
+            onError: (err) => toast({ title: "Transfer gagal", description: getApiErrorDesc(err), variant: "destructive" }),
+          });
+        }} />
     </div>
   );
 }
@@ -1032,6 +1178,7 @@ function DanaProkerTab({ isAdmin }: { isAdmin?: boolean }) {
   const delProker = useDeleteProkerFund();
   const create = useCreateKas();
   const del = useDeleteKas();
+  const transferKas = useTransferKas();
 
   const [selectedProker, setSelectedProker] = useState<number | null>(null);
   const { data: prokerKas, isLoading: loadingKas } = useGetKas(
@@ -1041,6 +1188,7 @@ function DanaProkerTab({ isAdmin }: { isAdmin?: boolean }) {
   const [openAddProker, setOpenAddProker] = useState(false);
   const [openEditProker, setOpenEditProker] = useState(false);
   const [openAddTx, setOpenAddTx] = useState(false);
+  const [openTransferDana, setOpenTransferDana] = useState(false);
   const [editProkerForm, setEditProkerForm] = useState({ name: "", budget: "", notes: "" });
   const [editProkerId, setEditProkerId] = useState<number | null>(null);
   const [txState, setTxState] = useState<SimpleTxState>(defaultSimpleTx({ type: "pengeluaran" }));
@@ -1139,6 +1287,12 @@ function DanaProkerTab({ isAdmin }: { isAdmin?: boolean }) {
               className="rounded-full gap-1 text-emerald-700 border-emerald-200 hover:bg-emerald-50">
               <ArrowUpCircle className="w-4 h-4" />Tambah Dana
             </Button>
+            {selectedProkerData.sisa > 0 && (
+              <Button size="sm" variant="outline" onClick={() => setOpenTransferDana(true)}
+                className="rounded-full gap-1 text-sky-700 border-sky-200 hover:bg-sky-50">
+                <ArrowRight className="w-4 h-4" />Kembalikan ke Umum
+              </Button>
+            )}
           </div>
         )}
 
@@ -1181,6 +1335,18 @@ function DanaProkerTab({ isAdmin }: { isAdmin?: boolean }) {
             </div>
           </DialogContent>
         </Dialog>
+
+        <TransferDanaDialog open={openTransferDana} onClose={() => setOpenTransferDana(false)} isPending={transferKas.isPending}
+          initial={{ fromFund: "proker", toFund: "umum", amount: "", description: `Kembalikan Sisa Proker: ${selectedProkerData.name}`, date: today(), notes: "" }}
+          onSave={(form) => {
+            transferKas.mutate({ data: { fromFund: form.fromFund, toFund: form.toFund, amount: Number(form.amount), description: form.description, date: form.date, notes: form.notes || undefined } }, {
+              onSuccess: () => {
+                invalidateAll(); setOpenTransferDana(false);
+                toast({ title: `Transfer ${formatRp(Number(form.amount))} berhasil` });
+              },
+              onError: (err) => toast({ title: "Transfer gagal", description: getApiErrorDesc(err), variant: "destructive" }),
+            });
+          }} />
       </div>
     );
   }

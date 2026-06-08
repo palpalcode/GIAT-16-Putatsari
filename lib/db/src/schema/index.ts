@@ -162,6 +162,23 @@ export const kasConfigTable = pgTable("kas_config", {
 
 export type KasConfig = typeof kasConfigTable.$inferSelect;
 
+export const transferKasTable = pgTable("transfer_kas", {
+  id: serial("id").primaryKey(),
+  fromFund: text("from_fund").notNull(),
+  toFund: text("to_fund").notNull(),
+  amount: integer("amount").notNull(),
+  description: text("description").notNull(),
+  date: text("date").notNull(),
+  notes: text("notes"),
+  kasOutId: integer("kas_out_id").references(() => kasTable.id),
+  kasInId: integer("kas_in_id").references(() => kasTable.id),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const insertTransferKasSchema = createInsertSchema(transferKasTable).omit({ id: true, createdAt: true });
+export type InsertTransferKas = z.infer<typeof insertTransferKasSchema>;
+export type TransferKas = typeof transferKasTable.$inferSelect;
+
 export const prokerFundsTable = pgTable("proker_funds", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),

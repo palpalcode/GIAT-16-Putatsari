@@ -1115,7 +1115,7 @@ paths:
     post:
       operationId: transferSisaMakan
       tags: [kas]
-      summary: Transfer sisa makan hari ini ke dana darurat (admin)
+      summary: Transfer sisa makan hari ini ke dana darurat atau kas umum (admin)
       requestBody:
         required: true
         content:
@@ -1131,6 +1131,42 @@ paths:
                 $ref: "#/components/schemas/TransferSisaMakanResult"
         "400":
           description: Tidak ada sisa
+
+  /kas/transfer:
+    get:
+      operationId: getTransfers
+      tags: [kas]
+      summary: Get list transfer kas antar-fund
+      responses:
+        "200":
+          description: List of transfers
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TransferKas"
+    post:
+      operationId: transferKas
+      tags: [kas]
+      summary: Transfer dana antar kas (admin)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TransferKasInput"
+      responses:
+        "201":
+          description: Transfer berhasil
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TransferKasResult"
+        "400":
+          description: Saldo tidak mencukupi
+        "403":
+          description: Tidak dapat transfer ke fund yang sama
 
   /proker-funds:
     get:
@@ -2438,6 +2474,10 @@ components:
           type: string
         terpakai:
           type: integer
+        target:
+          type: string
+          enum: [darurat, umum]
+          default: darurat
 
     TransferSisaMakanResult:
       type: object
@@ -2445,6 +2485,61 @@ components:
       properties:
         sisa:
           type: integer
+        txOut:
+          $ref: "#/components/schemas/Kas"
+        txIn:
+          $ref: "#/components/schemas/Kas"
+
+    TransferKasInput:
+      type: object
+      required: [fromFund, toFund, amount, description, date]
+      properties:
+        fromFund:
+          type: string
+          enum: [umum, darurat, iuran_makan, proker]
+        toFund:
+          type: string
+          enum: [umum, darurat, iuran_makan, proker]
+        amount:
+          type: integer
+        description:
+          type: string
+        date:
+          type: string
+        notes:
+          type: string
+
+    TransferKas:
+      type: object
+      required: [id, fromFund, toFund, amount, description, date, createdAt]
+      properties:
+        id:
+          type: integer
+        fromFund:
+          type: string
+        toFund:
+          type: string
+        amount:
+          type: integer
+        description:
+          type: string
+        date:
+          type: string
+        notes:
+          type: string
+        kasOutId:
+          type: integer
+        kasInId:
+          type: integer
+        createdAt:
+          type: string
+
+    TransferKasResult:
+      type: object
+      required: [transfer, txOut, txIn]
+      properties:
+        transfer:
+          $ref: "#/components/schemas/TransferKas"
         txOut:
           $ref: "#/components/schemas/Kas"
         txIn:

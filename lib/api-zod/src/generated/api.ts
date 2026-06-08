@@ -896,11 +896,45 @@ export const GetIuranPaymentsSummaryResponse = zod.array(GetIuranPaymentsSummary
 
 
 /**
- * @summary Transfer sisa makan hari ini ke dana darurat (admin)
+ * @summary Transfer sisa makan hari ini ke dana darurat atau kas umum (admin)
  */
+export const transferSisaMakanBodyTargetDefault = `darurat`;
+
 export const TransferSisaMakanBody = zod.object({
   "date": zod.string(),
-  "terpakai": zod.number()
+  "terpakai": zod.number(),
+  "target": zod.enum(['darurat', 'umum']).default(transferSisaMakanBodyTargetDefault)
+})
+
+
+/**
+ * @summary Get list transfer kas antar-fund
+ */
+export const GetTransfersResponseItem = zod.object({
+  "id": zod.number(),
+  "fromFund": zod.string(),
+  "toFund": zod.string(),
+  "amount": zod.number(),
+  "description": zod.string(),
+  "date": zod.string(),
+  "notes": zod.string().optional(),
+  "kasOutId": zod.number().optional(),
+  "kasInId": zod.number().optional(),
+  "createdAt": zod.string()
+})
+export const GetTransfersResponse = zod.array(GetTransfersResponseItem)
+
+
+/**
+ * @summary Transfer dana antar kas (admin)
+ */
+export const TransferKasBody = zod.object({
+  "fromFund": zod.enum(['umum', 'darurat', 'iuran_makan', 'proker']),
+  "toFund": zod.enum(['umum', 'darurat', 'iuran_makan', 'proker']),
+  "amount": zod.number(),
+  "description": zod.string(),
+  "date": zod.string(),
+  "notes": zod.string().optional()
 })
 
 

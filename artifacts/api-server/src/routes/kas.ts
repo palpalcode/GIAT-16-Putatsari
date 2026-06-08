@@ -1,11 +1,11 @@
 import { Router } from "express";
 import { db } from "@workspace/db";
-import { kasTable, kasItemsTable, kasConfigTable, iuranMakanPaymentsTable } from "@workspace/db";
+import { kasTable, kasItemsTable, kasConfigTable, iuranMakanPaymentsTable, transferKasTable } from "@workspace/db";
 import { and, eq, desc, inArray, sql, sum } from "drizzle-orm";
 import { requireEdit } from "../lib/auth";
 import {
   CreateKasBody, UpdateKasBody, UpdateKasConfigBody,
-  CreateIuranPaymentBody, TransferSisaMakanBody,
+  CreateIuranPaymentBody, TransferSisaMakanBody, TransferKasBody,
 } from "@workspace/api-zod";
 
 const router = Router();
@@ -315,7 +315,8 @@ router.post("/kas/transfer-sisa-makan", requireEdit("kas"), async (req, res) => 
       res.status(400).json({ error: "Data tidak valid", details: parsed.error.flatten() });
       return;
     }
-    const { date, terpakai } = parsed.data;
+    const { date, terpakai, target } = parsed.data;
+    const targetFund = target ?? "darurat";
 
     const weeklyFood = await getConfigValue("weekly_food_amount", 0);
     const jatah = Math.floor((weeklyFood * 9) / 7);
@@ -332,27 +333,88 @@ router.post("/kas/transfer-sisa-makan", requireEdit("kas"), async (req, res) => 
     }
 
     const existing = await db.select().from(kasTable).where(
-      and(eq(kasTable.fund, "iuran_makan"), eq(kasTable.type, "pengeluaran"), eq(kasTable.description, `Transfer sisa makan ${date} ke dana darurat`))
+      and(eq(kasTable.fund, "iuran_makan"), eq(kasTable.type, "pengeluaran"), eq(kasTable.description, `Transfer sisa makan ${date} ke ${targetFund === "darurat" ? "dana darurat" : "kas umum"}`))
     );
     if (existing.length > 0) {
       res.status(409).json({ error: "Transfer sisa untuk tanggal ini sudah dilakukan" }); return;
     }
 
-    const [txOut, txIn] = await db.transaction(async (tx) => {
+    const [txOut, txIn, transfer] = await db.transaction(async (tx) => {
       const [out] = await tx.insert(kasTable).values({
         type: "pengeluaran", amount: sisa,
-        description: `Transfer sisa makan ${date} ke dana darurat`,
+        description: `Transfer sisa makan ${date} ke ${targetFund === "darurat" ? "dana darurat" : "kas umum"}`,
         category: "lainnya", date, fund: "iuran_makan",
       }).returning();
       const [inp] = await tx.insert(kasTable).values({
         type: "pemasukan", amount: sisa,
         description: `Sisa makan ${date} dari iuran makan`,
-        category: "lainnya", date, fund: "darurat",
+        category: "lainnya", date, fund: targetFund,
       }).returning();
-      return [out, inp];
+      const [tf] = await tx.insert(transferKasTable).values({
+        fromFund: "iuran_makan", toFund: targetFund, amount: sisa,
+        description: `Transfer sisa makan ${date}`,
+        date, notes: null,
+        kasOutId: out.id, kasInId: inp.id,
+      }).returning();
+      return [out, inp, tf];
     });
 
-    res.status(201).json({ sisa, txOut: mapRow(txOut), txIn: mapRow(txIn) });
+    res.status(201).json({ sisa, txOut: mapRow(txOut), txIn: mapRow(txIn), transfer });
+  } catch (err) {
+    req.log.error(err);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+router.get("/kas/transfer", async (req, res) => {
+  try {
+    const rows = await db.select().from(transferKasTable).orderBy(desc(transferKasTable.createdAt));
+    res.json(rows.map(r => ({ ...r, createdAt: r.createdAt.toISOString() })));
+  } catch (err) {
+    req.log.error(err);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+router.post("/kas/transfer", requireEdit("kas"), async (req, res) => {
+  try {
+    const parsed = TransferKasBody.safeParse(req.body);
+    if (!parsed.success) {
+      res.status(400).json({ error: "Data tidak valid", details: parsed.error.flatten() });
+      return;
+    }
+    const { fromFund, toFund, amount, description, date, notes } = parsed.data;
+
+    if (fromFund === toFund) {
+      res.status(403).json({ error: "Tidak dapat transfer ke fund yang sama" }); return;
+    }
+
+    const sourceBalance = await getFundBalance(fromFund);
+    if (amount > sourceBalance) {
+      res.status(400).json({ error: "Saldo tidak mencukupi", available: sourceBalance, requested: amount });
+      return;
+    }
+
+    const [txOut, txIn, transfer] = await db.transaction(async (tx) => {
+      const [out] = await tx.insert(kasTable).values({
+        type: "pengeluaran", amount,
+        description: `Transfer ke ${toFund === "darurat" ? "dana darurat" : toFund === "umum" ? "kas umum" : toFund === "iuran_makan" ? "iuran makan" : "dana proker"}: ${description}`,
+        category: "lainnya", date, fund: fromFund,
+      }).returning();
+      const [inp] = await tx.insert(kasTable).values({
+        type: "pemasukan", amount,
+        description: `Transfer dari ${fromFund === "darurat" ? "dana darurat" : fromFund === "umum" ? "kas umum" : fromFund === "iuran_makan" ? "iuran makan" : "dana proker"}: ${description}`,
+        category: "lainnya", date, fund: toFund,
+      }).returning();
+      const [tf] = await tx.insert(transferKasTable).values({
+        fromFund, toFund, amount,
+        description, date, notes: notes ?? null,
+        kasOutId: out.id, kasInId: inp.id,
+      }).returning();
+      return [out, inp, tf];
+    });
+
+    res.status(201).json({ transfer: { ...transfer, createdAt: transfer.createdAt.toISOString() }, txOut: mapRow(txOut), txIn: mapRow(txIn) });
   } catch (err) {
     req.log.error(err);
     res.status(500).json({ error: "Server error" });

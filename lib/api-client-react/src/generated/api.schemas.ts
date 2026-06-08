@@ -819,13 +819,70 @@ export interface IuranMakanMemberSummary {
   weekCount: number;
 }
 
+export type TransferSisaMakanInputTarget = typeof TransferSisaMakanInputTarget[keyof typeof TransferSisaMakanInputTarget];
+
+
+export const TransferSisaMakanInputTarget = {
+  darurat: 'darurat',
+  umum: 'umum',
+} as const;
+
 export interface TransferSisaMakanInput {
   date: string;
   terpakai: number;
+  target?: TransferSisaMakanInputTarget;
 }
 
 export interface TransferSisaMakanResult {
   sisa: number;
+  txOut: Kas;
+  txIn: Kas;
+}
+
+export type TransferKasInputFromFund = typeof TransferKasInputFromFund[keyof typeof TransferKasInputFromFund];
+
+
+export const TransferKasInputFromFund = {
+  umum: 'umum',
+  darurat: 'darurat',
+  iuran_makan: 'iuran_makan',
+  proker: 'proker',
+} as const;
+
+export type TransferKasInputToFund = typeof TransferKasInputToFund[keyof typeof TransferKasInputToFund];
+
+
+export const TransferKasInputToFund = {
+  umum: 'umum',
+  darurat: 'darurat',
+  iuran_makan: 'iuran_makan',
+  proker: 'proker',
+} as const;
+
+export interface TransferKasInput {
+  fromFund: TransferKasInputFromFund;
+  toFund: TransferKasInputToFund;
+  amount: number;
+  description: string;
+  date: string;
+  notes?: string;
+}
+
+export interface TransferKas {
+  id: number;
+  fromFund: string;
+  toFund: string;
+  amount: number;
+  description: string;
+  date: string;
+  notes?: string;
+  kasOutId?: number;
+  kasInId?: number;
+  createdAt: string;
+}
+
+export interface TransferKasResult {
+  transfer: TransferKas;
   txOut: Kas;
   txIn: Kas;
 }
