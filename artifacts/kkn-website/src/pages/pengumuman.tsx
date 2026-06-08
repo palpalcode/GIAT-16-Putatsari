@@ -32,12 +32,14 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Plus, Pencil, Trash2, Megaphone, FileText, Calendar, User, Users, ChevronRight } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { cn } from "@/lib/utils";
+import { cn, TEAM_ROLES } from "@/lib/utils";
 import {
   useCreateNotulensi,
   useUpdateNotulensi,
   useDeleteNotulensi,
 } from "@workspace/api-client-react";
+
+const SEKRETARIS_NAME = Object.keys(TEAM_ROLES).find((m) => TEAM_ROLES[m] === "Sekretaris") ?? "";
 
 type Priority = "low" | "medium" | "high";
 
@@ -117,7 +119,7 @@ export default function PengumumanPage() {
     attendeesRaw: "",
     agenda: "",
     content: "",
-    author: "",
+    author: SEKRETARIS_NAME,
   });
 
   const createN = useCreateNotulensi();
@@ -185,7 +187,7 @@ export default function PengumumanPage() {
   }
   function openAddN() {
     setEditingNId(null);
-    setFormN({ title: "", meetingDate: "", attendeesRaw: "", agenda: "", content: "", author: "" });
+    setFormN({ title: "", meetingDate: "", attendeesRaw: "", agenda: "", content: "", author: SEKRETARIS_NAME });
     setOpenN(true);
   }
   function openEditN(n: Notulensi, e: React.MouseEvent) {

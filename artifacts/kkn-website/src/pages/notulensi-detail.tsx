@@ -2,11 +2,23 @@ import { useParams, useLocation } from "wouter";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   useGetNotulensi,
+  useUpdateNotulensi,
   useDeleteNotulensi,
   getGetNotulensiListQueryKey,
+  getGetNotulensiQueryKey,
 } from "@workspace/api-client-react";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -162,10 +174,67 @@ export default function NotulensiDetailPage() {
   const id = Number(params.id);
   const { data: notulensi, isLoading } = useGetNotulensi(id);
   const deleteMutation = useDeleteNotulensi();
+  const updateMutation = useUpdateNotulensi();
 
   const [showDelete, setShowDelete] = useState(false);
+  const [showEdit, setShowEdit] = useState(false);
   const [copied, setCopied] = useState(false);
   const [exporting, setExporting] = useState(false);
+  const [editForm, setEditForm] = useState({
+    title: "",
+    meetingDate: "",
+    attendeesRaw: "",
+    agenda: "",
+    content: "",
+    author: "",
+  });
+
+  function fE(k: keyof typeof editForm, v: string) {
+    setEditForm((p) => ({ ...p, [k]: v }));
+  }
+
+  function openEdit() {
+    if (!notulensi) return;
+    setEditForm({
+      title: notulensi.title,
+      meetingDate: notulensi.meetingDate.slice(0, 10),
+      attendeesRaw: notulensi.attendees.join(", "),
+      agenda: notulensi.agenda ?? "",
+      content: notulensi.content,
+      author: notulensi.author,
+    });
+    setShowEdit(true);
+  }
+
+  function handleSaveEdit() {
+    if (!editForm.title || !editForm.meetingDate || !editForm.content || !editForm.author) return;
+    const attendees = editForm.attendeesRaw
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean);
+    updateMutation.mutate(
+      {
+        id,
+        data: {
+          title: editForm.title,
+          meetingDate: editForm.meetingDate,
+          attendees,
+          agenda: editForm.agenda || undefined,
+          content: editForm.content,
+          author: editForm.author,
+        },
+      },
+      {
+        onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey: getGetNotulensiQueryKey(id) });
+          queryClient.invalidateQueries({ queryKey: getGetNotulensiListQueryKey() });
+          toast({ title: "Notulensi diperbarui" });
+          setShowEdit(false);
+        },
+        onError: () => toast({ title: "Gagal menyimpan", variant: "destructive" }),
+      }
+    );
+  }
 
   function handleCopy() {
     if (!notulensi) return;
@@ -212,7 +281,7 @@ export default function NotulensiDetailPage() {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: getGetNotulensiListQueryKey() });
           toast({ title: "Notulensi dihapus" });
-          navigate("/notulensi");
+          navigate("/pengumuman");
         },
         onError: () => toast({ title: "Gagal menghapus", variant: "destructive" }),
       }
@@ -251,7 +320,7 @@ export default function NotulensiDetailPage() {
         <Button
           variant="ghost"
           className="rounded-full text-gray-600 hover:text-gray-900 -ml-2"
-          onClick={() => navigate("/notulensi")}
+          onClick={() => navigate("/pengumuman")}
         >
           <ArrowLeft className="w-4 h-4 mr-2" />
           Semua Notulensi
@@ -287,7 +356,7 @@ export default function NotulensiDetailPage() {
                 variant="ghost"
                 size="icon"
                 className="rounded-full h-9 w-9"
-                onClick={() => navigate(`/notulensi/${id}/edit`)}
+                onClick={openEdit}
               >
                 <Pencil className="w-4 h-4 text-sky-500" />
               </Button>
@@ -395,6 +464,88 @@ export default function NotulensiDetailPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <Dialog open={showEdit} onOpenChange={setShowEdit}>
+        <DialogContent className="glass-panel border-white/50 max-w-lg max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-lg font-bold text-gray-800">Edit Notulensi</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="space-y-1.5">
+              <Label className="text-sm font-medium text-gray-700">Judul</Label>
+              <Input
+                className="rounded-xl bg-white/60 border-white/60"
+                placeholder="Judul rapat..."
+                value={editForm.title}
+                onChange={(e) => fE("title", e.target.value)}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-sm font-medium text-gray-700">Tanggal Rapat</Label>
+              <Input
+                type="date"
+                className="rounded-xl bg-white/60 border-white/60"
+                value={editForm.meetingDate}
+                onChange={(e) => fE("meetingDate", e.target.value)}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-sm font-medium text-gray-700">Notulis</Label>
+              <Input
+                className="rounded-xl bg-white/60 border-white/60"
+                placeholder="Nama notulis..."
+                value={editForm.author}
+                onChange={(e) => fE("author", e.target.value)}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-sm font-medium text-gray-700">Peserta (pisahkan dengan koma)</Label>
+              <Input
+                className="rounded-xl bg-white/60 border-white/60"
+                placeholder="Andi, Budi, Citra..."
+                value={editForm.attendeesRaw}
+                onChange={(e) => fE("attendeesRaw", e.target.value)}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-sm font-medium text-gray-700">Agenda</Label>
+              <Textarea
+                className="rounded-xl bg-white/60 border-white/60 min-h-[80px] resize-none"
+                placeholder="Daftar agenda rapat..."
+                value={editForm.agenda}
+                onChange={(e) => fE("agenda", e.target.value)}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-sm font-medium text-gray-700">Isi Notulensi</Label>
+              <Textarea
+                className="rounded-xl bg-white/60 border-white/60 min-h-[120px] resize-none"
+                placeholder="Catatan hasil rapat..."
+                value={editForm.content}
+                onChange={(e) => fE("content", e.target.value)}
+              />
+            </div>
+          </div>
+          <DialogFooter className="gap-2">
+            <Button variant="ghost" className="rounded-full" onClick={() => setShowEdit(false)}>
+              Batal
+            </Button>
+            <Button
+              className="rounded-full bg-gradient-to-r from-rose-400 to-sky-400 text-white"
+              onClick={handleSaveEdit}
+              disabled={
+                updateMutation.isPending ||
+                !editForm.title ||
+                !editForm.meetingDate ||
+                !editForm.content ||
+                !editForm.author
+              }
+            >
+              {updateMutation.isPending ? "Menyimpan…" : "Simpan"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

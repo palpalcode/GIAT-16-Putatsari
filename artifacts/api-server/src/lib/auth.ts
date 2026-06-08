@@ -32,7 +32,7 @@ export const ROLE_LABELS: Record<Role, string> = {
 };
 
 // Roles whose edit access is controlled by the ketua.
-export const MANAGED_ROLES: Role[] = ["bendahara"];
+export const MANAGED_ROLES: Role[] = ["bendahara", "sekretaris"];
 
 const ROLE_PASSWORDS: Record<Role, string> = {
   ketua: process.env.KETUA_PASSWORD || "pastword",
@@ -59,10 +59,10 @@ export function isManagedRole(value: string): value is Role {
   return MANAGED_ROLES.includes(value as Role);
 }
 
-// Ketua & sekretaris always have full access; bendahara is per-DB.
+// Ketua always has full access; sekretaris & bendahara are per-DB.
 export async function canEdit(role: Role | null, resource: Resource): Promise<boolean> {
   if (!role) return false;
-  if (role === "ketua" || role === "sekretaris") return true;
+  if (role === "ketua") return true;
   const rows = await db
     .select()
     .from(permissionsTable)
@@ -71,7 +71,7 @@ export async function canEdit(role: Role | null, resource: Resource): Promise<bo
 }
 
 export async function permissionsForRole(role: Role): Promise<Resource[]> {
-  if (role === "ketua" || role === "sekretaris") return [...RESOURCES];
+  if (role === "ketua") return [...RESOURCES];
   const rows = await db.select().from(permissionsTable).where(eq(permissionsTable.role, role));
   const granted = new Map(rows.map((r) => [r.resource, r.canEdit]));
   return RESOURCES.filter((r) => granted.get(r) === true);
