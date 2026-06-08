@@ -82,6 +82,27 @@ function shiftWeek(label: string, delta: number): string {
   return toWeekLabel(shifted);
 }
 
+// KKN starts Monday 15 June 2026 → that is week 1
+const KKN_START = new Date("2026-06-15T00:00:00Z");
+const KKN_START_WEEK = toWeekLabel(KKN_START); // 2026-W25
+
+function weekLabelToMonday(label: string): Date {
+  const [yearStr, wStr] = label.split("-W");
+  const year = Number(yearStr);
+  const week = Number(wStr);
+  const jan4 = new Date(Date.UTC(year, 0, 4));
+  const startOfWeek = new Date(jan4.getTime() + (week - getISOWeek(jan4).week) * 7 * 86400000);
+  const monday = new Date(startOfWeek.getTime() - ((startOfWeek.getUTCDay() || 7) - 1) * 86400000);
+  return monday;
+}
+
+function toRelativeWeekNumber(label: string): number {
+  const start = weekLabelToMonday(KKN_START_WEEK);
+  const current = weekLabelToMonday(label);
+  const diffMs = current.getTime() - start.getTime();
+  return Math.round(diffMs / (7 * 86400000)) + 1;
+}
+
 const KAS_CATEGORIES = [
   { id: "makan", label: "Makan", emoji: "🍽️", color: "bg-orange-100 text-orange-700 border-orange-200" },
   { id: "transport", label: "Transport", emoji: "🚗", color: "bg-sky-100 text-sky-700 border-sky-200" },
@@ -555,7 +576,7 @@ function IuranMakanTab({ isAdmin, summary }: { isAdmin?: boolean; summary: any }
   const transferSisa = useTransferSisaMakan();
 
   const { data: members } = useGetMembers();
-  const [selectedWeek, setSelectedWeek] = useState(() => toWeekLabel(new Date()));
+  const [selectedWeek, setSelectedWeek] = useState(() => KKN_START_WEEK);
   const { data: weekPayments, isLoading: loadingWeekPayments } = useGetIuranPayments({ week: selectedWeek });
   const { data: memberSummary } = useGetIuranPaymentsSummary();
   const createPayment = useCreateIuranPayment();
@@ -635,7 +656,9 @@ function IuranMakanTab({ isAdmin, summary }: { isAdmin?: boolean; summary: any }
   const paidCount = paidSet.size;
   const totalCount = memberNames.length;
   const all = kas ?? [];
+  const relativeWeekNum = toRelativeWeekNumber(selectedWeek);
   const isCurrentWeek = selectedWeek === toWeekLabel(new Date());
+  const isBeforeWeek1 = relativeWeekNum < 1;
   return (
     <div className="space-y-5">
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -677,13 +700,14 @@ function IuranMakanTab({ isAdmin, summary }: { isAdmin?: boolean; summary: any }
         <div className="space-y-4">
           {/* Week navigation */}
           <div className="flex items-center justify-between gap-2">
-            <button onClick={() => setSelectedWeek(w => shiftWeek(w, -1))} className="p-1.5 rounded-lg hover:bg-white/60 transition-colors text-gray-500">
+            <button onClick={() => setSelectedWeek(w => shiftWeek(w, -1))} disabled={isBeforeWeek1} className={cn("p-1.5 rounded-lg transition-colors", isBeforeWeek1 ? "text-gray-300" : "hover:bg-white/60 text-gray-500")}>
               <ChevronLeft className="w-4 h-4" />
             </button>
             <div className="text-center flex-1">
-              <p className="text-sm font-bold text-gray-800">{selectedWeek}</p>
-              <p className="text-xs text-gray-400">{weekLabelToRange(selectedWeek)}</p>
-              {isCurrentWeek && <Badge className="text-[10px] bg-orange-100 text-orange-700 border-orange-200 mt-0.5">Minggu Ini</Badge>}
+              <p className="text-sm font-bold text-gray-800">Minggu {Math.max(1, relativeWeekNum)}</p>
+              <p className="text-xs text-gray-400">{weekLabelToRange(isBeforeWeek1 ? KKN_START_WEEK : selectedWeek)}</p>
+              {isCurrentWeek && !isBeforeWeek1 && <Badge className="text-[10px] bg-orange-100 text-orange-700 border-orange-200 mt-0.5">Minggu Ini</Badge>}
+              {isBeforeWeek1 && <Badge className="text-[10px] bg-amber-100 text-amber-700 border-amber-200 mt-0.5">Sebelum KKN dimulai</Badge>}
             </div>
             <button onClick={() => setSelectedWeek(w => shiftWeek(w, 1))} disabled={isCurrentWeek} className={cn("p-1.5 rounded-lg transition-colors", isCurrentWeek ? "text-gray-300" : "hover:bg-white/60 text-gray-500")}>
               <ChevronRight className="w-4 h-4" />
@@ -1288,7 +1312,7 @@ export default function KasPage() {
   const { can } = useAuth();
   const isAdmin = can("kas");
   const { data: summary } = useGetKasSummary();
-  const [tab, setTab] = useState<"umum" | "iuran_makan" | "darurat" | "proker">("umum");
+  const [tab, setTab] = useState<"umum" | "iuran_makan" | "darurat" | "proker">("iuran_makan");
 
   const tabs = [
     { id: "umum", label: "Kas Umum", emoji: "💰", color: "from-emerald-400 to-teal-400" },
