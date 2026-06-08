@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   type KasInputType,
@@ -247,6 +247,8 @@ function AddEditDialog({
 }) {
   const [form, setForm] = useState<KasForm>(initial);
   const set = <K extends keyof KasForm>(k: K, v: KasForm[K]) => setForm(f => ({ ...f, [k]: v }));
+
+  useEffect(() => { setForm(initial); }, [open, editId, initial]);
 
   // When items change and have a valid total, auto-fill amount
   function handleItemsChange(items: ItemRow[]) {

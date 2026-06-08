@@ -42,19 +42,20 @@ router.get("/kas", async (req, res) => {
 router.post("/kas", requireEdit("kas"), async (req, res) => {
   try {
     const { type, amount, description, category, date, notes, fund, prokerId, items } = req.body;
-    const [row] = await db.insert(kasTable).values({
-      type, amount, description, category, date, notes,
-      fund: fund ?? "umum",
-      prokerId: prokerId ?? null,
-    }).returning();
-
-    let insertedItems: any[] = [];
-    if (Array.isArray(items) && items.length > 0) {
-      insertedItems = await db.insert(kasItemsTable)
-        .values(items.map((it: any) => ({ kasId: row.id, name: it.name, amount: it.amount })))
-        .returning();
-    }
-
+    const { row, insertedItems } = await db.transaction(async (tx) => {
+      const [row] = await tx.insert(kasTable).values({
+        type, amount, description, category, date, notes,
+        fund: fund ?? "umum",
+        prokerId: prokerId ?? null,
+      }).returning();
+      let insertedItems: any[] = [];
+      if (Array.isArray(items) && items.length > 0) {
+        insertedItems = await tx.insert(kasItemsTable)
+          .values(items.map((it: any) => ({ kasId: row.id, name: it.name, amount: it.amount })))
+          .returning();
+      }
+      return { row, insertedItems };
+    });
     res.status(201).json(mapRow(row, insertedItems));
   } catch (err) {
     req.log.error(err);
@@ -75,21 +76,24 @@ router.patch("/kas/:id", requireEdit("kas"), async (req, res) => {
     if (notes !== undefined) updates.notes = notes;
     if (fund !== undefined) updates.fund = fund;
     if (prokerId !== undefined) updates.prokerId = prokerId;
-    const [row] = await db.update(kasTable).set(updates).where(eq(kasTable.id, id)).returning();
-    if (!row) { res.status(404).json({ error: "Tidak ditemukan" }); return; }
 
-    let finalItems: any[] = [];
-    if (Array.isArray(items)) {
-      await db.delete(kasItemsTable).where(eq(kasItemsTable.kasId, id));
-      if (items.length > 0) {
-        finalItems = await db.insert(kasItemsTable)
-          .values(items.map((it: any) => ({ kasId: id, name: it.name, amount: it.amount })))
-          .returning();
+    const { row, finalItems } = await db.transaction(async (tx) => {
+      const [row] = await tx.update(kasTable).set(updates).where(eq(kasTable.id, id)).returning();
+      if (!row) return { row: null, finalItems: [] };
+      let finalItems: any[] = [];
+      if (Array.isArray(items)) {
+        await tx.delete(kasItemsTable).where(eq(kasItemsTable.kasId, id));
+        if (items.length > 0) {
+          finalItems = await tx.insert(kasItemsTable)
+            .values(items.map((it: any) => ({ kasId: id, name: it.name, amount: it.amount })))
+            .returning();
+        }
+      } else {
+        finalItems = await tx.select().from(kasItemsTable).where(eq(kasItemsTable.kasId, id));
       }
-    } else {
-      finalItems = await db.select().from(kasItemsTable).where(eq(kasItemsTable.kasId, id));
-    }
-
+      return { row, finalItems };
+    });
+    if (!row) { res.status(404).json({ error: "Tidak ditemukan" }); return; }
     res.json(mapRow(row, finalItems));
   } catch (err) {
     req.log.error(err);
