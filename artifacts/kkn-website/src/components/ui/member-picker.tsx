@@ -1,7 +1,7 @@
 import { cn, TEAM_MEMBERS } from "@/lib/utils";
 import { User } from "lucide-react";
 
-const MEMBER_COLORS = [
+export const MEMBER_COLORS = [
   "from-rose-400 to-pink-400",
   "from-sky-400 to-blue-400",
   "from-violet-400 to-purple-400",
@@ -13,7 +13,7 @@ const MEMBER_COLORS = [
   "from-indigo-400 to-violet-400",
 ];
 
-function getMemberColor(name: string) {
+export function getMemberColor(name: string) {
   const idx = TEAM_MEMBERS.indexOf(name);
   return MEMBER_COLORS[idx >= 0 ? idx : 0];
 }

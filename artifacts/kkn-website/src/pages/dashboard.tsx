@@ -4,6 +4,7 @@ import { Megaphone, Calendar, AlertTriangle, CheckCircle2, ChefHat, SprayCan, Pa
 import { Link } from "wouter";
 import { cn } from "@/lib/utils";
 import { TEAM_MEMBERS, TEAM_ROLES } from "@/lib/utils";
+import { getMemberColor } from "@/components/ui/member-picker";
 
 function daysLeft(dueDate: string): number {
   const now = new Date();
@@ -198,8 +199,12 @@ export default function Dashboard() {
             <span className="text-sm font-semibold text-gray-600">Masak Hari Ini</span>
           </div>
           {isLoading ? <SkeletonBlock className="h-4 w-3/4" /> :
-            summary?.todayCooking
-              ? <p className="text-sm text-gray-700 font-medium">{summary.todayCooking}</p>
+            summary?.todayCooking && summary.todayCooking.length > 0
+              ? <div className="flex flex-wrap gap-1.5">{summary.todayCooking.map((name) => (
+                  <span key={name} className={cn("inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium text-white bg-gradient-to-r", getMemberColor(name))}>
+                    {name}
+                  </span>
+                ))}</div>
               : <p className="text-sm text-gray-400 italic">Belum terjadwal</p>
           }
         </div>
@@ -212,8 +217,12 @@ export default function Dashboard() {
             <span className="text-sm font-semibold text-gray-600">Bersih Hari Ini</span>
           </div>
           {isLoading ? <SkeletonBlock className="h-4 w-3/4" /> :
-            summary?.todayCleaning
-              ? <p className="text-sm text-gray-700 font-medium">{summary.todayCleaning}</p>
+            summary?.todayCleaning && summary.todayCleaning.length > 0
+              ? <div className="flex flex-wrap gap-1.5">{summary.todayCleaning.map((name) => (
+                  <span key={name} className={cn("inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium text-white bg-gradient-to-r", getMemberColor(name))}>
+                    {name}
+                  </span>
+                ))}</div>
               : <p className="text-sm text-gray-400 italic">Belum terjadwal</p>
           }
         </div>

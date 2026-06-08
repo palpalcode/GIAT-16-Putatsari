@@ -672,8 +672,8 @@ export const GetDashboardSummaryResponse = zod.object({
   "upcomingDeadlines": zod.number(),
   "openIssues": zod.number(),
   "openComplaints": zod.number(),
-  "todayCooking": zod.string().nullable(),
-  "todayCleaning": zod.string().nullable(),
+  "todayCooking": zod.array(zod.string()).nullable(),
+  "todayCleaning": zod.array(zod.string()).nullable(),
   "ongoingPrograms": zod.number(),
   "totalInventoryItems": zod.number(),
   "recentAnnouncements": zod.array(zod.object({

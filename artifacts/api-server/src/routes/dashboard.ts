@@ -39,10 +39,10 @@ router.get("/dashboard/summary", async (req, res) => {
     const todayCleaningRow = cleaning.find(c => c.date === today);
 
     const todayCooking = todayCookingRow
-      ? (todayCookingRow.persons as string[]).join(", ")
+      ? (todayCookingRow.persons as string[])
       : null;
     const todayCleaning = todayCleaningRow
-      ? (todayCleaningRow.persons as string[]).join(", ")
+      ? (todayCleaningRow.persons as string[])
       : null;
 
     const recentAnnouncements = announcements.slice(0, 3).map(r => ({

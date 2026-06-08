@@ -14,9 +14,9 @@ export interface DashboardSummary {
   openIssues: number;
   openComplaints: number;
   /** @nullable */
-  todayCooking: string | null;
+  todayCooking: string[] | null;
   /** @nullable */
-  todayCleaning: string | null;
+  todayCleaning: string[] | null;
   ongoingPrograms: number;
   totalInventoryItems: number;
   recentAnnouncements?: Announcement[];

@@ -1536,9 +1536,13 @@ components:
         openComplaints:
           type: integer
         todayCooking:
-          type: ["string", "null"]
+          type: ["array", "null"]
+          items:
+            type: string
         todayCleaning:
-          type: ["string", "null"]
+          type: ["array", "null"]
+          items:
+            type: string
         ongoingPrograms:
           type: integer
         totalInventoryItems:
