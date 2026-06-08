@@ -2,7 +2,7 @@ import { Router } from "express";
 import { db } from "@workspace/db";
 import { cookingSchedulesTable, cleaningSchedulesTable, programSchedulesTable } from "@workspace/db";
 import { eq, desc } from "drizzle-orm";
-import { requireEdit } from "../lib/auth";
+import { requireEdit, requireLogin } from "../lib/auth";
 
 const router = Router();
 
@@ -21,7 +21,7 @@ router.get("/schedules/cooking", async (req, res) => {
   }
 });
 
-router.post("/schedules/cooking", requireEdit("our-life"), async (req, res) => {
+router.post("/schedules/cooking", requireLogin, async (req, res) => {
   try {
     const { date, persons, menu, notes } = req.body;
     const [row] = await db.insert(cookingSchedulesTable).values({ date, persons, menu, notes }).returning();
@@ -32,7 +32,7 @@ router.post("/schedules/cooking", requireEdit("our-life"), async (req, res) => {
   }
 });
 
-router.patch("/schedules/cooking/:id", requireEdit("our-life"), async (req, res) => {
+router.patch("/schedules/cooking/:id", requireLogin, async (req, res) => {
   try {
     const id = Number(req.params.id);
     const { date, persons, menu, notes } = req.body;
@@ -50,7 +50,7 @@ router.patch("/schedules/cooking/:id", requireEdit("our-life"), async (req, res)
   }
 });
 
-router.delete("/schedules/cooking/:id", requireEdit("our-life"), async (req, res) => {
+router.delete("/schedules/cooking/:id", requireLogin, async (req, res) => {
   try {
     await db.delete(cookingSchedulesTable).where(eq(cookingSchedulesTable.id, Number(req.params.id)));
     res.status(204).send();

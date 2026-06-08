@@ -92,7 +92,7 @@ function MemberPicker({ selected, onChange }: { selected: string[]; onChange: (v
 }
 
 // ─── COOKING TAB ──────────────────────────────────────────────────────────────
-function CookingTab({ isAdmin }: { isAdmin?: boolean }) {
+function CookingTab({ isLoggedIn }: { isLoggedIn?: boolean }) {
   const qc = useQueryClient();
   const { toast } = useToast();
   const { data: schedules, isLoading } = useGetCookingSchedules();
@@ -127,7 +127,7 @@ function CookingTab({ isAdmin }: { isAdmin?: boolean }) {
     <div className="space-y-4">
       <div className="flex justify-between items-center">
         <h2 className="text-lg font-semibold text-gray-700">Jadwal Masak</h2>
-        {isAdmin && (
+        {isLoggedIn && (
           <Button size="sm" onClick={openAdd} className="bg-gradient-to-r from-orange-400 to-rose-400 text-white border-0 rounded-full gap-1">
             <Plus className="w-4 h-4" />Tambah
           </Button>
@@ -163,7 +163,7 @@ function CookingTab({ isAdmin }: { isAdmin?: boolean }) {
                   {s.menu && <p className="text-sm text-gray-600 mt-1">🍽️ <span className="font-medium">{s.menu}</span></p>}
                   {s.notes && <p className="text-xs text-gray-400 mt-1">{s.notes}</p>}
                 </div>
-                {isAdmin && (
+                {isLoggedIn && (
                   <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
                     <Button variant="ghost" size="icon" className="h-7 w-7 rounded-full" onClick={() => openEdit(s)}><Pencil className="w-3.5 h-3.5 text-sky-500" /></Button>
                     <Button variant="ghost" size="icon" className="h-7 w-7 rounded-full"
@@ -921,7 +921,7 @@ export default function OurLifePage() {
       </div>
 
       <div className="glass-card p-6">
-        {activeTab === "masak" && <CookingTab isAdmin={isAdmin} />}
+        {activeTab === "masak" && <CookingTab isLoggedIn={isLoggedIn} />}
         {activeTab === "bersih" && <CleaningTab isAdmin={isAdmin} />}
         {activeTab === "inventaris" && <InventarisTab isAdmin={isAdmin} selfName={memberName} isPrivileged={isPrivileged} isLoggedIn={isLoggedIn} />}
         {activeTab === "kondisi" && <KondisiTab memberName={memberName} isKetSek={isKetSek} />}
