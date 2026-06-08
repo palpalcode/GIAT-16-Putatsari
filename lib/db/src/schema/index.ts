@@ -137,6 +137,7 @@ export const kasTable = pgTable("kas", {
   notes: text("notes"),
   fund: text("fund").notNull().default("umum"), // umum | darurat | iuran_makan | proker
   prokerId: integer("proker_id"), // nullable, FK to proker_funds
+  transferId: integer("transfer_id"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 

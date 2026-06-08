@@ -11,7 +11,7 @@ import {
 const router = Router();
 
 function mapRow(row: any, items: any[] = []) {
-  return { ...row, createdAt: row.createdAt.toISOString(), items };
+  return { ...row, createdAt: row.createdAt.toISOString(), items, transferId: row.transferId ?? null };
 }
 
 function todayWIB() {
@@ -361,22 +361,24 @@ router.post("/kas/transfer-sisa-makan", requireEdit("kas"), async (req, res) => 
     }
 
     const [txOut, txIn, transfer] = await db.transaction(async (tx) => {
+      const [tf] = await tx.insert(transferKasTable).values({
+        fromFund: "iuran_makan", toFund: targetFund, amount: sisa,
+        description: `Transfer sisa makan ${date}`,
+        date, notes: null,
+      }).returning();
       const [out] = await tx.insert(kasTable).values({
         type: "pengeluaran", amount: sisa,
         description: `Transfer sisa makan ${date} ke ${targetFund === "darurat" ? "dana darurat" : "kas umum"}`,
         category: "lainnya", date, fund: "iuran_makan",
+        transferId: tf.id,
       }).returning();
       const [inp] = await tx.insert(kasTable).values({
         type: "pemasukan", amount: sisa,
         description: `Sisa makan ${date} dari iuran makan`,
         category: "lainnya", date, fund: targetFund,
+        transferId: tf.id,
       }).returning();
-      const [tf] = await tx.insert(transferKasTable).values({
-        fromFund: "iuran_makan", toFund: targetFund, amount: sisa,
-        description: `Transfer sisa makan ${date}`,
-        date, notes: null,
-        kasOutId: out.id, kasInId: inp.id,
-      }).returning();
+      await tx.update(transferKasTable).set({ kasOutId: out.id, kasInId: inp.id }).where(eq(transferKasTable.id, tf.id));
       return [out, inp, tf];
     });
 
@@ -417,21 +419,23 @@ router.post("/kas/transfer", requireEdit("kas"), async (req, res) => {
     }
 
     const [txOut, txIn, transfer] = await db.transaction(async (tx) => {
+      const [tf] = await tx.insert(transferKasTable).values({
+        fromFund, toFund, amount,
+        description, date, notes: notes ?? null,
+      }).returning();
       const [out] = await tx.insert(kasTable).values({
         type: "pengeluaran", amount,
         description: `Transfer ke ${toFund === "darurat" ? "dana darurat" : toFund === "umum" ? "kas umum" : toFund === "iuran_makan" ? "iuran makan" : "dana proker"}: ${description}`,
         category: "lainnya", date, fund: fromFund,
+        transferId: tf.id,
       }).returning();
       const [inp] = await tx.insert(kasTable).values({
         type: "pemasukan", amount,
         description: `Transfer dari ${fromFund === "darurat" ? "dana darurat" : fromFund === "umum" ? "kas umum" : fromFund === "iuran_makan" ? "iuran makan" : "dana proker"}: ${description}`,
         category: "lainnya", date, fund: toFund,
+        transferId: tf.id,
       }).returning();
-      const [tf] = await tx.insert(transferKasTable).values({
-        fromFund, toFund, amount,
-        description, date, notes: notes ?? null,
-        kasOutId: out.id, kasInId: inp.id,
-      }).returning();
+      await tx.update(transferKasTable).set({ kasOutId: out.id, kasInId: inp.id }).where(eq(transferKasTable.id, tf.id));
       return [out, inp, tf];
     });
 

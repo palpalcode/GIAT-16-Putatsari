@@ -2322,6 +2322,8 @@ components:
           enum: [umum, darurat, iuran_makan, proker]
         prokerId:
           type: ["integer", "null"]
+        transferId:
+          type: ["integer", "null"]
         createdAt:
           type: string
         items:

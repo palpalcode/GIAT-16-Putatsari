@@ -679,6 +679,8 @@ export interface Kas {
   fund: KasFund;
   /** @nullable */
   prokerId?: number | null;
+  /** @nullable */
+  transferId?: number | null;
   createdAt: string;
   items: KasItem[];
 }

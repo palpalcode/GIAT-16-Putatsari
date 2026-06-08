@@ -728,6 +728,7 @@ export const GetKasResponseItem = zod.object({
   "notes": zod.string().nullish(),
   "fund": zod.enum(['umum', 'darurat', 'iuran_makan', 'proker']),
   "prokerId": zod.number().nullish(),
+  "transferId": zod.number().nullish(),
   "createdAt": zod.string(),
   "items": zod.array(zod.object({
   "id": zod.number(),
@@ -788,6 +789,7 @@ export const UpdateKasResponse = zod.object({
   "notes": zod.string().nullish(),
   "fund": zod.enum(['umum', 'darurat', 'iuran_makan', 'proker']),
   "prokerId": zod.number().nullish(),
+  "transferId": zod.number().nullish(),
   "createdAt": zod.string(),
   "items": zod.array(zod.object({
   "id": zod.number(),

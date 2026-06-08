@@ -260,7 +260,7 @@ function TxList({ items, isAdmin, onEdit, onDelete }: {
                             <ChevronDown className={cn("w-3.5 h-3.5 transition-transform", isOpen && "rotate-180")} />
                           </button>
                         )}
-                        {isAdmin && (onEdit || onDelete) && (
+                        {isAdmin && (onEdit || onDelete) && !item.transferId && (
                           <div className="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity ml-0.5">
                             {onEdit && <Button variant="ghost" size="icon" className="h-6 w-6 rounded-full" onClick={() => onEdit(item)}><Pencil className="w-3 h-3 text-sky-500" /></Button>}
                             {onDelete && <Button variant="ghost" size="icon" className="h-6 w-6 rounded-full" onClick={() => onDelete(item.id)}><Trash2 className="w-3 h-3 text-rose-500" /></Button>}
