@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { db } from "@workspace/db";
 import { kasTable, kasItemsTable, kasConfigTable, iuranMakanPaymentsTable, transferKasTable, prokerFundsTable } from "@workspace/db";
-import { and, eq, desc, inArray, sql, sum } from "drizzle-orm";
+import { and, eq, desc, inArray, not, sql, sum } from "drizzle-orm";
 import { requireEdit } from "../lib/auth";
 import {
   CreateKasBody, UpdateKasBody, UpdateKasConfigBody,
@@ -122,6 +122,50 @@ router.patch("/kas/:id", requireEdit("kas"), async (req, res) => {
       return;
     }
     const { type, amount, description, date, notes, fund, prokerId, items } = parsed.data;
+
+    const [existing] = await db.select().from(kasTable).where(eq(kasTable.id, id));
+    if (!existing) { res.status(404).json({ error: "Tidak ditemukan" }); return; }
+
+    const newType = type ?? existing.type;
+    const newAmount = amount ?? existing.amount;
+    const newFund = fund ?? existing.fund;
+    const newProkerId = prokerId ?? existing.prokerId;
+
+    if (newType === "pengeluaran") {
+      if (newFund === "proker") {
+        if (!newProkerId) {
+          res.status(400).json({ error: "prokerId wajib diisi untuk pengeluaran dana proker" });
+          return;
+        }
+        const [proker] = await db.select().from(prokerFundsTable).where(eq(prokerFundsTable.id, newProkerId));
+        if (!proker) {
+          res.status(400).json({ error: "Proker tidak ditemukan" });
+          return;
+        }
+        const prokerTxs = await db.select().from(kasTable).where(
+          and(eq(kasTable.fund, "proker"), eq(kasTable.prokerId, newProkerId), not(eq(kasTable.id, id)))
+        );
+        const prokerPemasukan = prokerTxs.filter(t => t.type === "pemasukan").reduce((s, t) => s + t.amount, 0);
+        const prokerPengeluaran = prokerTxs.filter(t => t.type === "pengeluaran").reduce((s, t) => s + t.amount, 0);
+        const prokerBalance = proker.budget + prokerPemasukan - prokerPengeluaran;
+        if (newAmount > prokerBalance) {
+          res.status(400).json({ error: "Saldo dana proker tidak mencukupi", available: prokerBalance, requested: newAmount });
+          return;
+        }
+      } else {
+        const fundTxs = await db.select().from(kasTable).where(
+          and(eq(kasTable.fund, newFund), not(eq(kasTable.id, id)))
+        );
+        const pemasukan = fundTxs.filter(t => t.type === "pemasukan").reduce((s, t) => s + t.amount, 0);
+        const pengeluaran = fundTxs.filter(t => t.type === "pengeluaran").reduce((s, t) => s + t.amount, 0);
+        const balance = pemasukan - pengeluaran;
+        if (newAmount > balance) {
+          res.status(400).json({ error: "Saldo tidak mencukupi", available: balance, requested: newAmount });
+          return;
+        }
+      }
+    }
+
     const updates: any = {};
     if (type !== undefined) updates.type = type;
     if (amount !== undefined) updates.amount = amount;
