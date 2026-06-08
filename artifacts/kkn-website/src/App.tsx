@@ -9,7 +9,6 @@ import AdminPage from "@/pages/admin";
 import Dashboard from "@/pages/dashboard";
 import TimPage from "@/pages/tim";
 import PengumumanPage from "@/pages/pengumuman";
-import DeadlinePage from "@/pages/deadline";
 import OurLifePage from "@/pages/our-life";
 import OurWorkPage from "@/pages/our-work";
 import MasalahPage from "@/pages/masalah";
@@ -29,7 +28,6 @@ function Router() {
         <Route path="/our-life" component={OurLifePage} />
         <Route path="/our-work" component={OurWorkPage} />
         <Route path="/pengumuman" component={PengumumanPage} />
-        <Route path="/deadline" component={DeadlinePage} />
         <Route path="/masalah" component={MasalahPage} />
         <Route path="/kas" component={KasPage} />
         <Route path="/admin" component={AdminPage} />

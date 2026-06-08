@@ -143,7 +143,7 @@ export default function Dashboard() {
                 </span>
               )}
             </div>
-            <Link href="/deadline" className="text-sm text-amber-600 hover:text-amber-700 transition-colors font-medium">
+            <Link href="/our-work" className="text-sm text-amber-600 hover:text-amber-700 transition-colors font-medium">
               Lihat semua
             </Link>
           </div>
@@ -157,7 +157,7 @@ export default function Dashboard() {
               summary.urgentDeadlines.map((d: any) => {
                 const days = daysLeft(d.dueDate);
                 return (
-                  <Link href="/deadline" key={d.id} className="block">
+                  <Link href="/our-work" key={d.id} className="block">
                     <div className={cn(
                       "glass-card p-5 hover:-translate-y-0.5 transition-all cursor-pointer group",
                       days <= 3 && days >= 0 && "ring-2 ring-amber-200/70"
@@ -201,7 +201,7 @@ export default function Dashboard() {
                 <p className="text-xs text-gray-400 group-hover:text-rose-500 transition-colors">Pengumuman</p>
               </div>
             </Link>
-            <Link href="/deadline">
+            <Link href="/our-work">
               <div className="glass-card p-4 hover:-translate-y-1 transition-all cursor-pointer group text-center">
                 <Calendar className="w-5 h-5 text-amber-400 mx-auto mb-1" />
                 <div className="text-2xl font-bold text-gray-900">{summary?.upcomingDeadlines ?? 0}</div>
