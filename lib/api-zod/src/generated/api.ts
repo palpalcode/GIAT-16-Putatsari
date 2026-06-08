@@ -344,7 +344,7 @@ export const DeleteProgramScheduleParams = zod.object({
  * @summary Get inventory list (list barang)
  */
 export const GetInventoryQueryParams = zod.object({
-  "type": zod.enum(['kelompok', 'pribadi']).optional().describe('Filter by item type'),
+  "type": zod.enum(['kelompok', 'pribadi', 'pinjaman']).optional().describe('Filter by item type'),
   "owner": zod.coerce.string().optional().describe('Filter by owner name (for pribadi items)')
 })
 
@@ -355,7 +355,7 @@ export const GetInventoryResponseItem = zod.object({
   "quantity": zod.number(),
   "unit": zod.string(),
   "notes": zod.string().nullish(),
-  "itemType": zod.enum(['kelompok', 'pribadi']),
+  "itemType": zod.enum(['kelompok', 'pribadi', 'pinjaman']),
   "ownerName": zod.string().nullish(),
   "ownerLabel": zod.string().nullish(),
   "createdAt": zod.string()
@@ -372,7 +372,7 @@ export const CreateInventoryItemBody = zod.object({
   "quantity": zod.number(),
   "unit": zod.string(),
   "notes": zod.string().optional(),
-  "itemType": zod.enum(['kelompok', 'pribadi']).optional(),
+  "itemType": zod.enum(['kelompok', 'pribadi', 'pinjaman']).optional(),
   "ownerName": zod.string().optional(),
   "ownerLabel": zod.string().optional()
 })
@@ -391,6 +391,7 @@ export const UpdateInventoryItemBody = zod.object({
   "quantity": zod.number().optional(),
   "unit": zod.string().optional(),
   "notes": zod.string().optional(),
+  "itemType": zod.enum(['kelompok', 'pribadi', 'pinjaman']).optional(),
   "ownerName": zod.string().optional(),
   "ownerLabel": zod.string().optional()
 })
@@ -402,7 +403,7 @@ export const UpdateInventoryItemResponse = zod.object({
   "quantity": zod.number(),
   "unit": zod.string(),
   "notes": zod.string().nullish(),
-  "itemType": zod.enum(['kelompok', 'pribadi']),
+  "itemType": zod.enum(['kelompok', 'pribadi', 'pinjaman']),
   "ownerName": zod.string().nullish(),
   "ownerLabel": zod.string().nullish(),
   "createdAt": zod.string()

@@ -479,7 +479,7 @@ paths:
           in: query
           schema:
             type: string
-            enum: [kelompok, pribadi]
+            enum: [kelompok, pribadi, pinjaman]
           description: Filter by item type
         - name: owner
           in: query
@@ -1893,7 +1893,7 @@ components:
           type: ["string", "null"]
         itemType:
           type: string
-          enum: [kelompok, pribadi]
+          enum: [kelompok, pribadi, pinjaman]
         ownerName:
           type: ["string", "null"]
         ownerLabel:
@@ -1918,7 +1918,7 @@ components:
           type: string
         itemType:
           type: string
-          enum: [kelompok, pribadi]
+          enum: [kelompok, pribadi, pinjaman]
         ownerName:
           type: string
         ownerLabel:
@@ -1938,6 +1938,9 @@ components:
           type: string
         notes:
           type: string
+        itemType:
+          type: string
+          enum: [kelompok, pribadi, pinjaman]
         ownerName:
           type: string
         ownerLabel:

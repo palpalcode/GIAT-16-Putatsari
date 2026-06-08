@@ -12,4 +12,5 @@ export type GetInventoryType = typeof GetInventoryType[keyof typeof GetInventory
 export const GetInventoryType = {
   kelompok: 'kelompok',
   pribadi: 'pribadi',
+  pinjaman: 'pinjaman',
 } as const;

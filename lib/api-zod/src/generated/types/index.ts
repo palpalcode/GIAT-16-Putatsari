@@ -62,6 +62,7 @@ export * from './inventoryItemInputItemType';
 export * from './inventoryItemItemType';
 export * from './inventoryItemUpdate';
 export * from './inventoryItemUpdateCategory';
+export * from './inventoryItemUpdateItemType';
 export * from './issue';
 export * from './issueCategory';
 export * from './issueInput';

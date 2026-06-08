@@ -6,10 +6,10 @@
  * OpenAPI spec version: 0.1.0
  */
 
-export type InventoryItemInputItemType = typeof InventoryItemInputItemType[keyof typeof InventoryItemInputItemType];
+export type InventoryItemUpdateItemType = typeof InventoryItemUpdateItemType[keyof typeof InventoryItemUpdateItemType];
 
 
-export const InventoryItemInputItemType = {
+export const InventoryItemUpdateItemType = {
   kelompok: 'kelompok',
   pribadi: 'pribadi',
   pinjaman: 'pinjaman',

@@ -6,6 +6,7 @@
  * OpenAPI spec version: 0.1.0
  */
 import type { InventoryItemUpdateCategory } from './inventoryItemUpdateCategory';
+import type { InventoryItemUpdateItemType } from './inventoryItemUpdateItemType';
 
 export interface InventoryItemUpdate {
   name?: string;
@@ -13,6 +14,7 @@ export interface InventoryItemUpdate {
   quantity?: number;
   unit?: string;
   notes?: string;
+  itemType?: InventoryItemUpdateItemType;
   ownerName?: string;
   ownerLabel?: string;
 }

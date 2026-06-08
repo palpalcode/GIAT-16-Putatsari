@@ -12,4 +12,5 @@ export type InventoryItemItemType = typeof InventoryItemItemType[keyof typeof In
 export const InventoryItemItemType = {
   kelompok: 'kelompok',
   pribadi: 'pribadi',
+  pinjaman: 'pinjaman',
 } as const;

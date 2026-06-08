@@ -278,6 +278,7 @@ export type InventoryItemItemType = typeof InventoryItemItemType[keyof typeof In
 export const InventoryItemItemType = {
   kelompok: 'kelompok',
   pribadi: 'pribadi',
+  pinjaman: 'pinjaman',
 } as const;
 
 export interface InventoryItem {
@@ -316,6 +317,7 @@ export type InventoryItemInputItemType = typeof InventoryItemInputItemType[keyof
 export const InventoryItemInputItemType = {
   kelompok: 'kelompok',
   pribadi: 'pribadi',
+  pinjaman: 'pinjaman',
 } as const;
 
 export interface InventoryItemInput {
@@ -343,12 +345,22 @@ export const InventoryItemUpdateCategory = {
   device: 'device',
 } as const;
 
+export type InventoryItemUpdateItemType = typeof InventoryItemUpdateItemType[keyof typeof InventoryItemUpdateItemType];
+
+
+export const InventoryItemUpdateItemType = {
+  kelompok: 'kelompok',
+  pribadi: 'pribadi',
+  pinjaman: 'pinjaman',
+} as const;
+
 export interface InventoryItemUpdate {
   name?: string;
   category?: InventoryItemUpdateCategory;
   quantity?: number;
   unit?: string;
   notes?: string;
+  itemType?: InventoryItemUpdateItemType;
   ownerName?: string;
   ownerLabel?: string;
 }
@@ -1018,6 +1030,7 @@ export type GetInventoryType = typeof GetInventoryType[keyof typeof GetInventory
 export const GetInventoryType = {
   kelompok: 'kelompok',
   pribadi: 'pribadi',
+  pinjaman: 'pinjaman',
 } as const;
 
 export type GetKasParams = {
