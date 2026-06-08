@@ -12,9 +12,9 @@ const navItems = [
   { href: "/", label: "Beranda" },
   { href: "/our-life", label: "Our Life" },
   { href: "/our-work", label: "Our Work" },
-  { href: "/kas", label: "Kas" },
   { href: "/pengumuman", label: "Pengumuman" },
   { href: "/deadline", label: "Deadline" },
+  { href: "/kas", label: "Kas" },
   { href: "/masalah", label: "Masalah" },
 ];
 
