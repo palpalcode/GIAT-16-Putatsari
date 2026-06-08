@@ -272,6 +272,7 @@ export const iuranMakanPaymentsTable = pgTable(
     weekLabel: text("week_label").notNull(), // format: "2026-W23"
     amount: integer("amount").notNull().default(0),
     notes: text("notes"),
+    kasId: integer("kas_id").references(() => kasTable.id, { onDelete: "cascade" }),
     createdAt: timestamp("created_at").notNull().defaultNow(),
   },
   (t) => [uniqueIndex("iuran_makan_payments_member_week_unique").on(t.memberName, t.weekLabel)],

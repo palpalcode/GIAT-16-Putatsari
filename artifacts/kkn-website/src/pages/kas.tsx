@@ -702,6 +702,8 @@ function IuranMakanTab({ isAdmin, summary }: { isAdmin?: boolean; summary: any }
   function invalidatePayments() {
     qc.invalidateQueries({ queryKey: getGetIuranPaymentsQueryKey({ week: selectedWeek }) });
     qc.invalidateQueries({ queryKey: getGetIuranPaymentsSummaryQueryKey() });
+    qc.invalidateQueries({ queryKey: getGetKasQueryKey({ fund: "iuran_makan" }) });
+    qc.invalidateQueries({ queryKey: getGetKasSummaryQueryKey() });
   }
 
   function saveTx() {

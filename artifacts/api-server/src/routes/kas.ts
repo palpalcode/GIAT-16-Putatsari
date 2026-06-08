@@ -281,13 +281,28 @@ router.post("/kas/iuran-payments", requireEdit("kas"), async (req, res) => {
       return;
     }
     const { memberName, weekLabel, amount, notes } = parsed.data;
-    const [row] = await db
-      .insert(iuranMakanPaymentsTable)
-      .values({ memberName, weekLabel, amount: Number(amount), notes: notes ?? null })
-      .onConflictDoNothing()
-      .returning();
-    if (!row) { res.status(409).json({ error: "Sudah tercatat sebagai sudah bayar" }); return; }
-    res.status(201).json({ ...row, createdAt: row.createdAt.toISOString() });
+    const result = await db.transaction(async (tx) => {
+      const [kasRow] = await tx
+        .insert(kasTable)
+        .values({
+          type: "pemasukan",
+          amount: Number(amount),
+          description: `Iuran makan ${memberName}`,
+          category: "iuran_makan",
+          date: weekLabel,
+          notes: notes ?? null,
+          fund: "iuran_makan",
+        })
+        .returning();
+      const [row] = await tx
+        .insert(iuranMakanPaymentsTable)
+        .values({ memberName, weekLabel, amount: Number(amount), notes: notes ?? null, kasId: kasRow.id })
+        .onConflictDoNothing()
+        .returning();
+      return { row, kasRow };
+    });
+    if (!result.row) { res.status(409).json({ error: "Sudah tercatat sebagai sudah bayar" }); return; }
+    res.status(201).json({ ...result.row, createdAt: result.row.createdAt.toISOString() });
   } catch (err) {
     req.log.error(err);
     res.status(500).json({ error: "Server error" });
@@ -296,9 +311,16 @@ router.post("/kas/iuran-payments", requireEdit("kas"), async (req, res) => {
 
 router.delete("/kas/iuran-payments/:id", requireEdit("kas"), async (req, res) => {
   try {
-    await db
-      .delete(iuranMakanPaymentsTable)
-      .where(eq(iuranMakanPaymentsTable.id, Number(req.params.id as string)));
+    const payment = await db.select().from(iuranMakanPaymentsTable).where(eq(iuranMakanPaymentsTable.id, Number(req.params.id as string)));
+    if (payment.length === 0) { res.status(404).json({ error: "Not found" }); return; }
+    const kasId = payment[0].kasId;
+    await db.transaction(async (tx) => {
+      if (kasId) {
+        await tx.delete(kasTable).where(eq(kasTable.id, kasId));
+      } else {
+        await tx.delete(iuranMakanPaymentsTable).where(eq(iuranMakanPaymentsTable.id, Number(req.params.id as string)));
+      }
+    });
     res.status(204).send();
   } catch (err) {
     req.log.error(err);
