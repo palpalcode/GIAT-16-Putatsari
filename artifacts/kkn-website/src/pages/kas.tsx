@@ -792,25 +792,6 @@ function IuranMakanTab({ isAdmin, summary }: { isAdmin?: boolean; summary: any }
             </div>
           )}
 
-          {/* Per-member cumulative summary */}
-          {(memberSummary ?? []).length > 0 && (
-            <div className="mt-4">
-              <p className="text-xs font-semibold text-sky-800 uppercase tracking-wide mb-2">Rekap Total Per Anggota (Semua Minggu)</p>
-              <div className="space-y-2">
-                {(memberSummary ?? [])
-                  .sort((a, b) => b.totalPaid - a.totalPaid)
-                  .map(s => (
-                    <div key={s.memberName} className="flex items-center justify-between gap-2 px-3 py-2 rounded-xl bg-white/90 border border-white/60">
-                      <span className="text-sm text-gray-700 font-medium">{s.memberName}</span>
-                      <div className="text-right">
-                        <p className="text-sm font-bold text-sky-700">{formatRp(s.totalPaid)}</p>
-                        <p className="text-[10px] text-gray-400">{s.weekCount} minggu</p>
-                      </div>
-                    </div>
-                  ))}
-              </div>
-            </div>
-          )}
         </div>
       )}
 
@@ -821,7 +802,7 @@ function IuranMakanTab({ isAdmin, summary }: { isAdmin?: boolean; summary: any }
             {isAdmin && (
               <>
                 <Button size="sm" onClick={() => { setTxState(defaultSimpleTx({ type: "pengeluaran", description: "Belanja makan", category: "makan" })); setOpenTx(true); }}
-                  className="bg-gradient-to-r from-orange-400 to-sky-400 text-white border-0 rounded-full gap-1">
+                  className="bg-gradient-to-r from-sky-400 to-blue-400 text-white border-0 rounded-full gap-1">
                   <Plus className="w-4 h-4" />Catat Pengeluaran Makan
                 </Button>
                 <Button size="sm" onClick={() => { setTxState(defaultSimpleTx({ type: "pemasukan", description: "Iuran makan mingguan", category: "makan" })); setOpenTx(true); }}
@@ -844,7 +825,7 @@ function IuranMakanTab({ isAdmin, summary }: { isAdmin?: boolean; summary: any }
       )}
 
       <SimpleTxDialog open={openTx} onClose={() => setOpenTx(false)} title="Catat Transaksi Makan"
-        headerColor="bg-gradient-to-r from-orange-400/20 to-orange-400/20"
+        headerColor="bg-gradient-to-r from-sky-400/20 to-blue-400/20"
         isPending={create.isPending} onSave={saveTx} state={txState} setState={setTxState} jatahHarian={jatahHarian} />
 
       <Dialog open={openConfig} onOpenChange={v => !v && setOpenConfig(false)}>
