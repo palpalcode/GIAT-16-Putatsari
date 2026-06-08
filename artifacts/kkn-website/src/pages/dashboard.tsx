@@ -64,13 +64,26 @@ export default function Dashboard() {
           Kuliah Kerja Nyata
         </div>
         <h1 className="text-4xl md:text-5xl font-bold text-gray-900 tracking-tight">
-          Selamat Datang,{" "}
-          <span className="bg-gradient-to-r from-rose-500 to-sky-500 bg-clip-text text-transparent">
-            Putatsari Wellness
-          </span>
+          {isLoggedIn ? (
+            <>
+              Selamat Datang,{" "}
+              <span className="bg-gradient-to-r from-rose-500 to-sky-500 bg-clip-text text-transparent">
+                {memberName}
+              </span>
+            </>
+          ) : (
+            <>
+              Selamat Datang,{" "}
+              <span className="bg-gradient-to-r from-rose-500 to-sky-500 bg-clip-text text-transparent">
+                Putatsari Wellness
+              </span>
+            </>
+          )}
         </h1>
         <p className="text-gray-500 max-w-xl mx-auto">
-          Bersama membangun desa dengan karya dan dedikasi. Semangat, tim!
+          {isLoggedIn
+            ? "Bersama membangun desa dengan karya dan dedikasi. Semangat, Sobat!"
+            : "Bersama membangun desa dengan karya dan dedikasi. Semangat, Sobat!"}
         </p>
       </section>
 
