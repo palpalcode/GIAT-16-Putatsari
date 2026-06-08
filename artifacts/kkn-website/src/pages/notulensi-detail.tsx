@@ -45,6 +45,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
 import { MemberPicker } from "@/components/ui/member-picker";
+import { getApiErrorDesc } from "@/lib/api-error";
 
 function formatDate(d: string) {
   if (!d) return "-";
@@ -228,7 +229,7 @@ export default function NotulensiDetailPage() {
           toast({ title: "Notulensi diperbarui" });
           setShowEdit(false);
         },
-        onError: () => toast({ title: "Gagal menyimpan", variant: "destructive" }),
+        onError: (err) => toast({ title: "Gagal menyimpan", description: getApiErrorDesc(err), variant: "destructive" }),
       }
     );
   }
@@ -280,7 +281,7 @@ export default function NotulensiDetailPage() {
           toast({ title: "Notulensi dihapus" });
           navigate("/pengumuman");
         },
-        onError: () => toast({ title: "Gagal menghapus", variant: "destructive" }),
+        onError: (err) => toast({ title: "Gagal menghapus", description: getApiErrorDesc(err), variant: "destructive" }),
       }
     );
   }

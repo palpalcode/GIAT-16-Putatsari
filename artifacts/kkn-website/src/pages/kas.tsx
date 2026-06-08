@@ -40,6 +40,7 @@ import {
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
+import { getApiErrorDesc } from "@/lib/api-error";
 
 function today() { return new Date().toISOString().split("T")[0]; }
 function formatRp(n: number) { return "Rp " + Math.abs(n).toLocaleString("id-ID"); }
@@ -414,9 +415,15 @@ function UmumTab({ isAdmin, summary }: { isAdmin?: boolean; summary: any }) {
       items: toItemsPayload(form.items),
     };
     if (editId !== null) {
-      update.mutate({ id: editId, data: payload }, { onSuccess: () => { invalidate(); setOpen(false); toast({ title: "Transaksi diperbarui" }); } });
+      update.mutate({ id: editId, data: payload }, {
+        onSuccess: () => { invalidate(); setOpen(false); toast({ title: "Transaksi diperbarui" }); },
+        onError: (err) => toast({ title: "Gagal menyimpan", description: getApiErrorDesc(err), variant: "destructive" }),
+      });
     } else {
-      create.mutate({ data: payload }, { onSuccess: () => { invalidate(); setOpen(false); setInitForm(defaultForm(KasInputFund.umum)); toast({ title: "Transaksi dicatat" }); } });
+      create.mutate({ data: payload }, {
+        onSuccess: () => { invalidate(); setOpen(false); setInitForm(defaultForm(KasInputFund.umum)); toast({ title: "Transaksi dicatat" }); },
+        onError: (err) => toast({ title: "Gagal menyimpan", description: getApiErrorDesc(err), variant: "destructive" }),
+      });
     }
   }
 
@@ -582,13 +589,15 @@ function IuranMakanTab({ isAdmin, summary }: { isAdmin?: boolean; summary: any }
         invalidate(); setOpenTx(false);
         setTxState(defaultSimpleTx({ description: "Belanja makan", category: "makan" }));
         toast({ title: "Transaksi dicatat" });
-      }
+      },
+      onError: (err) => toast({ title: "Gagal menyimpan", description: getApiErrorDesc(err), variant: "destructive" }),
     });
   }
 
   function saveConfig() {
     updateConfig.mutate({ data: { weeklyFoodAmount: Number(configForm.weeklyAmount) } }, {
-      onSuccess: () => { invalidate(); setOpenConfig(false); setConfigForm({ weeklyAmount: "" }); toast({ title: "Iuran makan diperbarui" }); }
+      onSuccess: () => { invalidate(); setOpenConfig(false); setConfigForm({ weeklyAmount: "" }); toast({ title: "Iuran makan diperbarui" }); },
+      onError: (err) => toast({ title: "Gagal menyimpan", description: getApiErrorDesc(err), variant: "destructive" }),
     });
   }
 
@@ -600,7 +609,7 @@ function IuranMakanTab({ isAdmin, summary }: { isAdmin?: boolean; summary: any }
         setTransferForm({ date: today(), terpakai: "" });
         toast({ title: `Sisa ${formatRp(res.sisa)} berhasil ditransfer ke dana darurat` });
       },
-      onError: () => { toast({ title: "Tidak ada sisa untuk ditransfer", variant: "destructive" }); },
+      onError: (err) => { toast({ title: "Tidak ada sisa untuk ditransfer", description: getApiErrorDesc(err), variant: "destructive" }); },
     });
   }
 
@@ -612,7 +621,7 @@ function IuranMakanTab({ isAdmin, summary }: { isAdmin?: boolean; summary: any }
       createPayment.mutate(
         { data: { memberName, weekLabel: selectedWeek, amount: weeklyFood } },
         { onSuccess: () => { invalidatePayments(); toast({ title: `${memberName} ditandai sudah bayar` }); },
-          onError: () => { toast({ title: "Gagal mencatat pembayaran", variant: "destructive" }); } }
+          onError: (err) => { toast({ title: "Gagal mencatat pembayaran", description: getApiErrorDesc(err), variant: "destructive" }); } }
       );
     }
   }
@@ -913,13 +922,15 @@ function DanadaruratTab({ isAdmin, summary }: { isAdmin?: boolean; summary: any 
         invalidate(); setOpenTx(false);
         setTxState(defaultSimpleTx({ type: "pemasukan" }));
         toast({ title: "Transaksi dicatat" });
-      }
+      },
+      onError: (err) => toast({ title: "Gagal menyimpan", description: getApiErrorDesc(err), variant: "destructive" }),
     });
   }
 
   function saveTarget() {
     updateConfig.mutate({ data: { emergencyFundTarget: Number(targetForm.target) } }, {
-      onSuccess: () => { invalidate(); setOpenTarget(false); setTargetForm({ target: "" }); toast({ title: "Target dana darurat diperbarui" }); }
+      onSuccess: () => { invalidate(); setOpenTarget(false); setTargetForm({ target: "" }); toast({ title: "Target dana darurat diperbarui" }); },
+      onError: (err) => toast({ title: "Gagal menyimpan", description: getApiErrorDesc(err), variant: "destructive" }),
     });
   }
 
@@ -1038,11 +1049,13 @@ function DanaProkerTab({ isAdmin }: { isAdmin?: boolean }) {
     const data = { name: editProkerForm.name, budget: Number(editProkerForm.budget), notes: editProkerForm.notes || undefined };
     if (isEdit && editProkerId !== null) {
       updateProker.mutate({ id: editProkerId, data }, {
-        onSuccess: () => { invalidateAll(); setOpenEditProker(false); setEditProkerForm({ name: "", budget: "", notes: "" }); toast({ title: "Proker diperbarui" }); }
+        onSuccess: () => { invalidateAll(); setOpenEditProker(false); setEditProkerForm({ name: "", budget: "", notes: "" }); toast({ title: "Proker diperbarui" }); },
+        onError: (err) => toast({ title: "Gagal menyimpan", description: getApiErrorDesc(err), variant: "destructive" }),
       });
     } else {
       createProker.mutate({ data }, {
-        onSuccess: () => { invalidateAll(); setOpenAddProker(false); setEditProkerForm({ name: "", budget: "", notes: "" }); toast({ title: "Proker ditambahkan" }); }
+        onSuccess: () => { invalidateAll(); setOpenAddProker(false); setEditProkerForm({ name: "", budget: "", notes: "" }); toast({ title: "Proker ditambahkan" }); },
+        onError: (err) => toast({ title: "Gagal menyimpan", description: getApiErrorDesc(err), variant: "destructive" }),
       });
     }
   }
@@ -1056,7 +1069,8 @@ function DanaProkerTab({ isAdmin }: { isAdmin?: boolean }) {
         invalidateAll(); setOpenAddTx(false);
         setTxState(defaultSimpleTx({ type: "pengeluaran" }));
         toast({ title: "Transaksi dicatat" });
-      }
+      },
+      onError: (err) => toast({ title: "Gagal menyimpan", description: getApiErrorDesc(err), variant: "destructive" }),
     });
   }
 

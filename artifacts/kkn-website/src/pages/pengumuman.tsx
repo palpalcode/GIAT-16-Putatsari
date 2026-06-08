@@ -34,6 +34,7 @@ import { Plus, Pencil, Trash2, Megaphone, FileText, Calendar, User, Users, Chevr
 import { useToast } from "@/hooks/use-toast";
 import { cn, TEAM_ROLES } from "@/lib/utils";
 import { MemberPicker } from "@/components/ui/member-picker";
+import { getApiErrorDesc } from "@/lib/api-error";
 import {
   useCreateNotulensi,
   useUpdateNotulensi,
@@ -153,7 +154,7 @@ export default function PengumumanPage() {
         { id: editingAId, data: formA },
         {
           onSuccess: () => { invalidateA(); setOpenA(false); toast({ title: "Pengumuman diperbarui" }); },
-          onError: () => toast({ title: "Gagal memperbarui", variant: "destructive" }),
+          onError: (err) => toast({ title: "Gagal menyimpan", description: getApiErrorDesc(err), variant: "destructive" }),
         }
       );
     } else {
@@ -161,7 +162,7 @@ export default function PengumumanPage() {
         { data: formA },
         {
           onSuccess: () => { invalidateA(); setOpenA(false); toast({ title: "Pengumuman ditambahkan" }); },
-          onError: () => toast({ title: "Gagal menambahkan", variant: "destructive" }),
+          onError: (err) => toast({ title: "Gagal menyimpan", description: getApiErrorDesc(err), variant: "destructive" }),
         }
       );
     }
@@ -171,7 +172,7 @@ export default function PengumumanPage() {
       { id },
       {
         onSuccess: () => { invalidateA(); toast({ title: "Pengumuman dihapus" }); },
-        onError: () => toast({ title: "Gagal menghapus", variant: "destructive" }),
+        onError: (err) => toast({ title: "Gagal menghapus", description: getApiErrorDesc(err), variant: "destructive" }),
       }
     );
   }
@@ -213,7 +214,7 @@ export default function PengumumanPage() {
         { id: editingNId, data: payload },
         {
           onSuccess: () => { invalidateN(); setOpenN(false); toast({ title: "Notulensi diperbarui" }); },
-          onError: () => toast({ title: "Gagal memperbarui", variant: "destructive" }),
+          onError: (err) => toast({ title: "Gagal menyimpan", description: getApiErrorDesc(err), variant: "destructive" }),
         }
       );
     } else {
@@ -221,7 +222,7 @@ export default function PengumumanPage() {
         { data: payload },
         {
           onSuccess: () => { invalidateN(); setOpenN(false); toast({ title: "Notulensi ditambahkan" }); },
-          onError: () => toast({ title: "Gagal menambahkan", variant: "destructive" }),
+          onError: (err) => toast({ title: "Gagal menyimpan", description: getApiErrorDesc(err), variant: "destructive" }),
         }
       );
     }
@@ -231,7 +232,7 @@ export default function PengumumanPage() {
       { id },
       {
         onSuccess: () => { invalidateN(); toast({ title: "Notulensi dihapus" }); },
-        onError: () => toast({ title: "Gagal menghapus", variant: "destructive" }),
+        onError: (err) => toast({ title: "Gagal menghapus", description: getApiErrorDesc(err), variant: "destructive" }),
       }
     );
   }

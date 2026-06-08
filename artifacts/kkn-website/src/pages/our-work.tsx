@@ -32,6 +32,7 @@ import {
 import { Plus, Pencil, Trash2, CalendarDays, CheckCircle2, Clock, Loader2, User, CalendarClock } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
+import { getApiErrorDesc } from "@/lib/api-error";
 
 const MEMBERS = [
   "Muhamad Naufal", "Fadhilah Apta Nur Safitri", "Lutfia Tri Rahmacahyani",
@@ -246,9 +247,15 @@ export default function OurWorkPage() {
   function handleSave(form: ProgramForm) {
     const payload = { programName: form.programName, date: form.date, leader: form.leader, members: form.members, status: form.status, notes: form.notes || undefined };
     if (editId !== null) {
-      update.mutate({ id: editId, data: payload }, { onSuccess: () => { invalidateSched(); setOpen(false); toast({ title: "Program diperbarui" }); } });
+      update.mutate({ id: editId, data: payload }, {
+        onSuccess: () => { invalidateSched(); setOpen(false); toast({ title: "Program diperbarui" }); },
+        onError: (err) => toast({ title: "Gagal menyimpan", description: getApiErrorDesc(err), variant: "destructive" }),
+      });
     } else {
-      create.mutate({ data: payload }, { onSuccess: () => { invalidateSched(); setOpen(false); toast({ title: "Program ditambahkan" }); } });
+      create.mutate({ data: payload }, {
+        onSuccess: () => { invalidateSched(); setOpen(false); toast({ title: "Program ditambahkan" }); },
+        onError: (err) => toast({ title: "Gagal menyimpan", description: getApiErrorDesc(err), variant: "destructive" }),
+      });
     }
   }
 
@@ -293,9 +300,15 @@ export default function OurWorkPage() {
     if (!dlForm.title) return;
     const payload = { title: dlForm.title, type: dlForm.type, dueDate: dlForm.dueDate, status: dlForm.status, assignedTo: dlForm.assignedTo, notes: dlForm.notes || undefined };
     if (dlEditId !== null) {
-      dlUpdate.mutate({ id: dlEditId, data: payload }, { onSuccess: () => { invalidateDl(); setDlOpen(false); toast({ title: "Deadline diperbarui" }); } });
+      dlUpdate.mutate({ id: dlEditId, data: payload }, {
+        onSuccess: () => { invalidateDl(); setDlOpen(false); toast({ title: "Deadline diperbarui" }); },
+        onError: (err) => toast({ title: "Gagal menyimpan", description: getApiErrorDesc(err), variant: "destructive" }),
+      });
     } else {
-      dlCreate.mutate({ data: payload }, { onSuccess: () => { invalidateDl(); setDlOpen(false); toast({ title: "Deadline ditambahkan" }); } });
+      dlCreate.mutate({ data: payload }, {
+        onSuccess: () => { invalidateDl(); setDlOpen(false); toast({ title: "Deadline ditambahkan" }); },
+        onError: (err) => toast({ title: "Gagal menyimpan", description: getApiErrorDesc(err), variant: "destructive" }),
+      });
     }
   }
 

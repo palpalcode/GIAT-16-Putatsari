@@ -26,6 +26,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Plus, Pencil, Trash2, Home, Briefcase, CheckCircle2, User } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
+import { getApiErrorDesc } from "@/lib/api-error";
 
 const MEMBERS = [
   "Muhamad Naufal", "Fadhilah Apta Nur Safitri", "Lutfia Tri Rahmacahyani",
@@ -74,9 +75,15 @@ function LifeTab({ isAdmin }: { isAdmin?: boolean }) {
     if (!form.title || !form.description || !form.reportedBy) return;
     const payload = { title: form.title, description: form.description, reportedBy: form.reportedBy, status: form.status };
     if (editId !== null) {
-      update.mutate({ id: editId, data: payload }, { onSuccess: () => { invalidate(); setOpen(false); toast({ title: "Keluhan diperbarui" }); } });
+      update.mutate({ id: editId, data: payload }, {
+        onSuccess: () => { invalidate(); setOpen(false); toast({ title: "Keluhan diperbarui" }); },
+        onError: (err) => toast({ title: "Gagal menyimpan", description: getApiErrorDesc(err), variant: "destructive" }),
+      });
     } else {
-      create.mutate({ data: payload }, { onSuccess: () => { invalidate(); setOpen(false); toast({ title: "Keluhan dicatat" }); } });
+      create.mutate({ data: payload }, {
+        onSuccess: () => { invalidate(); setOpen(false); toast({ title: "Keluhan dicatat" }); },
+        onError: (err) => toast({ title: "Gagal menyimpan", description: getApiErrorDesc(err), variant: "destructive" }),
+      });
     }
   }
 
@@ -254,9 +261,15 @@ function WorkTab({ isAdmin }: { isAdmin?: boolean }) {
   function handleSave() {
     if (!form.title || !form.description) return;
     if (editId !== null) {
-      update.mutate({ id: editId, data: form }, { onSuccess: () => { invalidate(); setOpen(false); toast({ title: "Masalah diperbarui" }); } });
+      update.mutate({ id: editId, data: form }, {
+        onSuccess: () => { invalidate(); setOpen(false); toast({ title: "Masalah diperbarui" }); },
+        onError: (err) => toast({ title: "Gagal menyimpan", description: getApiErrorDesc(err), variant: "destructive" }),
+      });
     } else {
-      create.mutate({ data: form }, { onSuccess: () => { invalidate(); setOpen(false); toast({ title: "Masalah dicatat" }); } });
+      create.mutate({ data: form }, {
+        onSuccess: () => { invalidate(); setOpen(false); toast({ title: "Masalah dicatat" }); },
+        onError: (err) => toast({ title: "Gagal menyimpan", description: getApiErrorDesc(err), variant: "destructive" }),
+      });
     }
   }
 

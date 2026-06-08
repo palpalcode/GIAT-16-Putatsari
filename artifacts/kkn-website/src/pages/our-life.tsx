@@ -36,6 +36,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Plus, Pencil, Trash2, ChefHat, SprayCan, Package, User, Heart, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
+import { getApiErrorDesc } from "@/lib/api-error";
 
 const MEMBERS = [
   "Muhamad Naufal", "Fadhilah Apta Nur Safitri", "Lutfia Tri Rahmacahyani",
@@ -115,9 +116,15 @@ function CookingTab({ isLoggedIn }: { isLoggedIn?: boolean }) {
   function handleSave() {
     const payload = { date: form.date, persons: form.persons, menu: form.menu || undefined, notes: form.notes || undefined };
     if (editId !== null) {
-      update.mutate({ id: editId, data: payload }, { onSuccess: () => { invalidate(); setOpen(false); toast({ title: "Jadwal diperbarui" }); } });
+      update.mutate({ id: editId, data: payload }, {
+        onSuccess: () => { invalidate(); setOpen(false); toast({ title: "Jadwal diperbarui" }); },
+        onError: (err) => toast({ title: "Gagal menyimpan", description: getApiErrorDesc(err), variant: "destructive" }),
+      });
     } else {
-      create.mutate({ data: payload }, { onSuccess: () => { invalidate(); setOpen(false); toast({ title: "Jadwal ditambahkan" }); } });
+      create.mutate({ data: payload }, {
+        onSuccess: () => { invalidate(); setOpen(false); toast({ title: "Jadwal ditambahkan" }); },
+        onError: (err) => toast({ title: "Gagal menyimpan", description: getApiErrorDesc(err), variant: "destructive" }),
+      });
     }
   }
 
@@ -245,9 +252,15 @@ function CleaningTab({ isAdmin }: { isAdmin?: boolean }) {
   function handleSave() {
     const payload = { date: form.date, persons: form.persons, area: form.area || undefined, notes: form.notes || undefined };
     if (editId !== null) {
-      update.mutate({ id: editId, data: payload }, { onSuccess: () => { invalidate(); setOpen(false); toast({ title: "Jadwal diperbarui" }); } });
+      update.mutate({ id: editId, data: payload }, {
+        onSuccess: () => { invalidate(); setOpen(false); toast({ title: "Jadwal diperbarui" }); },
+        onError: (err) => toast({ title: "Gagal menyimpan", description: getApiErrorDesc(err), variant: "destructive" }),
+      });
     } else {
-      create.mutate({ data: payload }, { onSuccess: () => { invalidate(); setOpen(false); toast({ title: "Jadwal ditambahkan" }); } });
+      create.mutate({ data: payload }, {
+        onSuccess: () => { invalidate(); setOpen(false); toast({ title: "Jadwal ditambahkan" }); },
+        onError: (err) => toast({ title: "Gagal menyimpan", description: getApiErrorDesc(err), variant: "destructive" }),
+      });
     }
   }
 
@@ -650,7 +663,10 @@ function BrgKelompokTab({ isAdmin }: { isAdmin?: boolean }) {
     if (editId === null) return;
     update.mutate(
       { id: editId, data: { name: editForm.name, category: editForm.category, quantity: editForm.quantity, unit: editForm.unit, notes: editForm.notes || undefined } },
-      { onSuccess: () => { invalidate(); setEditOpen(false); toast({ title: "Barang diperbarui" }); } }
+      {
+        onSuccess: () => { invalidate(); setEditOpen(false); toast({ title: "Barang diperbarui" }); },
+        onError: (err) => toast({ title: "Gagal menyimpan", description: getApiErrorDesc(err), variant: "destructive" }),
+      }
     );
   }
 
@@ -792,7 +808,10 @@ function BrgPribadiTab({ selfName, isPrivileged, isLoggedIn }: { selfName: strin
     if (editId === null) return;
     update.mutate(
       { id: editId, data: { name: editForm.name, category: editForm.category, quantity: editForm.quantity, unit: editForm.unit, notes: editForm.notes || undefined, ownerName: editForm.ownerName || undefined } },
-      { onSuccess: () => { invalidate(); setEditOpen(false); toast({ title: "Barang diperbarui" }); } }
+      {
+        onSuccess: () => { invalidate(); setEditOpen(false); toast({ title: "Barang diperbarui" }); },
+        onError: (err) => toast({ title: "Gagal menyimpan", description: getApiErrorDesc(err), variant: "destructive" }),
+      }
     );
   }
 
@@ -980,11 +999,13 @@ function KondisiTab({ memberName: selfName, isKetSek }: { memberName: string | n
     if (!form.description.trim()) return;
     if (editId !== null) {
       updateCond.mutate({ id: editId, data: { type: form.type, description: form.description } }, {
-        onSuccess: () => { invalidate(); setOpen(false); toast({ title: "Kondisi diperbarui" }); }
+        onSuccess: () => { invalidate(); setOpen(false); toast({ title: "Kondisi diperbarui" }); },
+        onError: (err) => toast({ title: "Gagal menyimpan", description: getApiErrorDesc(err), variant: "destructive" }),
       });
     } else {
       createCond.mutate({ data: form }, {
-        onSuccess: () => { invalidate(); setOpen(false); toast({ title: "Kondisi ditambahkan" }); }
+        onSuccess: () => { invalidate(); setOpen(false); toast({ title: "Kondisi ditambahkan" }); },
+        onError: (err) => toast({ title: "Gagal menyimpan", description: getApiErrorDesc(err), variant: "destructive" }),
       });
     }
   }
