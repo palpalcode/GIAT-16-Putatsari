@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useLocation } from "wouter";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   useGetProgramSchedules,
@@ -30,7 +31,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Plus, Pencil, Trash2, CalendarDays, CheckCircle2, Clock, Loader2, User, CalendarClock, BookOpen } from "lucide-react";
+import { Plus, Pencil, Trash2, CalendarDays, CheckCircle2, Clock, Loader2, User, CalendarClock, BookOpen, Eye, ChevronDown } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
 import { cn, TEAM_MEMBERS, getMemberColor } from "@/lib/utils";
 import { getApiErrorDesc, extractApiFieldErrors } from "@/lib/api-error";
@@ -201,6 +208,7 @@ function MemberCheckbox({ members, selected, onChange }: { members: string[]; se
 export default function OurWorkPage() {
   const qc = useQueryClient();
   const { toast } = useToast();
+  const [, navigate] = useLocation();
   const { can, memberName, role, isLoggedIn } = useAuth();
   const isKetSek = role === "ketua" || role === "sekretaris";
 
@@ -430,14 +438,33 @@ export default function OurWorkPage() {
                         {s.notes && <p className="text-xs text-gray-400 mt-1.5">{s.notes}</p>}
                       </div>
                       <div className="flex gap-1 shrink-0">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-7 rounded-full text-[10px] gap-1 px-2 text-emerald-600 hover:bg-emerald-50"
-                          onClick={() => setLogbookProgram({ id: s.id, programName: s.programName, leader: s.leader })}
-                        >
-                          <BookOpen className="w-3 h-3" />Logbook
-                        </Button>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-7 rounded-full text-[10px] gap-1 px-2 text-emerald-600 hover:bg-emerald-50"
+                            >
+                              <BookOpen className="w-3 h-3" />Logbook<ChevronDown className="w-2.5 h-2.5" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="w-44">
+                            <DropdownMenuItem
+                              onClick={() => navigate(`/our-work/${s.id}`)}
+                              className="gap-2 text-xs cursor-pointer"
+                            >
+                              <Eye className="w-3.5 h-3.5 text-sky-500" />
+                              Lihat &amp; Cetak
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() => setLogbookProgram({ id: s.id, programName: s.programName, leader: s.leader })}
+                              className="gap-2 text-xs cursor-pointer"
+                            >
+                              <BookOpen className="w-3.5 h-3.5 text-emerald-500" />
+                              Edit Logbook
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                         {isAdmin && (
                           <>
                             <Button variant="ghost" size="icon" className="h-7 w-7 rounded-full opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => openEdit(s)}><Pencil className="w-3 h-3 text-sky-500" /></Button>
