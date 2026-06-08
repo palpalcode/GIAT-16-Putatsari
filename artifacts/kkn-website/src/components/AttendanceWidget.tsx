@@ -97,17 +97,19 @@ export function AttendanceWidget({
               />
             </>
           )}
-          <button
-            onClick={() => {
-              const start = "2026-06-15";
-              const weeks = 7;
-              window.open(`/api/attendance/export?start=${start}&weeks=${weeks}`, "_blank");
-            }}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100 transition-colors"
-          >
-            <Download className="w-3.5 h-3.5" />
-            Export Excel
-          </button>
+          {isKetSek && (
+            <button
+              onClick={() => {
+                const start = "2026-06-15";
+                const weeks = 7;
+                window.open(`/api/attendance/export?start=${start}&weeks=${weeks}`, "_blank");
+              }}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100 transition-colors"
+            >
+              <Download className="w-3.5 h-3.5" />
+              Export Excel
+            </button>
+          )}
         </div>
       </div>
 

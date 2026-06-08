@@ -51,38 +51,15 @@ function getWeekDates(start: string, weekIndex: number): string[] {
 function getWeekLabel(dates: string[]): string {
   const s = new Date(dates[0]).toLocaleDateString("id-ID", { day: "numeric", month: "short" });
   const e = new Date(dates[6]).toLocaleDateString("id-ID", { day: "numeric", month: "short" });
-  return `Week ${s} – ${e}`;
+  return `Week ${s} \u2013 ${e}`;
 }
 
-function setColWidth(ws: ExcelJS.Worksheet, col: string, value: string) {
-  const current = ws.getColumn(col).width ?? 8;
-  const needed = Math.max(current, value.length + 2);
-  ws.getColumn(col).width = needed;
-}
-
-function fillCell(row: ExcelJS.Row, col: number, value: string | number, options?: {
-  bold?: boolean; bg?: string; fg?: string; align?: ExcelJS.Alignment;
-  border?: boolean;
-}) {
-  const cell = row.getCell(col);
-  cell.value = value as any;
-  const opt: ExcelJS.Style = {};
-  if (options?.bold) opt.font = { bold: true, color: { argb: options?.fg ? options.fg : "000000" } };
-  else if (options?.fg) opt.font = { color: { argb: options.fg } };
-  if (options?.bg) opt.fill = { type: "pattern", pattern: "solid", fgColor: { argb: options.bg } };
-  if (options?.align) opt.alignment = options.align;
-  if (options?.border) {
-    opt.border = {
-      top: { style: "thin", color: { argb: "D1D5DB" } },
-      bottom: { style: "thin", color: { argb: "D1D5DB" } },
-      left: { style: "thin", color: { argb: "D1D5DB" } },
-      right: { style: "thin", color: { argb: "D1D5DB" } },
-    };
-  }
-  if (Object.keys(opt).length) cell.style = opt;
-}
-
-function buildWeekWorksheet(rows: { memberName: string; date: string; status: string }[], dates: string[]): ExcelJS.Worksheet {
+function buildWeekSheet(
+  wb: ExcelJS.Workbook,
+  name: string,
+  rows: { memberName: string; date: string; status: string }[],
+  dates: string[],
+) {
   const rowsByMember: Record<string, Record<string, string>> = {};
   for (const m of MEMBERS) {
     rowsByMember[m] = {};
@@ -94,8 +71,7 @@ function buildWeekWorksheet(rows: { memberName: string; date: string; status: st
     }
   }
 
-  const wb = new ExcelJS.Workbook();
-  const ws = wb.addWorksheet();
+  const ws = wb.addWorksheet(name);
 
   const dayHeaders = dates.map(d => {
     const day = new Date(d).toLocaleDateString("id-ID", { weekday: "short" });
@@ -137,35 +113,83 @@ function buildWeekWorksheet(rows: { memberName: string; date: string; status: st
     row.height = 22;
 
     // Number cell
-    fillCell(row, 1, i + 1, { align: { horizontal: "center" }, border: true });
+    const numCell = row.getCell(1);
+    numCell.value = i + 1;
+    numCell.style = { alignment: { horizontal: "center" }, border: {
+      top: { style: "thin", color: { argb: "D1D5DB" } },
+      bottom: { style: "thin", color: { argb: "D1D5DB" } },
+      left: { style: "thin", color: { argb: "D1D5DB" } },
+      right: { style: "thin", color: { argb: "D1D5DB" } },
+    }};
+
     // Name cell
-    fillCell(row, 2, m, { border: true });
+    const nameCell = row.getCell(2);
+    nameCell.value = m;
+    nameCell.style = { border: {
+      top: { style: "thin", color: { argb: "D1D5DB" } },
+      bottom: { style: "thin", color: { argb: "D1D5DB" } },
+      left: { style: "thin", color: { argb: "D1D5DB" } },
+      right: { style: "thin", color: { argb: "D1D5DB" } },
+    }};
 
     // Day cells with status color
     for (let j = 0; j < dates.length; j++) {
       const val = cells[j];
-      const style = val ? STATUS_STYLES[val] : null;
-      fillCell(row, 3 + j, val, {
-        bg: style?.bg,
-        fg: style?.fg,
-        align: { horizontal: "center" },
-        border: true,
-      });
+      const st = val ? STATUS_STYLES[val] : null;
+      const cell = row.getCell(3 + j);
+      cell.value = val;
+      cell.style = {
+        fill: st ? { type: "pattern", pattern: "solid", fgColor: { argb: st.bg } } : undefined,
+        font: st ? { color: { argb: st.fg } } : undefined,
+        alignment: { horizontal: "center" },
+        border: {
+          top: { style: "thin", color: { argb: "D1D5DB" } },
+          bottom: { style: "thin", color: { argb: "D1D5DB" } },
+          left: { style: "thin", color: { argb: "D1D5DB" } },
+          right: { style: "thin", color: { argb: "D1D5DB" } },
+        },
+      };
     }
 
     // Summary columns
-    fillCell(row, 3 + dates.length, hadir, { align: { horizontal: "center" }, border: true });
-    fillCell(row, 4 + dates.length, izin, { align: { horizontal: "center" }, border: true });
-    fillCell(row, 5 + dates.length, sakit, { align: { horizontal: "center" }, border: true });
-    fillCell(row, 6 + dates.length, alfa, { align: { horizontal: "center" }, border: true });
-    fillCell(row, 7 + dates.length, total, { align: { horizontal: "center" }, border: true, bold: true });
+    const summaryStart = 3 + dates.length;
+    const summaryStyle = { alignment: { horizontal: "center" }, border: {
+      top: { style: "thin", color: { argb: "D1D5DB" } },
+      bottom: { style: "thin", color: { argb: "D1D5DB" } },
+      left: { style: "thin", color: { argb: "D1D5DB" } },
+      right: { style: "thin", color: { argb: "D1D5DB" } },
+    }};
+    const hCell = row.getCell(summaryStart); hCell.value = hadir; hCell.style = summaryStyle;
+    const iCell = row.getCell(summaryStart + 1); iCell.value = izin; iCell.style = summaryStyle;
+    const sCell = row.getCell(summaryStart + 2); sCell.value = sakit; sCell.style = summaryStyle;
+    const aCell = row.getCell(summaryStart + 3); aCell.value = alfa; aCell.style = summaryStyle;
+    const tCell = row.getCell(summaryStart + 4); tCell.value = total;
+    tCell.style = { font: { bold: true }, alignment: { horizontal: "center" }, border: {
+      top: { style: "thin", color: { argb: "D1D5DB" } },
+      bottom: { style: "thin", color: { argb: "D1D5DB" } },
+      left: { style: "thin", color: { argb: "D1D5DB" } },
+      right: { style: "thin", color: { argb: "D1D5DB" } },
+    }};
   }
 
   // Totals row
   const totalRow = ws.addRow(["", "TOTAL"]);
   totalRow.height = 24;
-  fillCell(totalRow, 1, "", { bold: true, bg: TOTAL_BG, border: true });
-  fillCell(totalRow, 2, "TOTAL", { bold: true, bg: TOTAL_BG, border: true });
+
+  const totalStyle = (value: any) => ({
+    font: { bold: true },
+    fill: { type: "pattern", pattern: "solid", fgColor: { argb: TOTAL_BG } },
+    alignment: { horizontal: "center" },
+    border: {
+      top: { style: "thin", color: { argb: "D1D5DB" } },
+      bottom: { style: "thin", color: { argb: "D1D5DB" } },
+      left: { style: "thin", color: { argb: "D1D5DB" } },
+      right: { style: "thin", color: { argb: "D1D5DB" } },
+    },
+  } as ExcelJS.Style);
+
+  const totalCell1 = totalRow.getCell(1); totalCell1.value = ""; totalCell1.style = totalStyle("");
+  const totalCell2 = totalRow.getCell(2); totalCell2.value = "TOTAL"; totalCell2.style = totalStyle("TOTAL");
 
   for (let j = 0; j < dates.length; j++) {
     const d = dates[j];
@@ -173,7 +197,9 @@ function buildWeekWorksheet(rows: { memberName: string; date: string; status: st
     for (const m of MEMBERS) {
       if (rowsByMember[m][d] === "H") dayHadir++;
     }
-    fillCell(totalRow, 3 + j, dayHadir, { bold: true, bg: TOTAL_BG, align: { horizontal: "center" }, border: true });
+    const cell = totalRow.getCell(3 + j);
+    cell.value = dayHadir;
+    cell.style = totalStyle(dayHadir);
   }
 
   let totalHadir = 0, totalIzin = 0, totalSakit = 0, totalAlfa = 0, totalAll = 0;
@@ -185,11 +211,12 @@ function buildWeekWorksheet(rows: { memberName: string; date: string; status: st
     totalAlfa += Number(row.getCell(6 + dates.length).value ?? 0);
     totalAll += Number(row.getCell(7 + dates.length).value ?? 0);
   }
-  fillCell(totalRow, 3 + dates.length, totalHadir, { bold: true, bg: TOTAL_BG, align: { horizontal: "center" }, border: true });
-  fillCell(totalRow, 4 + dates.length, totalIzin, { bold: true, bg: TOTAL_BG, align: { horizontal: "center" }, border: true });
-  fillCell(totalRow, 5 + dates.length, totalSakit, { bold: true, bg: TOTAL_BG, align: { horizontal: "center" }, border: true });
-  fillCell(totalRow, 6 + dates.length, totalAlfa, { bold: true, bg: TOTAL_BG, align: { horizontal: "center" }, border: true });
-  fillCell(totalRow, 7 + dates.length, totalAll, { bold: true, bg: TOTAL_BG, align: { horizontal: "center" }, border: true });
+
+  const tH = totalRow.getCell(3 + dates.length); tH.value = totalHadir; tH.style = totalStyle(totalHadir);
+  const tI = totalRow.getCell(4 + dates.length); tI.value = totalIzin; tI.style = totalStyle(totalIzin);
+  const tS = totalRow.getCell(5 + dates.length); tS.value = totalSakit; tS.style = totalStyle(totalSakit);
+  const tA = totalRow.getCell(6 + dates.length); tA.value = totalAlfa; tA.style = totalStyle(totalAlfa);
+  const tT = totalRow.getCell(7 + dates.length); tT.value = totalAll; tT.style = totalStyle(totalAll);
 
   // Set column widths
   ws.getColumn(1).width = 4;  // No
@@ -206,11 +233,9 @@ function buildWeekWorksheet(rows: { memberName: string; date: string; status: st
 
   // Freeze header + freeze nama column
   ws.views = [{ state: "frozen", xSplit: 2, ySplit: 1 }];
-
-  return ws;
 }
 
-// GET /attendance?date=YYYY-MM-DD — list attendance, optionally filter by date
+// GET /attendance?date=YYYY-MM-DD \u2014 list attendance, optionally filter by date
 router.get("/attendance", async (req, res) => {
   try {
     const rows = await db.select().from(attendanceTable).orderBy(attendanceTable.date, attendanceTable.memberName);
@@ -223,7 +248,7 @@ router.get("/attendance", async (req, res) => {
   }
 });
 
-// POST /attendance — create or upsert attendance record
+// POST /attendance \u2014 create or upsert attendance record
 router.post("/attendance", requireLogin, async (req, res) => {
   const { memberName, date, status, notes } = req.body;
   if (!memberName || !date || !status) {
@@ -254,7 +279,7 @@ router.post("/attendance", requireLogin, async (req, res) => {
   }
 });
 
-// PATCH /attendance/:id — update attendance record (self or ketua/sekretaris)
+// PATCH /attendance/:id \u2014 update attendance record (self or ketua/sekretaris)
 router.patch("/attendance/:id", requireLogin, async (req, res) => {
   const id = parseInt(req.params.id as string, 10);
   if (isNaN(id)) { res.status(400).json({ error: "ID tidak valid" }); return; }
@@ -284,7 +309,7 @@ router.patch("/attendance/:id", requireLogin, async (req, res) => {
   }
 });
 
-// DELETE /attendance/:id — ketua/sekretaris only
+// DELETE /attendance/:id \u2014 ketua/sekretaris only
 router.delete("/attendance/:id", requireLogin, async (req, res) => {
   if (!isKetSek(req)) {
     res.status(403).json({ error: "Hanya ketua/sekretaris yang dapat menghapus absensi" }); return;
@@ -301,9 +326,13 @@ router.delete("/attendance/:id", requireLogin, async (req, res) => {
   }
 });
 
-// GET /attendance/export — export all attendance records as multi-week Excel workbook
-router.get("/attendance/export", async (req, res) => {
+// GET /attendance/export \u2014 export all attendance records as multi-week Excel workbook (ketua/sekretaris only)
+router.get("/attendance/export", requireLogin, async (req, res) => {
   try {
+    if (!isKetSek(req)) {
+      res.status(403).json({ error: "Hanya ketua/sekretaris yang dapat mengunduh laporan absensi" }); return;
+    }
+
     const rows = await db.select().from(attendanceTable).orderBy(attendanceTable.date, attendanceTable.memberName);
     const startDate = typeof req.query.start === "string" ? req.query.start : "2026-06-15";
     const weekCount = typeof req.query.weeks === "string" ? parseInt(req.query.weeks, 10) : 7;
@@ -314,29 +343,7 @@ router.get("/attendance/export", async (req, res) => {
 
     for (let w = 0; w < validWeeks; w++) {
       const dates = getWeekDates(startDate, w);
-      const ws = buildWeekWorksheet(flatRows, dates);
-      ws.name = getWeekLabel(dates);
-      wb.addWorksheet(getWeekLabel(dates));
-      // Copy from temporary worksheet to new one
-      const targetWs = wb.getWorksheet(getWeekLabel(dates))!;
-      // Copy rows
-      ws.eachRow((row, rowNumber) => {
-        const targetRow = targetWs.getRow(rowNumber);
-        row.eachCell((cell, colNumber) => {
-          const targetCell = targetRow.getCell(colNumber);
-          targetCell.value = cell.value;
-          targetCell.style = { ...cell.style };
-        });
-        targetRow.height = row.height;
-      });
-      // Copy columns
-      ws.columns.forEach((col, i) => {
-        if (col) {
-          targetWs.getColumn(i + 1).width = col.width;
-        }
-      });
-      targetWs.views = ws.views;
-      wb.removeWorksheet(ws.id);
+      buildWeekSheet(wb, getWeekLabel(dates), flatRows, dates);
     }
 
     const buf = await wb.xlsx.writeBuffer();
