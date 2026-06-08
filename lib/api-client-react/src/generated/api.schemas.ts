@@ -583,6 +583,18 @@ export interface TemplateUpdate {
   content?: string;
 }
 
+export interface KasItem {
+  id: number;
+  kasId: number;
+  name: string;
+  amount: number;
+}
+
+export interface KasItemInput {
+  name: string;
+  amount: number;
+}
+
 export type KasType = typeof KasType[keyof typeof KasType];
 
 
@@ -625,6 +637,7 @@ export interface Kas {
   /** @nullable */
   prokerId?: number | null;
   createdAt: string;
+  items: KasItem[];
 }
 
 export type KasInputType = typeof KasInputType[keyof typeof KasInputType];
@@ -665,6 +678,7 @@ export interface KasInput {
   notes?: string;
   fund?: KasInputFund;
   prokerId?: number;
+  items?: KasItemInput[];
 }
 
 export type KasUpdateType = typeof KasUpdateType[keyof typeof KasUpdateType];
@@ -705,6 +719,7 @@ export interface KasUpdate {
   notes?: string;
   fund?: KasUpdateFund;
   prokerId?: number;
+  items?: KasItemInput[];
 }
 
 export interface KasConfig {

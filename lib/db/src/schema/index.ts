@@ -143,6 +143,17 @@ export const insertKasSchema = createInsertSchema(kasTable).omit({ id: true, cre
 export type InsertKas = z.infer<typeof insertKasSchema>;
 export type Kas = typeof kasTable.$inferSelect;
 
+export const kasItemsTable = pgTable("kas_items", {
+  id: serial("id").primaryKey(),
+  kasId: integer("kas_id").notNull().references(() => kasTable.id, { onDelete: "cascade" }),
+  name: text("name").notNull(),
+  amount: integer("amount").notNull(),
+});
+
+export const insertKasItemSchema = createInsertSchema(kasItemsTable).omit({ id: true });
+export type InsertKasItem = z.infer<typeof insertKasItemSchema>;
+export type KasItem = typeof kasItemsTable.$inferSelect;
+
 export const kasConfigTable = pgTable("kas_config", {
   key: text("key").primaryKey(),
   value: text("value").notNull(),

@@ -1999,9 +1999,31 @@ components:
         content:
           type: string
 
+    KasItem:
+      type: object
+      required: [id, kasId, name, amount]
+      properties:
+        id:
+          type: integer
+        kasId:
+          type: integer
+        name:
+          type: string
+        amount:
+          type: integer
+
+    KasItemInput:
+      type: object
+      required: [name, amount]
+      properties:
+        name:
+          type: string
+        amount:
+          type: integer
+
     Kas:
       type: object
-      required: [id, type, amount, description, category, date, fund, createdAt]
+      required: [id, type, amount, description, category, date, fund, createdAt, items]
       properties:
         id:
           type: integer
@@ -2026,6 +2048,10 @@ components:
           type: ["integer", "null"]
         createdAt:
           type: string
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/KasItem"
 
     KasInput:
       type: object
@@ -2050,6 +2076,10 @@ components:
           enum: [umum, darurat, iuran_makan, proker]
         prokerId:
           type: integer
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/KasItemInput"
 
     KasUpdate:
       type: object
@@ -2073,6 +2103,10 @@ components:
           enum: [umum, darurat, iuran_makan, proker]
         prokerId:
           type: integer
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/KasItemInput"
 
     KasConfig:
       type: object

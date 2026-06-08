@@ -9,7 +9,6 @@ import {
   useCreateKas,
   useUpdateKas,
   useDeleteKas,
-  useGetKasConfig,
   useUpdateKasConfig,
   useGetKasSummary,
   useTransferSisaMakan,
@@ -30,13 +29,13 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import {
   Plus, Pencil, Trash2, TrendingUp, TrendingDown, Wallet,
   ArrowUpCircle, ArrowDownCircle, ShieldCheck, Utensils,
-  Folder, ChevronRight, Settings, ArrowRightLeft,
+  Folder, ChevronRight, Settings, ArrowRightLeft, ChevronDown,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 
 function today() { return new Date().toISOString().split("T")[0]; }
-function formatRp(n: number) { return "Rp " + n.toLocaleString("id-ID"); }
+function formatRp(n: number) { return "Rp " + Math.abs(n).toLocaleString("id-ID"); }
 function formatDate(d: string) {
   return new Date(d).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" });
 }
@@ -50,6 +49,7 @@ const KAS_CATEGORIES = [
 ];
 function getCatInfo(cat: string) { return KAS_CATEGORIES.find(c => c.id === cat) ?? KAS_CATEGORIES[4]; }
 
+type ItemRow = { name: string; amount: string };
 type KasForm = {
   type: KasInputType;
   amount: string;
@@ -59,18 +59,85 @@ type KasForm = {
   notes: string;
   fund: KasFundType;
   prokerId: string;
+  items: ItemRow[];
 };
+
 function defaultForm(fund: KasFundType = KasInputFund.umum): KasForm {
-  return { type: "pemasukan", amount: "", description: "", category: "lainnya", date: today(), notes: "", fund, prokerId: "" };
+  return { type: "pemasukan", amount: "", description: "", category: "lainnya", date: today(), notes: "", fund, prokerId: "", items: [] };
 }
 
-// ─── TRANSACTION LIST ────────────────────────────────────────────────────────
+function itemsTotal(items: ItemRow[]): number {
+  return items.reduce((s, it) => s + (Number(it.amount) || 0), 0);
+}
+
+// ─── ITEMS EDITOR ─────────────────────────────────────────────────────────────
+function ItemsEditor({ items, onChange }: {
+  items: ItemRow[];
+  onChange: (items: ItemRow[]) => void;
+}) {
+  const total = itemsTotal(items);
+
+  function addRow() { onChange([...items, { name: "", amount: "" }]); }
+  function removeRow(i: number) { onChange(items.filter((_, idx) => idx !== i)); }
+  function updateRow(i: number, field: keyof ItemRow, val: string) {
+    onChange(items.map((row, idx) => idx === i ? { ...row, [field]: val } : row));
+  }
+
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center justify-between">
+        <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Rincian Belanja (opsional)</label>
+        <button type="button" onClick={addRow} className="flex items-center gap-1 text-xs text-sky-600 hover:text-sky-700 font-medium">
+          <Plus className="w-3 h-3" />Tambah Item
+        </button>
+      </div>
+      {items.length > 0 && (
+        <div className="space-y-1.5 rounded-xl border border-dashed border-gray-200 p-2.5 bg-white/40">
+          {items.map((row, i) => (
+            <div key={i} className="flex gap-1.5 items-center">
+              <Input
+                placeholder="Nama item (mis. Ayam)"
+                value={row.name}
+                onChange={e => updateRow(i, "name", e.target.value)}
+                className="bg-white/60 text-xs h-8 flex-1"
+              />
+              <div className="relative flex-none w-28">
+                <span className="absolute left-2 top-1/2 -translate-y-1/2 text-[10px] text-gray-400">Rp</span>
+                <Input
+                  type="number"
+                  min={0}
+                  placeholder="0"
+                  value={row.amount}
+                  onChange={e => updateRow(i, "amount", e.target.value)}
+                  className="bg-white/60 text-xs h-8 pl-7"
+                />
+              </div>
+              <button type="button" onClick={() => removeRow(i)} className="text-rose-400 hover:text-rose-600 shrink-0">
+                <Trash2 className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          ))}
+          {total > 0 && (
+            <div className="text-xs text-right text-gray-500 pt-1 border-t border-dashed border-gray-200 mt-1">
+              Total rincian: <span className="font-bold text-gray-700">{formatRp(total)}</span>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── TRANSACTION LIST ─────────────────────────────────────────────────────────
 function TxList({ items, isAdmin, onEdit, onDelete }: {
   items: any[];
   isAdmin?: boolean;
   onEdit?: (item: any) => void;
   onDelete?: (id: number) => void;
 }) {
+  const [expanded, setExpanded] = useState<Record<number, boolean>>({});
+  const toggle = (id: number) => setExpanded(prev => ({ ...prev, [id]: !prev[id] }));
+
   const grouped = useMemo(() => {
     const map: Record<string, typeof items> = {};
     for (const item of items) {
@@ -112,6 +179,8 @@ function TxList({ items, isAdmin, onEdit, onDelete }: {
             <div className="flex flex-col gap-2.5">
               {monthItems.map((item: any) => {
                 const cat = getCatInfo(item.category);
+                const hasItems = Array.isArray(item.items) && item.items.length > 0;
+                const isOpen = expanded[item.id];
                 return (
                   <div key={item.id} className="glass-card p-3.5 group hover:-translate-y-0.5 transition-all">
                     <div className="flex items-center gap-3">
@@ -122,15 +191,25 @@ function TxList({ items, isAdmin, onEdit, onDelete }: {
                         <div className="flex items-center gap-1.5 mb-0.5">
                           <p className="font-semibold text-sm text-gray-900 truncate">{item.description}</p>
                           <Badge className={cn("text-[10px] border shrink-0 px-1.5 py-0", cat.color)}>{cat.label}</Badge>
+                          {hasItems && (
+                            <Badge className="text-[10px] border shrink-0 px-1.5 py-0 bg-gray-50 text-gray-500 border-gray-200">
+                              {item.items.length} item
+                            </Badge>
+                          )}
                         </div>
                         <p className="text-xs text-gray-400">{formatDate(item.date)}</p>
                       </div>
-                      <div className="flex items-center gap-1.5 shrink-0">
+                      <div className="flex items-center gap-1 shrink-0">
                         <span className={cn("font-bold text-sm", item.type === "pemasukan" ? "text-emerald-600" : "text-rose-600")}>
                           {item.type === "pemasukan" ? "+" : "-"}{formatRp(item.amount)}
                         </span>
+                        {hasItems && (
+                          <button onClick={() => toggle(item.id)} className="text-gray-400 hover:text-gray-600 transition-colors ml-0.5">
+                            <ChevronDown className={cn("w-3.5 h-3.5 transition-transform", isOpen && "rotate-180")} />
+                          </button>
+                        )}
                         {isAdmin && (onEdit || onDelete) && (
-                          <div className="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <div className="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity ml-0.5">
                             {onEdit && <Button variant="ghost" size="icon" className="h-6 w-6 rounded-full" onClick={() => onEdit(item)}><Pencil className="w-3 h-3 text-sky-500" /></Button>}
                             {onDelete && <Button variant="ghost" size="icon" className="h-6 w-6 rounded-full" onClick={() => onDelete(item.id)}><Trash2 className="w-3 h-3 text-rose-500" /></Button>}
                           </div>
@@ -138,6 +217,16 @@ function TxList({ items, isAdmin, onEdit, onDelete }: {
                       </div>
                     </div>
                     {item.notes && <p className="text-xs text-gray-400 mt-1.5 ml-12">{item.notes}</p>}
+                    {hasItems && isOpen && (
+                      <div className="mt-2 ml-12 space-y-0.5 border-l-2 border-gray-100 pl-2.5">
+                        {item.items.map((it: any) => (
+                          <div key={it.id} className="flex items-center justify-between text-xs">
+                            <span className="text-gray-600">• {it.name}</span>
+                            <span className="text-gray-500 font-medium">{formatRp(it.amount)}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 );
               })}
@@ -149,15 +238,21 @@ function TxList({ items, isAdmin, onEdit, onDelete }: {
   );
 }
 
-// ─── ADD/EDIT DIALOG ─────────────────────────────────────────────────────────
+// ─── ADD/EDIT DIALOG ──────────────────────────────────────────────────────────
 function AddEditDialog({
-  open, onClose, editId, initial, onSave, isPending, fixedFund,
+  open, onClose, editId, initial, onSave, isPending,
 }: {
   open: boolean; onClose: () => void; editId: number | null; initial: KasForm;
-  onSave: (f: KasForm) => void; isPending: boolean; fixedFund?: KasFundType;
+  onSave: (f: KasForm) => void; isPending: boolean;
 }) {
   const [form, setForm] = useState<KasForm>(initial);
   const set = <K extends keyof KasForm>(k: K, v: KasForm[K]) => setForm(f => ({ ...f, [k]: v }));
+
+  // When items change and have a valid total, auto-fill amount
+  function handleItemsChange(items: ItemRow[]) {
+    const total = itemsTotal(items);
+    setForm(f => ({ ...f, items, ...(total > 0 ? { amount: String(total) } : {}) }));
+  }
 
   return (
     <Dialog open={open} onOpenChange={v => !v && onClose()}>
@@ -180,13 +275,6 @@ function AddEditDialog({
         </div>
         <div className="px-6 pb-6 pt-4 space-y-4">
           <div>
-            <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 block">Jumlah (Rp)</label>
-            <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-medium text-gray-500">Rp</span>
-              <Input type="number" min={0} placeholder="0" value={form.amount} onChange={e => set("amount", e.target.value)} className="bg-white/60 pl-10 text-lg font-bold" />
-            </div>
-          </div>
-          <div>
             <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 block">Keterangan</label>
             <Input placeholder="Deskripsi transaksi..." value={form.description} onChange={e => set("description", e.target.value)} className="bg-white/60" />
           </div>
@@ -203,6 +291,23 @@ function AddEditDialog({
               ))}
             </div>
           </div>
+
+          {/* Items Editor */}
+          <ItemsEditor items={form.items} onChange={handleItemsChange} />
+
+          <div>
+            <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 block">
+              Jumlah Total (Rp)
+              {form.items.length > 0 && itemsTotal(form.items) > 0 && (
+                <span className="ml-1 normal-case font-normal text-gray-400">— auto dari rincian</span>
+              )}
+            </label>
+            <div className="relative">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-medium text-gray-500">Rp</span>
+              <Input type="number" min={0} placeholder="0" value={form.amount} onChange={e => set("amount", e.target.value)} className="bg-white/60 pl-10 text-lg font-bold" />
+            </div>
+          </div>
+
           <div>
             <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 block">Tanggal</label>
             <Input type="date" value={form.date} onChange={e => set("date", e.target.value)} className="bg-white/60" />
@@ -224,7 +329,12 @@ function AddEditDialog({
   );
 }
 
-// ─── KAS UMUM TAB ────────────────────────────────────────────────────────────
+// Helper to build items payload from ItemRow[]
+function toItemsPayload(items: ItemRow[]) {
+  return items.filter(it => it.name && it.amount).map(it => ({ name: it.name, amount: Number(it.amount) }));
+}
+
+// ─── KAS UMUM TAB ─────────────────────────────────────────────────────────────
 function UmumTab({ isAdmin, summary }: { isAdmin?: boolean; summary: any }) {
   const qc = useQueryClient();
   const { toast } = useToast();
@@ -245,15 +355,25 @@ function UmumTab({ isAdmin, summary }: { isAdmin?: boolean; summary: any }) {
   function openAdd() { setEditId(null); setInitForm(defaultForm(KasInputFund.umum)); setOpen(true); }
   function openEdit(item: any) {
     setEditId(item.id);
-    setInitForm({ type: item.type, amount: String(item.amount), description: item.description, category: item.category, date: item.date, notes: item.notes ?? "", fund: KasInputFund.umum, prokerId: "" });
+    setInitForm({
+      type: item.type, amount: String(item.amount), description: item.description,
+      category: item.category, date: item.date, notes: item.notes ?? "",
+      fund: KasInputFund.umum, prokerId: "",
+      items: (item.items ?? []).map((it: any) => ({ name: it.name, amount: String(it.amount) })),
+    });
     setOpen(true);
   }
   function handleSave(form: KasForm) {
-    const payload = { type: form.type, amount: Number(form.amount), description: form.description, category: form.category, date: form.date, notes: form.notes || undefined, fund: KasInputFund.umum };
+    const payload = {
+      type: form.type, amount: Number(form.amount), description: form.description,
+      category: form.category, date: form.date, notes: form.notes || undefined,
+      fund: KasInputFund.umum,
+      items: toItemsPayload(form.items),
+    };
     if (editId !== null) {
       update.mutate({ id: editId, data: payload }, { onSuccess: () => { invalidate(); setOpen(false); toast({ title: "Transaksi diperbarui" }); } });
     } else {
-      create.mutate({ data: payload }, { onSuccess: () => { invalidate(); setOpen(false); toast({ title: "Transaksi dicatat" }); } });
+      create.mutate({ data: payload }, { onSuccess: () => { invalidate(); setOpen(false); setInitForm(defaultForm(KasInputFund.umum)); toast({ title: "Transaksi dicatat" }); } });
     }
   }
 
@@ -268,7 +388,7 @@ function UmumTab({ isAdmin, summary }: { isAdmin?: boolean; summary: any }) {
           <Wallet className="w-5 h-5 text-sky-500" />
           <div>
             <p className="text-xs text-gray-500">Saldo Kas Umum</p>
-            <p className={cn("text-lg font-bold", saldo >= 0 ? "text-sky-700" : "text-amber-600")}>{formatRp(Math.abs(saldo))}{saldo < 0 && " (defisit)"}</p>
+            <p className={cn("text-lg font-bold", saldo >= 0 ? "text-sky-700" : "text-amber-600")}>{formatRp(saldo)}{saldo < 0 && " (defisit)"}</p>
           </div>
         </div>
         {isAdmin && (
@@ -292,12 +412,85 @@ function UmumTab({ isAdmin, summary }: { isAdmin?: boolean; summary: any }) {
           onDelete={id => del.mutate({ id }, { onSuccess: () => { invalidate(); toast({ title: "Transaksi dihapus" }); } })} />
       )}
 
-      <AddEditDialog open={open} onClose={() => setOpen(false)} editId={editId} initial={initForm} onSave={handleSave} isPending={create.isPending || update.isPending} fixedFund={KasInputFund.umum} />
+      <AddEditDialog open={open} onClose={() => setOpen(false)} editId={editId} initial={initForm} onSave={handleSave} isPending={create.isPending || update.isPending} />
     </div>
   );
 }
 
-// ─── IURAN MAKAN TAB ─────────────────────────────────────────────────────────
+// ─── SIMPLE TX DIALOG (used in Makan, Darurat, Proker tabs) ──────────────────
+type SimpleTxState = {
+  amount: string; description: string; type: KasInputType;
+  category: KasInputCategory; date: string; notes: string; items: ItemRow[];
+};
+function defaultSimpleTx(overrides?: Partial<SimpleTxState>): SimpleTxState {
+  return { amount: "", description: "", type: "pengeluaran", category: "lainnya", date: today(), notes: "", items: [], ...overrides };
+}
+
+function SimpleTxDialog({ open, onClose, title, headerColor, isPending, onSave, state, setState, jatahHarian }: {
+  open: boolean; onClose: () => void; title: string; headerColor: string;
+  isPending: boolean; onSave: () => void;
+  state: SimpleTxState; setState: (s: SimpleTxState) => void;
+  jatahHarian?: number;
+}) {
+  const set = (patch: Partial<SimpleTxState>) => setState({ ...state, ...patch });
+
+  function handleItemsChange(items: ItemRow[]) {
+    const total = itemsTotal(items);
+    setState({ ...state, items, ...(total > 0 ? { amount: String(total) } : {}) });
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={v => !v && onClose()}>
+      <DialogContent className="glass-panel border-white/50 max-w-sm p-0 overflow-hidden max-h-[90vh] overflow-y-auto">
+        <div className={cn("px-6 pt-6 pb-4", headerColor)}>
+          <DialogHeader><DialogTitle>{title}</DialogTitle></DialogHeader>
+          <div className="flex gap-2 mt-3">
+            {(["pengeluaran", "pemasukan"] as KasInputType[]).map(t => (
+              <button key={t} onClick={() => set({ type: t })} className={cn(
+                "flex-1 py-2 rounded-xl border-2 text-xs font-semibold transition-all",
+                state.type === t ? (t === "pengeluaran" ? "bg-rose-500 text-white border-rose-500" : "bg-emerald-500 text-white border-emerald-500") : "bg-white/60 text-gray-500 border-white/50"
+              )}>{t === "pengeluaran" ? "Pengeluaran" : "Pemasukan"}</button>
+            ))}
+          </div>
+        </div>
+        <div className="px-6 pb-6 pt-4 space-y-3">
+          <div>
+            <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 block">Keterangan</label>
+            <Input value={state.description} onChange={e => set({ description: e.target.value })} className="bg-white/60" />
+          </div>
+
+          <ItemsEditor items={state.items} onChange={handleItemsChange} />
+
+          <div>
+            <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 block">
+              Jumlah (Rp){state.items.length > 0 && itemsTotal(state.items) > 0 && <span className="ml-1 normal-case font-normal text-gray-400">— auto dari rincian</span>}
+            </label>
+            <div className="relative">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-medium text-gray-500">Rp</span>
+              <Input type="number" min={0} value={state.amount} onChange={e => set({ amount: e.target.value })} className="bg-white/60 pl-10 font-bold" />
+            </div>
+            {state.type === "pengeluaran" && jatahHarian && jatahHarian > 0 && (
+              <p className="text-xs text-amber-600 mt-1">Jatah hari ini: {formatRp(jatahHarian)}</p>
+            )}
+          </div>
+          <div>
+            <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 block">Tanggal</label>
+            <Input type="date" value={state.date} onChange={e => set({ date: e.target.value })} className="bg-white/60" />
+          </div>
+          <div className="flex gap-3 justify-end pt-1">
+            <Button variant="outline" onClick={onClose} className="rounded-full">Batal</Button>
+            <Button onClick={onSave} disabled={isPending || !state.amount || !state.description}
+              className={cn("rounded-full text-white border-0", state.type === "pengeluaran" ? "bg-gradient-to-r from-rose-400 to-pink-500" : "bg-gradient-to-r from-emerald-400 to-teal-500")}>
+              Simpan
+            </Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+// ─── IURAN MAKAN TAB ──────────────────────────────────────────────────────────
 function IuranMakanTab({ isAdmin, summary }: { isAdmin?: boolean; summary: any }) {
   const qc = useQueryClient();
   const { toast } = useToast();
@@ -310,10 +503,8 @@ function IuranMakanTab({ isAdmin, summary }: { isAdmin?: boolean; summary: any }
   const [openTx, setOpenTx] = useState(false);
   const [openConfig, setOpenConfig] = useState(false);
   const [openTransfer, setOpenTransfer] = useState(false);
-  const [txForm, setTxForm] = useState<{ amount: string; description: string; type: KasInputType; category: KasInputCategory; date: string; notes: string }>({
-    amount: "", description: "Belanja makan", type: "pengeluaran", category: "makan", date: today(), notes: ""
-  });
-  const [configForm, setConfigForm] = useState({ weeklyAmount: String(summary?.weeklyFoodAmount ?? 0) });
+  const [txState, setTxState] = useState<SimpleTxState>(defaultSimpleTx({ description: "Belanja makan", category: "makan" }));
+  const [configForm, setConfigForm] = useState({ weeklyAmount: "" });
   const [transferForm, setTransferForm] = useState({ date: today(), terpakai: "" });
 
   const jatahHarian = summary?.dailyFoodAllowance ?? 0;
@@ -328,31 +519,38 @@ function IuranMakanTab({ isAdmin, summary }: { isAdmin?: boolean; summary: any }
   }
 
   function saveTx() {
-    if (!txForm.amount || !txForm.description) return;
+    if (!txState.amount || !txState.description) return;
     create.mutate({
-      data: { type: txForm.type, amount: Number(txForm.amount), description: txForm.description, category: txForm.category, date: txForm.date, notes: txForm.notes || undefined, fund: KasInputFund.iuran_makan }
-    }, { onSuccess: () => { invalidate(); setOpenTx(false); toast({ title: "Transaksi dicatat" }); } });
+      data: { type: txState.type, amount: Number(txState.amount), description: txState.description, category: txState.category, date: txState.date, notes: txState.notes || undefined, fund: KasInputFund.iuran_makan, items: toItemsPayload(txState.items) }
+    }, {
+      onSuccess: () => {
+        invalidate(); setOpenTx(false);
+        setTxState(defaultSimpleTx({ description: "Belanja makan", category: "makan" }));
+        toast({ title: "Transaksi dicatat" });
+      }
+    });
   }
 
   function saveConfig() {
     updateConfig.mutate({ data: { weeklyFoodAmount: Number(configForm.weeklyAmount) } }, {
-      onSuccess: () => { invalidate(); setOpenConfig(false); toast({ title: "Iuran makan diperbarui" }); }
+      onSuccess: () => { invalidate(); setOpenConfig(false); setConfigForm({ weeklyAmount: "" }); toast({ title: "Iuran makan diperbarui" }); }
     });
   }
 
   function doTransfer() {
     if (!transferForm.terpakai) return;
     transferSisa.mutate({ data: { date: transferForm.date, terpakai: Number(transferForm.terpakai) } }, {
-      onSuccess: (res) => { invalidate(); setOpenTransfer(false); toast({ title: `Sisa ${formatRp(res.sisa)} berhasil ditransfer ke dana darurat` }); },
+      onSuccess: (res) => {
+        invalidate(); setOpenTransfer(false);
+        setTransferForm({ date: today(), terpakai: "" });
+        toast({ title: `Sisa ${formatRp(res.sisa)} berhasil ditransfer ke dana darurat` });
+      },
       onError: () => { toast({ title: "Tidak ada sisa untuk ditransfer", variant: "destructive" }); },
     });
   }
 
-  const all = kas ?? [];
-
   return (
     <div className="space-y-5">
-      {/* Config Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <div className="glass-card p-4 bg-gradient-to-br from-orange-50 to-amber-50">
           <div className="flex items-center justify-between">
@@ -370,20 +568,19 @@ function IuranMakanTab({ isAdmin, summary }: { isAdmin?: boolean; summary: any }
         </div>
         <div className={cn("glass-card p-4", saldoMakan >= 0 ? "bg-gradient-to-br from-emerald-50 to-teal-50" : "bg-gradient-to-br from-rose-50 to-pink-50")}>
           <p className="text-xs text-gray-500 mb-0.5">Saldo Dana Makan</p>
-          <p className={cn("text-xl font-bold", saldoMakan >= 0 ? "text-emerald-700" : "text-rose-700")}>{formatRp(Math.abs(saldoMakan))}</p>
+          <p className={cn("text-xl font-bold", saldoMakan >= 0 ? "text-emerald-700" : "text-rose-700")}>{formatRp(saldoMakan)}</p>
           {saldoMakan < 0 && <p className="text-[10px] text-rose-500">Defisit</p>}
         </div>
       </div>
 
-      {/* Actions */}
       <div className="flex gap-2 flex-wrap">
         {isAdmin && (
           <>
-            <Button size="sm" onClick={() => { setTxForm({ amount: "", description: "Belanja makan", type: "pengeluaran", category: "makan", date: today(), notes: "" }); setOpenTx(true); }}
+            <Button size="sm" onClick={() => { setTxState(defaultSimpleTx({ type: "pengeluaran", description: "Belanja makan", category: "makan" })); setOpenTx(true); }}
               className="bg-gradient-to-r from-orange-400 to-amber-400 text-white border-0 rounded-full gap-1">
               <Plus className="w-4 h-4" />Catat Pengeluaran Makan
             </Button>
-            <Button size="sm" onClick={() => { setTxForm({ amount: "", description: "Iuran makan mingguan", type: "pemasukan", category: "makan", date: today(), notes: "" }); setOpenTx(true); }}
+            <Button size="sm" onClick={() => { setTxState(defaultSimpleTx({ type: "pemasukan", description: "Iuran makan mingguan", category: "makan" })); setOpenTx(true); }}
               variant="outline" className="rounded-full gap-1 text-emerald-700 border-emerald-200 hover:bg-emerald-50">
               <ArrowUpCircle className="w-4 h-4" />Catat Pemasukan
             </Button>
@@ -395,58 +592,15 @@ function IuranMakanTab({ isAdmin, summary }: { isAdmin?: boolean; summary: any }
         )}
       </div>
 
-      {/* List */}
       {isLoading ? <div className="animate-pulse space-y-2">{[1,2].map(i => <div key={i} className="glass-card h-14" />)}</div> : (
-        <TxList items={all} isAdmin={isAdmin}
+        <TxList items={kas ?? []} isAdmin={isAdmin}
           onDelete={id => del.mutate({ id }, { onSuccess: () => { invalidate(); toast({ title: "Transaksi dihapus" }); } })} />
       )}
 
-      {/* Add Transaction Dialog */}
-      <Dialog open={openTx} onOpenChange={v => !v && setOpenTx(false)}>
-        <DialogContent className="glass-panel border-white/50 max-w-sm p-0 overflow-hidden">
-          <div className="px-6 pt-6 pb-4 bg-gradient-to-r from-orange-400/20 to-amber-400/20">
-            <DialogHeader><DialogTitle>Catat Transaksi Makan</DialogTitle></DialogHeader>
-          </div>
-          <div className="px-6 pb-6 pt-4 space-y-3">
-            <div>
-              <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 block">Jenis</label>
-              <div className="flex gap-2">
-                {["pengeluaran", "pemasukan"].map(t => (
-                  <button key={t} onClick={() => setTxForm(f => ({ ...f, type: t as KasInputType }))} className={cn(
-                    "flex-1 py-2 rounded-xl border-2 text-xs font-semibold transition-all",
-                    txForm.type === t ? (t === "pengeluaran" ? "bg-rose-500 text-white border-rose-500" : "bg-emerald-500 text-white border-emerald-500") : "bg-white/60 text-gray-500 border-white/50"
-                  )}>{t === "pengeluaran" ? "Pengeluaran" : "Pemasukan"}</button>
-                ))}
-              </div>
-            </div>
-            <div>
-              <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 block">Jumlah (Rp)</label>
-              <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-medium text-gray-500">Rp</span>
-                <Input type="number" min={0} value={txForm.amount} onChange={e => setTxForm(f => ({ ...f, amount: e.target.value }))} className="bg-white/60 pl-10 font-bold" />
-              </div>
-              {txForm.type === "pengeluaran" && jatahHarian > 0 && (
-                <p className="text-xs text-amber-600 mt-1">Jatah hari ini: {formatRp(jatahHarian)}</p>
-              )}
-            </div>
-            <div>
-              <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 block">Keterangan</label>
-              <Input value={txForm.description} onChange={e => setTxForm(f => ({ ...f, description: e.target.value }))} className="bg-white/60" />
-            </div>
-            <div>
-              <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 block">Tanggal</label>
-              <Input type="date" value={txForm.date} onChange={e => setTxForm(f => ({ ...f, date: e.target.value }))} className="bg-white/60" />
-            </div>
-            <div className="flex gap-3 justify-end pt-1">
-              <Button variant="outline" onClick={() => setOpenTx(false)} className="rounded-full">Batal</Button>
-              <Button onClick={saveTx} disabled={create.isPending || !txForm.amount || !txForm.description}
-                className="rounded-full text-white border-0 bg-gradient-to-r from-orange-400 to-amber-500">Simpan</Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+      <SimpleTxDialog open={openTx} onClose={() => setOpenTx(false)} title="Catat Transaksi Makan"
+        headerColor="bg-gradient-to-r from-orange-400/20 to-amber-400/20"
+        isPending={create.isPending} onSave={saveTx} state={txState} setState={setTxState} jatahHarian={jatahHarian} />
 
-      {/* Config Dialog */}
       <Dialog open={openConfig} onOpenChange={v => !v && setOpenConfig(false)}>
         <DialogContent className="glass-panel border-white/50 max-w-sm p-0 overflow-hidden">
           <div className="px-6 pt-6 pb-4 bg-gradient-to-r from-amber-400/20 to-yellow-400/20">
@@ -457,7 +611,7 @@ function IuranMakanTab({ isAdmin, summary }: { isAdmin?: boolean; summary: any }
               <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 block">Iuran Mingguan Per Orang (Rp)</label>
               <div className="relative">
                 <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-medium text-gray-500">Rp</span>
-                <Input type="number" min={0} value={configForm.weeklyAmount} onChange={e => setConfigForm(f => ({ ...f, weeklyAmount: e.target.value }))} className="bg-white/60 pl-10 font-bold text-lg" />
+                <Input type="number" min={0} value={configForm.weeklyAmount} onChange={e => setConfigForm({ weeklyAmount: e.target.value })} className="bg-white/60 pl-10 font-bold text-lg" />
               </div>
               {Number(configForm.weeklyAmount) > 0 && (
                 <p className="text-xs text-amber-600 mt-1">Jatah harian: {formatRp(Math.floor(Number(configForm.weeklyAmount) * 9 / 7))} (× 9 anggota ÷ 7 hari)</p>
@@ -471,7 +625,6 @@ function IuranMakanTab({ isAdmin, summary }: { isAdmin?: boolean; summary: any }
         </DialogContent>
       </Dialog>
 
-      {/* Transfer Dialog */}
       <Dialog open={openTransfer} onOpenChange={v => !v && setOpenTransfer(false)}>
         <DialogContent className="glass-panel border-white/50 max-w-sm p-0 overflow-hidden">
           <div className="px-6 pt-6 pb-4 bg-gradient-to-r from-sky-400/20 to-blue-400/20">
@@ -510,7 +663,7 @@ function IuranMakanTab({ isAdmin, summary }: { isAdmin?: boolean; summary: any }
   );
 }
 
-// ─── DANA DARURAT TAB ────────────────────────────────────────────────────────
+// ─── DANA DARURAT TAB ─────────────────────────────────────────────────────────
 function DanadaruratTab({ isAdmin, summary }: { isAdmin?: boolean; summary: any }) {
   const qc = useQueryClient();
   const { toast } = useToast();
@@ -521,9 +674,7 @@ function DanadaruratTab({ isAdmin, summary }: { isAdmin?: boolean; summary: any 
 
   const [openTx, setOpenTx] = useState(false);
   const [openTarget, setOpenTarget] = useState(false);
-  const [txForm, setTxForm] = useState<{ amount: string; description: string; type: KasInputType; date: string; notes: string }>({
-    amount: "", description: "", type: "pemasukan", date: today(), notes: ""
-  });
+  const [txState, setTxState] = useState<SimpleTxState>(defaultSimpleTx({ type: "pemasukan" }));
   const [targetForm, setTargetForm] = useState({ target: "" });
 
   const saldo = summary?.saldoDarurat ?? 0;
@@ -536,7 +687,7 @@ function DanadaruratTab({ isAdmin, summary }: { isAdmin?: boolean; summary: any 
     cukup: { label: "Cukup", color: "text-amber-600", bgColor: "bg-amber-100 border-amber-200", barColor: "bg-amber-400" },
     sangat_cukup: { label: "Sangat Cukup ✓", color: "text-emerald-600", bgColor: "bg-emerald-100 border-emerald-200", barColor: "bg-emerald-400" },
   };
-  const statusInfo = statusMap[status] ?? { label: "Kurang", color: "text-rose-600", bgColor: "bg-rose-100 border-rose-200", barColor: "bg-rose-400" };
+  const statusInfo = statusMap[status] ?? statusMap.kurang;
 
   function invalidate() {
     qc.invalidateQueries({ queryKey: getGetKasQueryKey({ fund: "darurat" }) });
@@ -545,23 +696,26 @@ function DanadaruratTab({ isAdmin, summary }: { isAdmin?: boolean; summary: any 
   }
 
   function saveTx() {
-    if (!txForm.amount || !txForm.description) return;
+    if (!txState.amount || !txState.description) return;
     create.mutate({
-      data: { type: txForm.type, amount: Number(txForm.amount), description: txForm.description, category: "lainnya", date: txForm.date, notes: txForm.notes || undefined, fund: KasInputFund.darurat }
-    }, { onSuccess: () => { invalidate(); setOpenTx(false); toast({ title: "Transaksi dicatat" }); } });
+      data: { type: txState.type, amount: Number(txState.amount), description: txState.description, category: "lainnya", date: txState.date, notes: txState.notes || undefined, fund: KasInputFund.darurat, items: toItemsPayload(txState.items) }
+    }, {
+      onSuccess: () => {
+        invalidate(); setOpenTx(false);
+        setTxState(defaultSimpleTx({ type: "pemasukan" }));
+        toast({ title: "Transaksi dicatat" });
+      }
+    });
   }
 
   function saveTarget() {
     updateConfig.mutate({ data: { emergencyFundTarget: Number(targetForm.target) } }, {
-      onSuccess: () => { invalidate(); setOpenTarget(false); toast({ title: "Target dana darurat diperbarui" }); }
+      onSuccess: () => { invalidate(); setOpenTarget(false); setTargetForm({ target: "" }); toast({ title: "Target dana darurat diperbarui" }); }
     });
   }
 
-  const all = kas ?? [];
-
   return (
     <div className="space-y-5">
-      {/* Status Card */}
       <div className="glass-card p-5 bg-gradient-to-br from-rose-50 to-pink-50">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
@@ -584,8 +738,7 @@ function DanadaruratTab({ isAdmin, summary }: { isAdmin?: boolean; summary: any 
         {target > 0 && (
           <div>
             <div className="flex justify-between text-xs text-gray-400 mb-1.5">
-              <span>{pct}% tercapai</span>
-              <span>{formatRp(target)}</span>
+              <span>{pct}% tercapai</span><span>{formatRp(target)}</span>
             </div>
             <div className="w-full h-2.5 bg-gray-200 rounded-full overflow-hidden">
               <div className={cn("h-full rounded-full transition-all duration-700", statusInfo.barColor)} style={{ width: `${pct}%` }} />
@@ -596,11 +749,11 @@ function DanadaruratTab({ isAdmin, summary }: { isAdmin?: boolean; summary: any 
 
       {isAdmin && (
         <div className="flex gap-2 flex-wrap">
-          <Button size="sm" onClick={() => { setTxForm({ amount: "", description: "", type: "pemasukan", date: today(), notes: "" }); setOpenTx(true); }}
+          <Button size="sm" onClick={() => { setTxState(defaultSimpleTx({ type: "pemasukan" })); setOpenTx(true); }}
             className="bg-gradient-to-r from-rose-400 to-pink-500 text-white border-0 rounded-full gap-1">
             <Plus className="w-4 h-4" />Tambah Dana Darurat
           </Button>
-          <Button size="sm" onClick={() => { setTxForm({ amount: "", description: "", type: "pengeluaran", date: today(), notes: "" }); setOpenTx(true); }}
+          <Button size="sm" onClick={() => { setTxState(defaultSimpleTx({ type: "pengeluaran" })); setOpenTx(true); }}
             variant="outline" className="rounded-full gap-1 text-rose-700 border-rose-200 hover:bg-rose-50">
             <ArrowDownCircle className="w-4 h-4" />Catat Pengeluaran Darurat
           </Button>
@@ -608,50 +761,14 @@ function DanadaruratTab({ isAdmin, summary }: { isAdmin?: boolean; summary: any 
       )}
 
       {isLoading ? <div className="animate-pulse space-y-2">{[1,2].map(i => <div key={i} className="glass-card h-14" />)}</div> : (
-        <TxList items={all} isAdmin={isAdmin}
+        <TxList items={kas ?? []} isAdmin={isAdmin}
           onDelete={id => del.mutate({ id }, { onSuccess: () => { invalidate(); toast({ title: "Transaksi dihapus" }); } })} />
       )}
 
-      {/* Add Transaction Dialog */}
-      <Dialog open={openTx} onOpenChange={v => !v && setOpenTx(false)}>
-        <DialogContent className="glass-panel border-white/50 max-w-sm p-0 overflow-hidden">
-          <div className={cn("px-6 pt-6 pb-4", txForm.type === "pemasukan" ? "bg-gradient-to-r from-rose-400/20 to-pink-400/20" : "bg-gradient-to-r from-rose-600/20 to-pink-600/20")}>
-            <DialogHeader><DialogTitle>Transaksi Dana Darurat</DialogTitle></DialogHeader>
-            <div className="flex gap-2 mt-3">
-              {["pemasukan", "pengeluaran"].map(t => (
-                <button key={t} onClick={() => setTxForm(f => ({ ...f, type: t as KasInputType }))} className={cn(
-                  "flex-1 py-2 rounded-xl border-2 text-xs font-semibold transition-all",
-                  txForm.type === t ? (t === "pemasukan" ? "bg-emerald-500 text-white border-emerald-500" : "bg-rose-500 text-white border-rose-500") : "bg-white/60 text-gray-500 border-white/50"
-                )}>{t === "pemasukan" ? "Pemasukan" : "Pengeluaran"}</button>
-              ))}
-            </div>
-          </div>
-          <div className="px-6 pb-6 pt-4 space-y-3">
-            <div>
-              <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 block">Jumlah (Rp)</label>
-              <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-medium text-gray-500">Rp</span>
-                <Input type="number" min={0} value={txForm.amount} onChange={e => setTxForm(f => ({ ...f, amount: e.target.value }))} className="bg-white/60 pl-10 font-bold" />
-              </div>
-            </div>
-            <div>
-              <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 block">Keterangan</label>
-              <Input value={txForm.description} onChange={e => setTxForm(f => ({ ...f, description: e.target.value }))} className="bg-white/60" />
-            </div>
-            <div>
-              <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 block">Tanggal</label>
-              <Input type="date" value={txForm.date} onChange={e => setTxForm(f => ({ ...f, date: e.target.value }))} className="bg-white/60" />
-            </div>
-            <div className="flex gap-3 justify-end pt-1">
-              <Button variant="outline" onClick={() => setOpenTx(false)} className="rounded-full">Batal</Button>
-              <Button onClick={saveTx} disabled={create.isPending || !txForm.amount || !txForm.description}
-                className={cn("rounded-full text-white border-0", txForm.type === "pemasukan" ? "bg-gradient-to-r from-emerald-400 to-teal-500" : "bg-gradient-to-r from-rose-400 to-pink-500")}>Simpan</Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+      <SimpleTxDialog open={openTx} onClose={() => setOpenTx(false)} title="Transaksi Dana Darurat"
+        headerColor={cn(txState.type === "pemasukan" ? "bg-gradient-to-r from-rose-400/20 to-pink-400/20" : "bg-gradient-to-r from-rose-600/20 to-pink-600/20")}
+        isPending={create.isPending} onSave={saveTx} state={txState} setState={setTxState} />
 
-      {/* Target Dialog */}
       <Dialog open={openTarget} onOpenChange={v => !v && setOpenTarget(false)}>
         <DialogContent className="glass-panel border-white/50 max-w-sm p-0 overflow-hidden">
           <div className="px-6 pt-6 pb-4 bg-gradient-to-r from-rose-400/20 to-pink-400/20">
@@ -676,7 +793,7 @@ function DanadaruratTab({ isAdmin, summary }: { isAdmin?: boolean; summary: any 
   );
 }
 
-// ─── DANA PROKER TAB ─────────────────────────────────────────────────────────
+// ─── DANA PROKER TAB ──────────────────────────────────────────────────────────
 function DanaProkerTab({ isAdmin }: { isAdmin?: boolean }) {
   const qc = useQueryClient();
   const { toast } = useToast();
@@ -697,9 +814,7 @@ function DanaProkerTab({ isAdmin }: { isAdmin?: boolean }) {
   const [openAddTx, setOpenAddTx] = useState(false);
   const [editProkerForm, setEditProkerForm] = useState({ name: "", budget: "", notes: "" });
   const [editProkerId, setEditProkerId] = useState<number | null>(null);
-  const [txForm, setTxForm] = useState<{ amount: string; description: string; type: KasInputType; date: string; notes: string }>({
-    amount: "", description: "", type: "pengeluaran", date: today(), notes: ""
-  });
+  const [txState, setTxState] = useState<SimpleTxState>(defaultSimpleTx({ type: "pengeluaran" }));
 
   function invalidateAll() {
     qc.invalidateQueries({ queryKey: getGetProkerFundsQueryKey() });
@@ -713,17 +828,27 @@ function DanaProkerTab({ isAdmin }: { isAdmin?: boolean }) {
   function saveProker(isEdit: boolean) {
     const data = { name: editProkerForm.name, budget: Number(editProkerForm.budget), notes: editProkerForm.notes || undefined };
     if (isEdit && editProkerId !== null) {
-      updateProker.mutate({ id: editProkerId, data }, { onSuccess: () => { invalidateAll(); setOpenEditProker(false); toast({ title: "Proker diperbarui" }); } });
+      updateProker.mutate({ id: editProkerId, data }, {
+        onSuccess: () => { invalidateAll(); setOpenEditProker(false); setEditProkerForm({ name: "", budget: "", notes: "" }); toast({ title: "Proker diperbarui" }); }
+      });
     } else {
-      createProker.mutate({ data }, { onSuccess: () => { invalidateAll(); setOpenAddProker(false); toast({ title: "Proker ditambahkan" }); } });
+      createProker.mutate({ data }, {
+        onSuccess: () => { invalidateAll(); setOpenAddProker(false); setEditProkerForm({ name: "", budget: "", notes: "" }); toast({ title: "Proker ditambahkan" }); }
+      });
     }
   }
 
   function saveTx() {
-    if (!txForm.amount || !txForm.description || selectedProker === null) return;
+    if (!txState.amount || !txState.description || selectedProker === null) return;
     create.mutate({
-      data: { type: txForm.type, amount: Number(txForm.amount), description: txForm.description, category: "lainnya", date: txForm.date, notes: txForm.notes || undefined, fund: KasInputFund.proker, prokerId: selectedProker }
-    }, { onSuccess: () => { invalidateAll(); setOpenAddTx(false); toast({ title: "Transaksi dicatat" }); } });
+      data: { type: txState.type, amount: Number(txState.amount), description: txState.description, category: "lainnya", date: txState.date, notes: txState.notes || undefined, fund: KasInputFund.proker, prokerId: selectedProker, items: toItemsPayload(txState.items) }
+    }, {
+      onSuccess: () => {
+        invalidateAll(); setOpenAddTx(false);
+        setTxState(defaultSimpleTx({ type: "pengeluaran" }));
+        toast({ title: "Transaksi dicatat" });
+      }
+    });
   }
 
   if (selectedProker !== null && selectedProkerData) {
@@ -734,8 +859,6 @@ function DanaProkerTab({ isAdmin }: { isAdmin?: boolean }) {
         <button onClick={() => setSelectedProker(null)} className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700">
           ← Kembali ke Daftar Proker
         </button>
-
-        {/* Proker Header */}
         <div className="glass-card p-5 bg-gradient-to-br from-violet-50 to-sky-50">
           <div className="flex items-center justify-between mb-3">
             <div>
@@ -743,24 +866,26 @@ function DanaProkerTab({ isAdmin }: { isAdmin?: boolean }) {
               {selectedProkerData.notes && <p className="text-sm text-gray-500">{selectedProkerData.notes}</p>}
             </div>
             {isAdmin && (
-              <Button variant="ghost" size="icon" onClick={() => { setEditProkerId(selectedProker); setEditProkerForm({ name: selectedProkerData.name, budget: String(selectedProkerData.budget), notes: selectedProkerData.notes ?? "" }); setOpenEditProker(true); }}>
+              <Button variant="ghost" size="icon" onClick={() => {
+                setEditProkerId(selectedProker);
+                setEditProkerForm({ name: selectedProkerData.name, budget: String(selectedProkerData.budget), notes: selectedProkerData.notes ?? "" });
+                setOpenEditProker(true);
+              }}>
                 <Pencil className="w-4 h-4 text-sky-500" />
               </Button>
             )}
           </div>
           <div className="grid grid-cols-3 gap-3 mb-3">
-            <div className="text-center">
-              <p className="text-xs text-gray-500">Anggaran</p>
-              <p className="font-bold text-violet-700 text-sm">{formatRp(selectedProkerData.budget)}</p>
-            </div>
-            <div className="text-center">
-              <p className="text-xs text-gray-500">Terpakai</p>
-              <p className="font-bold text-rose-600 text-sm">{formatRp(selectedProkerData.pengeluaran)}</p>
-            </div>
-            <div className="text-center">
-              <p className="text-xs text-gray-500">Sisa</p>
-              <p className={cn("font-bold text-sm", selectedProkerData.sisa >= 0 ? "text-emerald-700" : "text-rose-700")}>{formatRp(Math.abs(selectedProkerData.sisa))}</p>
-            </div>
+            {[
+              { label: "Anggaran", value: selectedProkerData.budget, color: "text-violet-700" },
+              { label: "Terpakai", value: selectedProkerData.pengeluaran, color: "text-rose-600" },
+              { label: "Sisa", value: selectedProkerData.sisa, color: selectedProkerData.sisa >= 0 ? "text-emerald-700" : "text-rose-700" },
+            ].map(c => (
+              <div key={c.label} className="text-center">
+                <p className="text-xs text-gray-500">{c.label}</p>
+                <p className={cn("font-bold text-sm", c.color)}>{formatRp(c.value)}</p>
+              </div>
+            ))}
           </div>
           {selectedProkerData.budget > 0 && (
             <div>
@@ -774,11 +899,11 @@ function DanaProkerTab({ isAdmin }: { isAdmin?: boolean }) {
 
         {isAdmin && (
           <div className="flex gap-2">
-            <Button size="sm" onClick={() => { setTxForm({ amount: "", description: "", type: "pengeluaran", date: today(), notes: "" }); setOpenAddTx(true); }}
+            <Button size="sm" onClick={() => { setTxState(defaultSimpleTx({ type: "pengeluaran" })); setOpenAddTx(true); }}
               className="bg-gradient-to-r from-violet-400 to-sky-400 text-white border-0 rounded-full gap-1">
               <Plus className="w-4 h-4" />Catat Pengeluaran
             </Button>
-            <Button size="sm" variant="outline" onClick={() => { setTxForm({ amount: "", description: "", type: "pemasukan", date: today(), notes: "" }); setOpenAddTx(true); }}
+            <Button size="sm" variant="outline" onClick={() => { setTxState(defaultSimpleTx({ type: "pemasukan" })); setOpenAddTx(true); }}
               className="rounded-full gap-1 text-emerald-700 border-emerald-200 hover:bg-emerald-50">
               <ArrowUpCircle className="w-4 h-4" />Tambah Dana
             </Button>
@@ -790,46 +915,11 @@ function DanaProkerTab({ isAdmin }: { isAdmin?: boolean }) {
             onDelete={id => del.mutate({ id }, { onSuccess: () => { invalidateAll(); toast({ title: "Transaksi dihapus" }); } })} />
         )}
 
-        {/* Tx dialog */}
-        <Dialog open={openAddTx} onOpenChange={v => !v && setOpenAddTx(false)}>
-          <DialogContent className="glass-panel border-white/50 max-w-sm p-0 overflow-hidden">
-            <div className="px-6 pt-6 pb-4 bg-gradient-to-r from-violet-400/20 to-sky-400/20">
-              <DialogHeader><DialogTitle>Transaksi Proker: {selectedProkerData.name}</DialogTitle></DialogHeader>
-              <div className="flex gap-2 mt-3">
-                {["pengeluaran", "pemasukan"].map(t => (
-                  <button key={t} onClick={() => setTxForm(f => ({ ...f, type: t as KasInputType }))} className={cn(
-                    "flex-1 py-2 rounded-xl border-2 text-xs font-semibold transition-all",
-                    txForm.type === t ? (t === "pengeluaran" ? "bg-rose-500 text-white border-rose-500" : "bg-emerald-500 text-white border-emerald-500") : "bg-white/60 text-gray-500 border-white/50"
-                  )}>{t === "pengeluaran" ? "Pengeluaran" : "Tambah Dana"}</button>
-                ))}
-              </div>
-            </div>
-            <div className="px-6 pb-6 pt-4 space-y-3">
-              <div>
-                <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 block">Jumlah (Rp)</label>
-                <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-medium text-gray-500">Rp</span>
-                  <Input type="number" min={0} value={txForm.amount} onChange={e => setTxForm(f => ({ ...f, amount: e.target.value }))} className="bg-white/60 pl-10 font-bold" />
-                </div>
-              </div>
-              <div>
-                <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 block">Keterangan</label>
-                <Input value={txForm.description} onChange={e => setTxForm(f => ({ ...f, description: e.target.value }))} className="bg-white/60" />
-              </div>
-              <div>
-                <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 block">Tanggal</label>
-                <Input type="date" value={txForm.date} onChange={e => setTxForm(f => ({ ...f, date: e.target.value }))} className="bg-white/60" />
-              </div>
-              <div className="flex gap-3 justify-end pt-1">
-                <Button variant="outline" onClick={() => setOpenAddTx(false)} className="rounded-full">Batal</Button>
-                <Button onClick={saveTx} disabled={create.isPending || !txForm.amount || !txForm.description}
-                  className={cn("rounded-full text-white border-0", txForm.type === "pengeluaran" ? "bg-gradient-to-r from-rose-400 to-pink-500" : "bg-gradient-to-r from-emerald-400 to-teal-500")}>Simpan</Button>
-              </div>
-            </div>
-          </DialogContent>
-        </Dialog>
+        <SimpleTxDialog open={openAddTx} onClose={() => setOpenAddTx(false)}
+          title={`Transaksi: ${selectedProkerData.name}`}
+          headerColor="bg-gradient-to-r from-violet-400/20 to-sky-400/20"
+          isPending={create.isPending} onSave={saveTx} state={txState} setState={setTxState} />
 
-        {/* Edit Proker dialog */}
         <Dialog open={openEditProker} onOpenChange={v => !v && setOpenEditProker(false)}>
           <DialogContent className="glass-panel border-white/50 max-w-sm p-0 overflow-hidden">
             <div className="px-6 pt-6 pb-4 bg-gradient-to-r from-violet-400/20 to-sky-400/20">
@@ -916,7 +1006,7 @@ function DanaProkerTab({ isAdmin }: { isAdmin?: boolean }) {
                   <div className="flex items-center gap-2 shrink-0">
                     <div className="text-right">
                       <p className="text-xs text-gray-400">Sisa</p>
-                      <p className={cn("text-sm font-bold", p.sisa >= 0 ? "text-emerald-700" : "text-rose-700")}>{formatRp(Math.abs(p.sisa))}</p>
+                      <p className={cn("text-sm font-bold", p.sisa >= 0 ? "text-emerald-700" : "text-rose-700")}>{formatRp(p.sisa)}</p>
                     </div>
                     {isAdmin && (
                       <Button variant="ghost" size="icon" className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity rounded-full"
@@ -933,7 +1023,6 @@ function DanaProkerTab({ isAdmin }: { isAdmin?: boolean }) {
         </div>
       )}
 
-      {/* Add Proker dialog */}
       <Dialog open={openAddProker} onOpenChange={v => !v && setOpenAddProker(false)}>
         <DialogContent className="glass-panel border-white/50 max-w-sm p-0 overflow-hidden">
           <div className="px-6 pt-6 pb-4 bg-gradient-to-r from-violet-400/20 to-sky-400/20">
@@ -967,12 +1056,11 @@ function DanaProkerTab({ isAdmin }: { isAdmin?: boolean }) {
   );
 }
 
-// ─── MAIN PAGE ───────────────────────────────────────────────────────────────
+// ─── MAIN PAGE ────────────────────────────────────────────────────────────────
 export default function KasPage() {
   const { can } = useAuth();
   const isAdmin = can("kas");
   const { data: summary } = useGetKasSummary();
-
   const [tab, setTab] = useState<"umum" | "iuran_makan" | "darurat" | "proker">("umum");
 
   const tabs = [
@@ -995,20 +1083,18 @@ export default function KasPage() {
         <p className="text-gray-500 text-sm mt-1">Pencatatan keuangan tim Putatsari Wellness</p>
       </div>
 
-      {/* Top summary */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         {summaryCards.map(card => (
           <div key={card.label} className="glass-card p-4 flex items-center gap-3">
             <div className="w-9 h-9 rounded-xl bg-white/60 flex items-center justify-center shrink-0">{card.icon}</div>
             <div>
               <p className="text-xs text-gray-500">{card.label}</p>
-              <p className={cn("font-bold text-base", card.color)}>{formatRp(Math.abs(card.value))}{card.value < 0 ? " ⚠️" : ""}</p>
+              <p className={cn("font-bold text-base", card.color)}>{formatRp(card.value)}{card.value < 0 ? " ⚠️" : ""}</p>
             </div>
           </div>
         ))}
       </div>
 
-      {/* Tab selector */}
       <div className="flex gap-1.5 p-1 bg-white/40 rounded-xl border border-white/40 flex-wrap">
         {tabs.map(t => (
           <button key={t.id} onClick={() => setTab(t.id)} className={cn(
@@ -1020,7 +1106,6 @@ export default function KasPage() {
         ))}
       </div>
 
-      {/* Tab content */}
       <div className="glass-card p-5">
         {tab === "umum" && <UmumTab isAdmin={isAdmin} summary={summary} />}
         {tab === "iuran_makan" && <IuranMakanTab isAdmin={isAdmin} summary={summary} />}

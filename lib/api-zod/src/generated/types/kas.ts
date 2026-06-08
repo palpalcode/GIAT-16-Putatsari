@@ -7,6 +7,7 @@
  */
 import type { KasCategory } from './kasCategory';
 import type { KasFund } from './kasFund';
+import type { KasItem } from './kasItem';
 import type { KasType } from './kasType';
 
 export interface Kas {
@@ -22,4 +23,5 @@ export interface Kas {
   /** @nullable */
   prokerId?: number | null;
   createdAt: string;
+  items: KasItem[];
 }

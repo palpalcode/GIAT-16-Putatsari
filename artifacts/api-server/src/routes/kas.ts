@@ -1,13 +1,24 @@
 import { Router } from "express";
 import { db } from "@workspace/db";
-import { kasTable, kasConfigTable } from "@workspace/db";
-import { and, eq, desc, sql } from "drizzle-orm";
+import { kasTable, kasItemsTable, kasConfigTable } from "@workspace/db";
+import { and, eq, desc, inArray } from "drizzle-orm";
 import { requireEdit } from "../lib/auth";
 
 const router = Router();
 
-function mapRow(row: any) {
-  return { ...row, createdAt: row.createdAt.toISOString() };
+function mapRow(row: any, items: any[] = []) {
+  return { ...row, createdAt: row.createdAt.toISOString(), items };
+}
+
+async function fetchItemsForIds(ids: number[]): Promise<Record<number, any[]>> {
+  if (ids.length === 0) return {};
+  const rows = await db.select().from(kasItemsTable).where(inArray(kasItemsTable.kasId, ids));
+  const map: Record<number, any[]> = {};
+  for (const r of rows) {
+    if (!map[r.kasId]) map[r.kasId] = [];
+    map[r.kasId].push(r);
+  }
+  return map;
 }
 
 // ─── KAS TRANSACTIONS ───────────────────────────────────────────────────────
@@ -20,7 +31,8 @@ router.get("/kas", async (req, res) => {
       query = query.where(eq(kasTable.fund, fund));
     }
     const rows = await query.orderBy(desc(kasTable.date), desc(kasTable.createdAt));
-    res.json(rows.map(mapRow));
+    const itemsMap = await fetchItemsForIds(rows.map(r => r.id));
+    res.json(rows.map(r => mapRow(r, itemsMap[r.id] ?? [])));
   } catch (err) {
     req.log.error(err);
     res.status(500).json({ error: "Server error" });
@@ -29,13 +41,21 @@ router.get("/kas", async (req, res) => {
 
 router.post("/kas", requireEdit("kas"), async (req, res) => {
   try {
-    const { type, amount, description, category, date, notes, fund, prokerId } = req.body;
+    const { type, amount, description, category, date, notes, fund, prokerId, items } = req.body;
     const [row] = await db.insert(kasTable).values({
       type, amount, description, category, date, notes,
       fund: fund ?? "umum",
       prokerId: prokerId ?? null,
     }).returning();
-    res.status(201).json(mapRow(row));
+
+    let insertedItems: any[] = [];
+    if (Array.isArray(items) && items.length > 0) {
+      insertedItems = await db.insert(kasItemsTable)
+        .values(items.map((it: any) => ({ kasId: row.id, name: it.name, amount: it.amount })))
+        .returning();
+    }
+
+    res.status(201).json(mapRow(row, insertedItems));
   } catch (err) {
     req.log.error(err);
     res.status(500).json({ error: "Server error" });
@@ -45,7 +65,7 @@ router.post("/kas", requireEdit("kas"), async (req, res) => {
 router.patch("/kas/:id", requireEdit("kas"), async (req, res) => {
   try {
     const id = Number(req.params.id);
-    const { type, amount, description, category, date, notes, fund, prokerId } = req.body;
+    const { type, amount, description, category, date, notes, fund, prokerId, items } = req.body;
     const updates: any = {};
     if (type !== undefined) updates.type = type;
     if (amount !== undefined) updates.amount = amount;
@@ -57,7 +77,20 @@ router.patch("/kas/:id", requireEdit("kas"), async (req, res) => {
     if (prokerId !== undefined) updates.prokerId = prokerId;
     const [row] = await db.update(kasTable).set(updates).where(eq(kasTable.id, id)).returning();
     if (!row) { res.status(404).json({ error: "Tidak ditemukan" }); return; }
-    res.json(mapRow(row));
+
+    let finalItems: any[] = [];
+    if (Array.isArray(items)) {
+      await db.delete(kasItemsTable).where(eq(kasItemsTable.kasId, id));
+      if (items.length > 0) {
+        finalItems = await db.insert(kasItemsTable)
+          .values(items.map((it: any) => ({ kasId: id, name: it.name, amount: it.amount })))
+          .returning();
+      }
+    } else {
+      finalItems = await db.select().from(kasItemsTable).where(eq(kasItemsTable.kasId, id));
+    }
+
+    res.json(mapRow(row, finalItems));
   } catch (err) {
     req.log.error(err);
     res.status(500).json({ error: "Server error" });
@@ -66,6 +99,7 @@ router.patch("/kas/:id", requireEdit("kas"), async (req, res) => {
 
 router.delete("/kas/:id", requireEdit("kas"), async (req, res) => {
   try {
+    // cascade handles kasItemsTable rows via FK
     await db.delete(kasTable).where(eq(kasTable.id, Number(req.params.id)));
     res.status(204).send();
   } catch (err) {
@@ -136,7 +170,6 @@ router.get("/kas/summary", async (req, res) => {
     const saldoUmum = saldoFund("umum");
     const saldoDarurat = saldoFund("darurat");
     const saldoIuranMakan = saldoFund("iuran_makan");
-
     const dailyFoodAllowance = weeklyFood > 0 ? Math.floor((weeklyFood * 9) / 7) : 0;
 
     let emergencyFundStatus: "kurang" | "cukup" | "sangat_cukup" = "kurang";
@@ -152,15 +185,9 @@ router.get("/kas/summary", async (req, res) => {
     const totalPengeluaran = allTx.filter(t => t.type === "pengeluaran").reduce((s, t) => s + t.amount, 0);
 
     res.json({
-      saldoUmum,
-      saldoDarurat,
-      saldoIuranMakan,
-      weeklyFoodAmount: weeklyFood,
-      emergencyFundTarget: emergencyTarget,
-      dailyFoodAllowance,
-      emergencyFundStatus,
-      totalPemasukan,
-      totalPengeluaran,
+      saldoUmum, saldoDarurat, saldoIuranMakan,
+      weeklyFoodAmount: weeklyFood, emergencyFundTarget: emergencyTarget,
+      dailyFoodAllowance, emergencyFundStatus, totalPemasukan, totalPengeluaran,
     });
   } catch (err) {
     req.log.error(err);
@@ -182,10 +209,9 @@ router.post("/kas/transfer-sisa-makan", requireEdit("kas"), async (req, res) => 
     const sisa = jatah - Number(terpakai);
 
     if (sisa <= 0) {
-      res.status(400).json({ error: "Tidak ada sisa untuk ditransfer (pengeluaran melebihi jatah)" }); return;
+      res.status(400).json({ error: "Tidak ada sisa untuk ditransfer" }); return;
     }
 
-    // Atomic: create pengeluaran dari iuran_makan + pemasukan ke darurat
     const [txOut, txIn] = await db.transaction(async (tx) => {
       const [out] = await tx.insert(kasTable).values({
         type: "pengeluaran", amount: sisa,

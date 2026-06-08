@@ -80,6 +80,8 @@ export * from './kasInput';
 export * from './kasInputCategory';
 export * from './kasInputFund';
 export * from './kasInputType';
+export * from './kasItem';
+export * from './kasItemInput';
 export * from './kasSummary';
 export * from './kasSummaryEmergencyFundStatus';
 export * from './kasType';

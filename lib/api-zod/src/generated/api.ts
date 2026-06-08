@@ -641,7 +641,13 @@ export const GetKasResponseItem = zod.object({
   "notes": zod.string().nullish(),
   "fund": zod.enum(['umum', 'darurat', 'iuran_makan', 'proker']),
   "prokerId": zod.number().nullish(),
-  "createdAt": zod.string()
+  "createdAt": zod.string(),
+  "items": zod.array(zod.object({
+  "id": zod.number(),
+  "kasId": zod.number(),
+  "name": zod.string(),
+  "amount": zod.number()
+}))
 })
 export const GetKasResponse = zod.array(GetKasResponseItem)
 
@@ -657,7 +663,11 @@ export const CreateKasBody = zod.object({
   "date": zod.string(),
   "notes": zod.string().optional(),
   "fund": zod.enum(['umum', 'darurat', 'iuran_makan', 'proker']).optional(),
-  "prokerId": zod.number().optional()
+  "prokerId": zod.number().optional(),
+  "items": zod.array(zod.object({
+  "name": zod.string(),
+  "amount": zod.number()
+})).optional()
 })
 
 
@@ -676,7 +686,11 @@ export const UpdateKasBody = zod.object({
   "date": zod.string().optional(),
   "notes": zod.string().optional(),
   "fund": zod.enum(['umum', 'darurat', 'iuran_makan', 'proker']).optional(),
-  "prokerId": zod.number().optional()
+  "prokerId": zod.number().optional(),
+  "items": zod.array(zod.object({
+  "name": zod.string(),
+  "amount": zod.number()
+})).optional()
 })
 
 export const UpdateKasResponse = zod.object({
@@ -689,7 +703,13 @@ export const UpdateKasResponse = zod.object({
   "notes": zod.string().nullish(),
   "fund": zod.enum(['umum', 'darurat', 'iuran_makan', 'proker']),
   "prokerId": zod.number().nullish(),
-  "createdAt": zod.string()
+  "createdAt": zod.string(),
+  "items": zod.array(zod.object({
+  "id": zod.number(),
+  "kasId": zod.number(),
+  "name": zod.string(),
+  "amount": zod.number()
+}))
 })
 
 

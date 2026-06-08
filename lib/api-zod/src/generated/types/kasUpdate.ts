@@ -5,6 +5,7 @@
  * KKN Team Website API
  * OpenAPI spec version: 0.1.0
  */
+import type { KasItemInput } from './kasItemInput';
 import type { KasUpdateCategory } from './kasUpdateCategory';
 import type { KasUpdateFund } from './kasUpdateFund';
 import type { KasUpdateType } from './kasUpdateType';
@@ -18,4 +19,5 @@ export interface KasUpdate {
   notes?: string;
   fund?: KasUpdateFund;
   prokerId?: number;
+  items?: KasItemInput[];
 }
