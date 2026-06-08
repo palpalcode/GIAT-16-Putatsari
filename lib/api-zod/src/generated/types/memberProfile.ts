@@ -6,7 +6,11 @@
  * OpenAPI spec version: 0.1.0
  */
 
-export interface LoginInput {
+export interface MemberProfile {
+  id: number;
   name: string;
-  password: string;
+  systemRole: string;
+  divisionRole: string;
+  /** @nullable */
+  avatarUrl?: string | null;
 }

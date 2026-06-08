@@ -8,7 +8,16 @@
 
 export interface AuthStatus {
   authenticated: boolean;
+  /** @nullable */
+  memberId?: number | null;
+  /** @nullable */
+  memberName?: string | null;
+  /** @nullable */
+  divisionRole?: string | null;
+  /** @nullable */
   role: string | null;
+  /** @nullable */
+  avatarUrl?: string | null;
   canManage: boolean;
   permissions: string[];
 }

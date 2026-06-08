@@ -12,6 +12,8 @@ import dashboardRouter from "./dashboard";
 import kasRouter from "./kas";
 import permissionsRouter from "./permissions";
 import notulensiRouter from "./notulensi";
+import membersRouter from "./members";
+import storageRouter from "./storage";
 
 const router: IRouter = Router();
 
@@ -28,5 +30,7 @@ router.use(dashboardRouter);
 router.use(kasRouter);
 router.use(permissionsRouter);
 router.use(notulensiRouter);
+router.use(membersRouter);
+router.use(storageRouter);
 
 export default router;

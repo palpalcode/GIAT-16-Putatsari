@@ -1,7 +1,7 @@
 import React from "react";
 import { Link, useLocation } from "wouter";
 import { useAdminLogout } from "@workspace/api-client-react";
-import { useAuth, ROLE_LABELS } from "@/hooks/use-auth";
+import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { LogOut, Menu, ShieldCheck, UserCircle, X } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -20,7 +20,7 @@ const navItems = [
 
 export function Layout({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
-  const { isLoggedIn, role, canManage, refetch } = useAuth();
+  const { isLoggedIn, memberName, divisionRole, role, avatarUrl, canManage, refetch } = useAuth();
   const logout = useAdminLogout();
   const { toast } = useToast();
   const [isOpen, setIsOpen] = React.useState(false);
@@ -38,6 +38,9 @@ export function Layout({ children }: { children: React.ReactNode }) {
       },
     });
   };
+
+  const displayName = memberName ?? null;
+  const displayRole = divisionRole ?? (role === "ketua" ? "Ketua" : role === "sekretaris" ? "Sekretaris" : role === "bendahara" ? "Bendahara" : null);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-rose-50 via-sky-50 to-white relative flex flex-col">
@@ -75,11 +78,19 @@ export function Layout({ children }: { children: React.ReactNode }) {
           <div className="hidden lg:flex items-center gap-2">
             {isLoggedIn ? (
               <>
-                {role && (
-                  <span className="text-xs font-medium text-gray-500 px-2 py-1 rounded-full bg-white/60">
-                    {ROLE_LABELS[role] ?? role}
-                  </span>
-                )}
+                <Link href="/profil" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+                  {avatarUrl ? (
+                    <img src={avatarUrl} alt={displayName ?? ""} className="w-7 h-7 rounded-full object-cover border border-white/60" />
+                  ) : (
+                    <div className="w-7 h-7 rounded-full bg-gradient-to-br from-rose-200 to-sky-200 flex items-center justify-center text-xs font-bold text-rose-600">
+                      {displayName?.charAt(0) ?? "?"}
+                    </div>
+                  )}
+                  <div className="text-xs leading-tight">
+                    <div className="font-medium text-gray-800 max-w-[120px] truncate">{displayName}</div>
+                    {displayRole && <div className="text-gray-400">{displayRole}</div>}
+                  </div>
+                </Link>
                 {canManage && (
                   <Link href="/kelola-akses">
                     <Button
@@ -155,11 +166,21 @@ export function Layout({ children }: { children: React.ReactNode }) {
               <div className="mt-auto pt-4 border-t border-white/30 space-y-2">
                 {isLoggedIn ? (
                   <>
-                    {role && (
-                      <p className="text-xs text-gray-500 px-1">
-                        Masuk sebagai <span className="font-semibold">{ROLE_LABELS[role] ?? role}</span>
-                      </p>
-                    )}
+                    <Link href="/profil" onClick={() => setIsOpen(false)}>
+                      <div className="flex items-center gap-2 px-1 mb-1 hover:opacity-80 transition-opacity">
+                        {avatarUrl ? (
+                          <img src={avatarUrl} alt={displayName ?? ""} className="w-8 h-8 rounded-full object-cover border border-white/60" />
+                        ) : (
+                          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-rose-200 to-sky-200 flex items-center justify-center text-xs font-bold text-rose-600">
+                            {displayName?.charAt(0) ?? "?"}
+                          </div>
+                        )}
+                        <div className="text-xs leading-tight">
+                          <div className="font-semibold text-gray-800">{displayName}</div>
+                          {displayRole && <div className="text-gray-400">{displayRole}</div>}
+                        </div>
+                      </div>
+                    </Link>
                     {canManage && (
                       <Link href="/kelola-akses" onClick={() => setIsOpen(false)}>
                         <Button variant="outline" className="w-full justify-start rounded-xl">

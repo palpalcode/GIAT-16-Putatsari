@@ -6,7 +6,6 @@
  * OpenAPI spec version: 0.1.0
  */
 
-export interface LoginInput {
-  name: string;
-  password: string;
+export interface AvatarUpdateInput {
+  avatarUrl: string;
 }

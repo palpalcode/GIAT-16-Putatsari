@@ -1,4 +1,4 @@
-import { pgTable, serial, text, integer, timestamp, jsonb, boolean } from "drizzle-orm/pg-core";
+import { pgTable, serial, text, integer, timestamp, jsonb, boolean, uniqueIndex } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 
@@ -163,3 +163,21 @@ export const permissionsTable = pgTable("permissions", {
 export const insertPermissionSchema = createInsertSchema(permissionsTable).omit({ id: true });
 export type InsertPermission = z.infer<typeof insertPermissionSchema>;
 export type Permission = typeof permissionsTable.$inferSelect;
+
+export const membersTable = pgTable(
+  "members",
+  {
+    id: serial("id").primaryKey(),
+    name: text("name").notNull(),
+    systemRole: text("system_role").notNull().default("anggota"),
+    divisionRole: text("division_role").notNull(),
+    passwordHash: text("password_hash").notNull(),
+    avatarUrl: text("avatar_url"),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+  },
+  (t) => [uniqueIndex("members_name_unique").on(t.name)],
+);
+
+export const insertMemberSchema = createInsertSchema(membersTable).omit({ id: true, createdAt: true });
+export type InsertMember = z.infer<typeof insertMemberSchema>;
+export type Member = typeof membersTable.$inferSelect;

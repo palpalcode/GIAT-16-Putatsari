@@ -10,7 +10,9 @@ tags:
   - name: health
     description: Health operations
   - name: auth
-    description: Admin authentication
+    description: Member authentication
+  - name: members
+    description: Daftar dan profil anggota tim
   - name: announcements
     description: Pengumuman
   - name: schedules
@@ -31,6 +33,8 @@ tags:
     description: Dashboard summary
   - name: notulensi
     description: Notulensi rapat tim
+  - name: storage
+    description: Object storage upload dan serving
 
 paths:
   /healthz:
@@ -937,6 +941,134 @@ paths:
         "403":
           description: Forbidden
 
+  /members:
+    get:
+      operationId: getMembers
+      tags: [members]
+      summary: Get all team members (public)
+      responses:
+        "200":
+          description: List of members
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/MemberProfile"
+
+  /members/{id}:
+    get:
+      operationId: getMember
+      tags: [members]
+      summary: Get single member profile
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Member profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MemberProfile"
+        "404":
+          description: Not found
+
+  /members/{id}/avatar:
+    patch:
+      operationId: updateMemberAvatar
+      tags: [members]
+      summary: Update member avatar URL (self or ketua)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AvatarUpdateInput"
+      responses:
+        "200":
+          description: Updated member
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MemberProfile"
+        "403":
+          description: Forbidden
+
+  /storage/uploads/request-url:
+    post:
+      tags: [storage]
+      operationId: requestUploadUrl
+      summary: Request a presigned URL for file upload
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UploadUrlRequest"
+      responses:
+        "200":
+          description: Presigned upload URL generated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UploadUrlResponse"
+        "400":
+          description: Invalid fields
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+
+  /storage/public-objects/{filePath}:
+    get:
+      tags: [storage]
+      operationId: getPublicObject
+      summary: Serve a public asset
+      parameters:
+        - name: filePath
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Object content
+          content:
+            "*/*":
+              schema:
+                type: string
+                format: binary
+
+  /storage/objects/{objectPath}:
+    get:
+      tags: [storage]
+      operationId: getStorageObject
+      summary: Serve an object entity
+      parameters:
+        - name: objectPath
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Object content
+          content:
+            "*/*":
+              schema:
+                type: string
+                format: binary
+
 components:
   schemas:
     HealthStatus:
@@ -949,8 +1081,10 @@ components:
 
     LoginInput:
       type: object
-      required: [password]
+      required: [name, password]
       properties:
+        name:
+          type: string
         password:
           type: string
 
@@ -960,9 +1094,16 @@ components:
       properties:
         authenticated:
           type: boolean
+        memberId:
+          type: ["integer", "null"]
+        memberName:
+          type: ["string", "null"]
+        divisionRole:
+          type: ["string", "null"]
         role:
-          type: string
-          nullable: true
+          type: ["string", "null"]
+        avatarUrl:
+          type: ["string", "null"]
         canManage:
           type: boolean
         permissions:
@@ -978,15 +1119,77 @@ components:
       properties:
         authenticated:
           type: boolean
+        memberId:
+          type: ["integer", "null"]
+        memberName:
+          type: ["string", "null"]
+        divisionRole:
+          type: ["string", "null"]
         role:
-          type: string
-          nullable: true
+          type: ["string", "null"]
+        avatarUrl:
+          type: ["string", "null"]
         canManage:
           type: boolean
         permissions:
           type: array
           items:
             type: string
+
+    MemberProfile:
+      type: object
+      required: [id, name, systemRole, divisionRole]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        systemRole:
+          type: string
+        divisionRole:
+          type: string
+        avatarUrl:
+          type: ["string", "null"]
+
+    AvatarUpdateInput:
+      type: object
+      required: [avatarUrl]
+      properties:
+        avatarUrl:
+          type: string
+
+    UploadUrlRequest:
+      type: object
+      required: [name, size, contentType]
+      properties:
+        name:
+          type: string
+          minLength: 1
+        size:
+          type: integer
+          minimum: 1
+        contentType:
+          type: string
+          minLength: 1
+
+    UploadUrlResponse:
+      type: object
+      required: [uploadURL, objectPath]
+      properties:
+        uploadURL:
+          type: string
+          format: uri
+        objectPath:
+          type: string
+        metadata:
+          $ref: "#/components/schemas/UploadUrlRequest"
+
+    ErrorEnvelope:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: string
 
     Permission:
       type: object

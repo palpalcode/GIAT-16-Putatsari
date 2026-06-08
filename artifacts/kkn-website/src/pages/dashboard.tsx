@@ -1,9 +1,8 @@
-import { useGetDashboardSummary } from "@workspace/api-client-react";
+import { useGetDashboardSummary, useGetMembers } from "@workspace/api-client-react";
 import { Badge } from "@/components/ui/badge";
 import { Megaphone, Calendar, AlertTriangle, CheckCircle2, ChefHat, SprayCan, Package } from "lucide-react";
 import { Link } from "wouter";
 import { cn } from "@/lib/utils";
-import { TEAM_MEMBERS, TEAM_ROLES } from "@/lib/utils";
 import { getMemberColor } from "@/components/ui/member-picker";
 
 function daysLeft(dueDate: string): number {
@@ -18,8 +17,39 @@ function SkeletonBlock({ className }: { className?: string }) {
   return <div className={cn("animate-pulse bg-gray-100 rounded-xl", className)} />;
 }
 
+function MemberCard({ member }: { member: { id: number; name: string; divisionRole: string; avatarUrl?: string | null } }) {
+  const firstLetter = member.name.charAt(0);
+  return (
+    <Link href="/profil">
+      <div className="glass-card p-4 text-center hover:-translate-y-1 transition-all group cursor-pointer">
+        {member.avatarUrl ? (
+          <img
+            src={member.avatarUrl}
+            alt={member.name}
+            className="w-14 h-14 rounded-full object-cover mx-auto mb-2 border-2 border-white/60 shadow-sm"
+          />
+        ) : (
+          <div
+            className={cn(
+              "w-14 h-14 rounded-full mx-auto mb-2 flex items-center justify-center text-white font-bold text-lg bg-gradient-to-br shadow-sm",
+              getMemberColor(member.name)
+            )}
+          >
+            {firstLetter}
+          </div>
+        )}
+        <p className="text-sm font-semibold text-gray-800 leading-tight line-clamp-2">{member.name}</p>
+        <p className="text-xs text-sky-600 mt-1 bg-sky-50 inline-block px-2 py-0.5 rounded-full border border-sky-100">
+          {member.divisionRole}
+        </p>
+      </div>
+    </Link>
+  );
+}
+
 export default function Dashboard() {
   const { data: summary, isLoading } = useGetDashboardSummary();
+  const { data: members, isLoading: membersLoading } = useGetMembers();
 
   return (
     <div className="space-y-10 animate-in fade-in duration-500">
@@ -243,28 +273,26 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* ── About Us (Team) — menggantikan Jelajahi ─────────────────────────── */}
+      {/* ── Tim Putatsari Wellness — 3x3 Grid ───────────────────────────────── */}
       <div>
         <div className="flex items-center gap-2 mb-4">
           <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-rose-100 to-sky-100 flex items-center justify-center">
             <span className="text-sm">👥</span>
           </div>
           <h2 className="font-bold text-gray-700 text-sm uppercase tracking-wide">Tim Putatsari Wellness</h2>
-          <span className="text-xs text-gray-400">{TEAM_MEMBERS.length} anggota</span>
+          <span className="text-xs text-gray-400">{members?.length ?? 9} anggota</span>
         </div>
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
-          {TEAM_MEMBERS.map((member) => (
-            <div key={member} className="glass-card p-4 text-center hover:-translate-y-1 transition-all group">
-              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-rose-200 to-sky-200 mx-auto mb-2 flex items-center justify-center text-rose-600 font-bold text-sm">
-                <span>👤</span>
-              </div>
-              <p className="text-sm font-semibold text-gray-800 leading-tight">{member}</p>
-              <p className="text-xs text-sky-600 mt-1 bg-sky-50 inline-block px-2 py-0.5 rounded-full border border-sky-100">
-                {TEAM_ROLES[member]}
-              </p>
-            </div>
-          ))}
-        </div>
+        {membersLoading ? (
+          <div className="grid grid-cols-3 gap-3">
+            {[1,2,3,4,5,6,7,8,9].map(i => <SkeletonBlock key={i} className="h-32" />)}
+          </div>
+        ) : (
+          <div className="grid grid-cols-3 gap-3">
+            {(members ?? []).map((member) => (
+              <MemberCard key={member.id} member={member} />
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

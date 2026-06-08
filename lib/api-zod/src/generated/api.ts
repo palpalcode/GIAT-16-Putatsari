@@ -20,12 +20,17 @@ export const HealthCheckResponse = zod.object({
  * @summary Admin login
  */
 export const AdminLoginBody = zod.object({
+  "name": zod.string(),
   "password": zod.string()
 })
 
 export const AdminLoginResponse = zod.object({
   "authenticated": zod.boolean(),
+  "memberId": zod.number().nullish(),
+  "memberName": zod.string().nullish(),
+  "divisionRole": zod.string().nullish(),
   "role": zod.string().nullable(),
+  "avatarUrl": zod.string().nullish(),
   "canManage": zod.boolean(),
   "permissions": zod.array(zod.string()),
   "message": zod.string()
@@ -37,7 +42,11 @@ export const AdminLoginResponse = zod.object({
  */
 export const GetAuthMeResponse = zod.object({
   "authenticated": zod.boolean(),
+  "memberId": zod.number().nullish(),
+  "memberName": zod.string().nullish(),
+  "divisionRole": zod.string().nullish(),
   "role": zod.string().nullable(),
+  "avatarUrl": zod.string().nullish(),
   "canManage": zod.boolean(),
   "permissions": zod.array(zod.string())
 })
@@ -777,6 +786,101 @@ export const UpdateNotulensiResponse = zod.object({
  */
 export const DeleteNotulensiParams = zod.object({
   "id": zod.coerce.number()
+})
+
+
+/**
+ * @summary Get all team members (public)
+ */
+export const GetMembersResponseItem = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "systemRole": zod.string(),
+  "divisionRole": zod.string(),
+  "avatarUrl": zod.string().nullish()
+})
+export const GetMembersResponse = zod.array(GetMembersResponseItem)
+
+
+/**
+ * @summary Get single member profile
+ */
+export const GetMemberParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const GetMemberResponse = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "systemRole": zod.string(),
+  "divisionRole": zod.string(),
+  "avatarUrl": zod.string().nullish()
+})
+
+
+/**
+ * @summary Update member avatar URL (self or ketua)
+ */
+export const UpdateMemberAvatarParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const UpdateMemberAvatarBody = zod.object({
+  "avatarUrl": zod.string()
+})
+
+export const UpdateMemberAvatarResponse = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "systemRole": zod.string(),
+  "divisionRole": zod.string(),
+  "avatarUrl": zod.string().nullish()
+})
+
+
+/**
+ * @summary Request a presigned URL for file upload
+ */
+
+
+
+
+
+export const RequestUploadUrlBody = zod.object({
+  "name": zod.string().min(1),
+  "size": zod.number().min(1),
+  "contentType": zod.string().min(1)
+})
+
+
+
+
+
+
+export const RequestUploadUrlResponse = zod.object({
+  "uploadURL": zod.string().url(),
+  "objectPath": zod.string(),
+  "metadata": zod.object({
+  "name": zod.string().min(1),
+  "size": zod.number().min(1),
+  "contentType": zod.string().min(1)
+}).optional()
+})
+
+
+/**
+ * @summary Serve a public asset
+ */
+export const GetPublicObjectParams = zod.object({
+  "filePath": zod.coerce.string()
+})
+
+
+/**
+ * @summary Serve an object entity
+ */
+export const GetStorageObjectParams = zod.object({
+  "objectPath": zod.coerce.string()
 })
 
 

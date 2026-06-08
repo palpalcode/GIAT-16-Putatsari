@@ -25,6 +25,7 @@ import type {
   AnnouncementUpdate,
   AuthResult,
   AuthStatus,
+  AvatarUpdateInput,
   CleaningSchedule,
   CleaningScheduleInput,
   CleaningScheduleUpdate,
@@ -38,6 +39,7 @@ import type {
   Deadline,
   DeadlineInput,
   DeadlineUpdate,
+  ErrorEnvelope,
   HealthStatus,
   InventoryItem,
   InventoryItemInput,
@@ -49,6 +51,7 @@ import type {
   KasInput,
   KasUpdate,
   LoginInput,
+  MemberProfile,
   Notulensi,
   NotulensiInput,
   NotulensiUpdate,
@@ -59,7 +62,9 @@ import type {
   ProgramScheduleUpdate,
   Template,
   TemplateInput,
-  TemplateUpdate
+  TemplateUpdate,
+  UploadUrlRequest,
+  UploadUrlResponse
 } from './api.schemas';
 
 import { customFetch } from '../custom-fetch';
@@ -3860,4 +3865,455 @@ export const useDeleteNotulensi = <TError = ErrorType<void>,
       > => {
       return useMutation(getDeleteNotulensiMutationOptions(options));
     }
+
+export const getGetMembersUrl = () => {
+
+
+
+
+  return `/api/members`
+}
+
+/**
+ * @summary Get all team members (public)
+ */
+export const getMembers = async ( options?: RequestInit): Promise<MemberProfile[]> => {
+
+  return customFetch<MemberProfile[]>(getGetMembersUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetMembersQueryKey = () => {
+    return [
+    `/api/members`
+    ] as const;
+    }
+
+
+export const getGetMembersQueryOptions = <TData = Awaited<ReturnType<typeof getMembers>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getMembers>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetMembersQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getMembers>>> = ({ signal }) => getMembers({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getMembers>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetMembersQueryResult = NonNullable<Awaited<ReturnType<typeof getMembers>>>
+export type GetMembersQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Get all team members (public)
+ */
+
+export function useGetMembers<TData = Awaited<ReturnType<typeof getMembers>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getMembers>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetMembersQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetMemberUrl = (id: number,) => {
+
+
+
+
+  return `/api/members/${id}`
+}
+
+/**
+ * @summary Get single member profile
+ */
+export const getMember = async (id: number, options?: RequestInit): Promise<MemberProfile> => {
+
+  return customFetch<MemberProfile>(getGetMemberUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetMemberQueryKey = (id: number,) => {
+    return [
+    `/api/members/${id}`
+    ] as const;
+    }
+
+
+export const getGetMemberQueryOptions = <TData = Awaited<ReturnType<typeof getMember>>, TError = ErrorType<void>>(id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getMember>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetMemberQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getMember>>> = ({ signal }) => getMember(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getMember>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetMemberQueryResult = NonNullable<Awaited<ReturnType<typeof getMember>>>
+export type GetMemberQueryError = ErrorType<void>
+
+
+/**
+ * @summary Get single member profile
+ */
+
+export function useGetMember<TData = Awaited<ReturnType<typeof getMember>>, TError = ErrorType<void>>(
+ id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getMember>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetMemberQueryOptions(id,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getUpdateMemberAvatarUrl = (id: number,) => {
+
+
+
+
+  return `/api/members/${id}/avatar`
+}
+
+/**
+ * @summary Update member avatar URL (self or ketua)
+ */
+export const updateMemberAvatar = async (id: number,
+    avatarUpdateInput: AvatarUpdateInput, options?: RequestInit): Promise<MemberProfile> => {
+
+  return customFetch<MemberProfile>(getUpdateMemberAvatarUrl(id),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      avatarUpdateInput,)
+  }
+);}
+
+
+
+
+export const getUpdateMemberAvatarMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateMemberAvatar>>, TError,{id: number;data: BodyType<AvatarUpdateInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateMemberAvatar>>, TError,{id: number;data: BodyType<AvatarUpdateInput>}, TContext> => {
+
+const mutationKey = ['updateMemberAvatar'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateMemberAvatar>>, {id: number;data: BodyType<AvatarUpdateInput>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  updateMemberAvatar(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateMemberAvatarMutationResult = NonNullable<Awaited<ReturnType<typeof updateMemberAvatar>>>
+    export type UpdateMemberAvatarMutationBody = BodyType<AvatarUpdateInput>
+    export type UpdateMemberAvatarMutationError = ErrorType<void>
+
+    /**
+ * @summary Update member avatar URL (self or ketua)
+ */
+export const useUpdateMemberAvatar = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateMemberAvatar>>, TError,{id: number;data: BodyType<AvatarUpdateInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateMemberAvatar>>,
+        TError,
+        {id: number;data: BodyType<AvatarUpdateInput>},
+        TContext
+      > => {
+      return useMutation(getUpdateMemberAvatarMutationOptions(options));
+    }
+
+export const getRequestUploadUrlUrl = () => {
+
+
+
+
+  return `/api/storage/uploads/request-url`
+}
+
+/**
+ * @summary Request a presigned URL for file upload
+ */
+export const requestUploadUrl = async (uploadUrlRequest: UploadUrlRequest, options?: RequestInit): Promise<UploadUrlResponse> => {
+
+  return customFetch<UploadUrlResponse>(getRequestUploadUrlUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      uploadUrlRequest,)
+  }
+);}
+
+
+
+
+export const getRequestUploadUrlMutationOptions = <TError = ErrorType<ErrorEnvelope>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof requestUploadUrl>>, TError,{data: BodyType<UploadUrlRequest>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof requestUploadUrl>>, TError,{data: BodyType<UploadUrlRequest>}, TContext> => {
+
+const mutationKey = ['requestUploadUrl'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof requestUploadUrl>>, {data: BodyType<UploadUrlRequest>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  requestUploadUrl(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RequestUploadUrlMutationResult = NonNullable<Awaited<ReturnType<typeof requestUploadUrl>>>
+    export type RequestUploadUrlMutationBody = BodyType<UploadUrlRequest>
+    export type RequestUploadUrlMutationError = ErrorType<ErrorEnvelope>
+
+    /**
+ * @summary Request a presigned URL for file upload
+ */
+export const useRequestUploadUrl = <TError = ErrorType<ErrorEnvelope>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof requestUploadUrl>>, TError,{data: BodyType<UploadUrlRequest>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof requestUploadUrl>>,
+        TError,
+        {data: BodyType<UploadUrlRequest>},
+        TContext
+      > => {
+      return useMutation(getRequestUploadUrlMutationOptions(options));
+    }
+
+export const getGetPublicObjectUrl = (filePath: string,) => {
+
+
+
+
+  return `/api/storage/public-objects/${filePath}`
+}
+
+/**
+ * @summary Serve a public asset
+ */
+export const getPublicObject = async (filePath: string, options?: RequestInit): Promise<Blob> => {
+
+  return customFetch<Blob>(getGetPublicObjectUrl(filePath),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetPublicObjectQueryKey = (filePath: string,) => {
+    return [
+    `/api/storage/public-objects/${filePath}`
+    ] as const;
+    }
+
+
+export const getGetPublicObjectQueryOptions = <TData = Awaited<ReturnType<typeof getPublicObject>>, TError = ErrorType<unknown>>(filePath: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getPublicObject>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetPublicObjectQueryKey(filePath);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getPublicObject>>> = ({ signal }) => getPublicObject(filePath, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(filePath), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getPublicObject>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetPublicObjectQueryResult = NonNullable<Awaited<ReturnType<typeof getPublicObject>>>
+export type GetPublicObjectQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Serve a public asset
+ */
+
+export function useGetPublicObject<TData = Awaited<ReturnType<typeof getPublicObject>>, TError = ErrorType<unknown>>(
+ filePath: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getPublicObject>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetPublicObjectQueryOptions(filePath,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetStorageObjectUrl = (objectPath: string,) => {
+
+
+
+
+  return `/api/storage/objects/${objectPath}`
+}
+
+/**
+ * @summary Serve an object entity
+ */
+export const getStorageObject = async (objectPath: string, options?: RequestInit): Promise<Blob> => {
+
+  return customFetch<Blob>(getGetStorageObjectUrl(objectPath),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetStorageObjectQueryKey = (objectPath: string,) => {
+    return [
+    `/api/storage/objects/${objectPath}`
+    ] as const;
+    }
+
+
+export const getGetStorageObjectQueryOptions = <TData = Awaited<ReturnType<typeof getStorageObject>>, TError = ErrorType<unknown>>(objectPath: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getStorageObject>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetStorageObjectQueryKey(objectPath);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getStorageObject>>> = ({ signal }) => getStorageObject(objectPath, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(objectPath), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getStorageObject>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetStorageObjectQueryResult = NonNullable<Awaited<ReturnType<typeof getStorageObject>>>
+export type GetStorageObjectQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Serve an object entity
+ */
+
+export function useGetStorageObject<TData = Awaited<ReturnType<typeof getStorageObject>>, TError = ErrorType<unknown>>(
+ objectPath: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getStorageObject>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetStorageObjectQueryOptions(objectPath,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
 

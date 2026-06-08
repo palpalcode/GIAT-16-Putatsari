@@ -10,12 +10,22 @@ export interface HealthStatus {
 }
 
 export interface LoginInput {
+  name: string;
   password: string;
 }
 
 export interface AuthResult {
   authenticated: boolean;
+  /** @nullable */
+  memberId?: number | null;
+  /** @nullable */
+  memberName?: string | null;
+  /** @nullable */
+  divisionRole?: string | null;
+  /** @nullable */
   role: string | null;
+  /** @nullable */
+  avatarUrl?: string | null;
   canManage: boolean;
   permissions: string[];
   message: string;
@@ -23,9 +33,50 @@ export interface AuthResult {
 
 export interface AuthStatus {
   authenticated: boolean;
+  /** @nullable */
+  memberId?: number | null;
+  /** @nullable */
+  memberName?: string | null;
+  /** @nullable */
+  divisionRole?: string | null;
+  /** @nullable */
   role: string | null;
+  /** @nullable */
+  avatarUrl?: string | null;
   canManage: boolean;
   permissions: string[];
+}
+
+export interface MemberProfile {
+  id: number;
+  name: string;
+  systemRole: string;
+  divisionRole: string;
+  /** @nullable */
+  avatarUrl?: string | null;
+}
+
+export interface AvatarUpdateInput {
+  avatarUrl: string;
+}
+
+export interface UploadUrlRequest {
+  /** @minLength 1 */
+  name: string;
+  /** @minimum 1 */
+  size: number;
+  /** @minLength 1 */
+  contentType: string;
+}
+
+export interface UploadUrlResponse {
+  uploadURL: string;
+  objectPath: string;
+  metadata?: UploadUrlRequest;
+}
+
+export interface ErrorEnvelope {
+  error: string;
 }
 
 export interface Permission {

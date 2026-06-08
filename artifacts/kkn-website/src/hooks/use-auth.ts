@@ -16,6 +16,7 @@ export const ROLE_LABELS: Record<string, string> = {
   ketua: "Ketua",
   sekretaris: "Sekretaris",
   bendahara: "Bendahara",
+  anggota: "Anggota",
 };
 
 export function useAuth() {
@@ -23,6 +24,10 @@ export function useAuth() {
   const permissions = data?.permissions ?? [];
   return {
     role: data?.role ?? null,
+    memberId: data?.memberId ?? null,
+    memberName: data?.memberName ?? null,
+    divisionRole: data?.divisionRole ?? null,
+    avatarUrl: data?.avatarUrl ?? null,
     isLoggedIn: !!data?.authenticated,
     canManage: !!data?.canManage,
     can: (resource: string) => permissions.includes(resource),
