@@ -1104,13 +1104,13 @@ function DanaProkerTab({ isAdmin }: { isAdmin?: boolean }) {
 
   if (selectedProker !== null && selectedProkerData) {
     const pct = selectedProkerData.budget > 0 ? Math.min(100, Math.round((selectedProkerData.pengeluaran / selectedProkerData.budget) * 100)) : 0;
-    const barColor = pct >= 100 ? "bg-rose-400" : pct >= 75 ? "bg-orange-400" : "bg-emerald-400";
+    const barColor = pct >= 100 ? "bg-rose-400" : pct >= 75 ? "bg-sky-400" : "bg-emerald-400";
     return (
       <div className="space-y-4">
-        <button onClick={() => setSelectedProker(null)} className="flex items-center gap-1 text-sm text-amber-700 hover:text-amber-900">
+        <button onClick={() => setSelectedProker(null)} className="flex items-center gap-1 text-sm text-sky-700 hover:text-sky-900">
           ← Kembali ke Daftar Proker
         </button>
-        <div className="glass-card p-5 bg-gradient-to-br from-amber-50 to-sky-50">
+        <div className="glass-card p-5 bg-gradient-to-br from-sky-50 to-teal-50">
           <div className="flex items-center justify-between mb-3">
             <div>
               <h3 className="font-bold text-gray-800 text-lg">{selectedProkerData.name}</h3>
@@ -1128,7 +1128,7 @@ function DanaProkerTab({ isAdmin }: { isAdmin?: boolean }) {
           </div>
           <div className="grid grid-cols-3 gap-3 mb-3">
             {[
-              { label: "Anggaran", value: selectedProkerData.budget, color: "text-amber-700" },
+              { label: "Anggaran", value: selectedProkerData.budget, color: "text-sky-700" },
               { label: "Terpakai", value: selectedProkerData.pengeluaran, color: "text-rose-600" },
               { label: "Sisa", value: selectedProkerData.sisa, color: selectedProkerData.sisa >= 0 ? "text-emerald-700" : "text-rose-700" },
             ].map(c => (
@@ -1151,7 +1151,7 @@ function DanaProkerTab({ isAdmin }: { isAdmin?: boolean }) {
         {isAdmin && (
           <div className="flex gap-2">
             <Button size="sm" onClick={() => { setTxState(defaultSimpleTx({ type: "pengeluaran" })); setOpenAddTx(true); }}
-              className="bg-gradient-to-r from-orange-400 to-sky-400 text-white border-0 rounded-full gap-1">
+              className="bg-gradient-to-r from-sky-400 to-teal-400 text-white border-0 rounded-full gap-1">
               <Plus className="w-4 h-4" />Catat Pengeluaran
             </Button>
             <Button size="sm" variant="outline" onClick={() => { setTxState(defaultSimpleTx({ type: "pemasukan" })); setOpenAddTx(true); }}
@@ -1168,34 +1168,34 @@ function DanaProkerTab({ isAdmin }: { isAdmin?: boolean }) {
 
         <SimpleTxDialog open={openAddTx} onClose={() => setOpenAddTx(false)}
           title={`Transaksi: ${selectedProkerData.name}`}
-          headerColor="bg-gradient-to-r from-orange-400/20 to-sky-400/20"
+          headerColor="bg-gradient-to-r from-sky-400/20 to-teal-400/20"
           isPending={create.isPending} onSave={saveTx} state={txState} setState={setTxState} />
 
         <Dialog open={openEditProker} onOpenChange={v => !v && setOpenEditProker(false)}>
           <DialogContent className="form-dialog border-white/50 max-w-sm p-0 overflow-hidden">
-            <div className="px-6 pt-6 pb-4 bg-gradient-to-r from-orange-400/20 to-sky-400/20">
+            <div className="px-6 pt-6 pb-4 bg-gradient-to-r from-sky-400/20 to-teal-400/20">
               <DialogHeader><DialogTitle>Edit Proker</DialogTitle></DialogHeader>
             </div>
             <div className="px-6 pb-6 pt-4 space-y-3">
               <div>
-                <label className="text-xs font-semibold text-amber-800 uppercase tracking-wide mb-1.5 block">Nama Proker</label>
+                <label className="text-xs font-semibold text-sky-800 uppercase tracking-wide mb-1.5 block">Nama Proker</label>
                 <Input value={editProkerForm.name} onChange={e => setEditProkerForm(f => ({ ...f, name: e.target.value }))} className="bg-white/90" />
               </div>
               <div>
-                <label className="text-xs font-semibold text-amber-800 uppercase tracking-wide mb-1.5 block">Anggaran (Rp)</label>
+                <label className="text-xs font-semibold text-sky-800 uppercase tracking-wide mb-1.5 block">Anggaran (Rp)</label>
                 <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-medium text-amber-600">Rp</span>
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-medium text-sky-600">Rp</span>
                   <Input type="number" min={0} value={editProkerForm.budget} onChange={e => setEditProkerForm(f => ({ ...f, budget: e.target.value }))} className="bg-white/90 pl-10 font-bold" />
                 </div>
               </div>
               <div>
-                <label className="text-xs font-semibold text-amber-800 uppercase tracking-wide mb-1.5 block">Catatan (opsional)</label>
+                <label className="text-xs font-semibold text-sky-800 uppercase tracking-wide mb-1.5 block">Catatan (opsional)</label>
                 <Input value={editProkerForm.notes} onChange={e => setEditProkerForm(f => ({ ...f, notes: e.target.value }))} className="bg-white/90" />
               </div>
               <div className="flex gap-3 justify-end pt-1">
                 <Button variant="outline" onClick={() => setOpenEditProker(false)} className="rounded-full">Batal</Button>
                 <Button onClick={() => saveProker(true)} disabled={updateProker.isPending || !editProkerForm.name}
-                  className="rounded-full text-white border-0 bg-gradient-to-r from-orange-400 to-sky-400">Simpan</Button>
+                  className="rounded-full text-white border-0 bg-gradient-to-r from-sky-400 to-teal-400">Simpan</Button>
               </div>
             </div>
           </DialogContent>
@@ -1211,7 +1211,7 @@ function DanaProkerTab({ isAdmin }: { isAdmin?: boolean }) {
         <p className="text-sm text-gray-500">Anggaran per program kerja</p>
         {isAdmin && (
           <Button size="sm" onClick={() => { setEditProkerForm({ name: "", budget: "", notes: "" }); setOpenAddProker(true); }}
-            className="bg-gradient-to-r from-orange-400 to-sky-400 text-white border-0 rounded-full gap-1">
+            className="bg-gradient-to-r from-sky-400 to-teal-400 text-white border-0 rounded-full gap-1">
             <Plus className="w-4 h-4" />Tambah Proker
           </Button>
         )}
@@ -1228,13 +1228,13 @@ function DanaProkerTab({ isAdmin }: { isAdmin?: boolean }) {
         <div className="space-y-3">
           {(prokers ?? []).map(p => {
             const pct = p.budget > 0 ? Math.min(100, Math.round((p.pengeluaran / p.budget) * 100)) : 0;
-            const barColor = pct >= 100 ? "bg-rose-400" : pct >= 75 ? "bg-orange-400" : "bg-emerald-400";
+            const barColor = pct >= 100 ? "bg-rose-400" : pct >= 75 ? "bg-sky-400" : "bg-emerald-400";
             return (
               <div key={p.id} className="glass-card p-4 group hover:-translate-y-0.5 transition-all cursor-pointer" onClick={() => setSelectedProker(p.id)}>
                 <div className="flex items-center justify-between gap-3">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
-                      <span className="w-8 h-8 rounded-xl bg-amber-100 flex items-center justify-center text-amber-600 font-bold text-xs shrink-0">
+                      <span className="w-8 h-8 rounded-xl bg-sky-100 flex items-center justify-center text-sky-600 font-bold text-xs shrink-0">
                         {p.name.charAt(0).toUpperCase()}
                       </span>
                       <div className="min-w-0">
@@ -1242,7 +1242,7 @@ function DanaProkerTab({ isAdmin }: { isAdmin?: boolean }) {
                         <div className="flex items-center gap-2 text-xs text-gray-500">
                           <span className="text-rose-600">-{formatRp(p.pengeluaran)}</span>
                           <span>dari</span>
-                          <span className="text-amber-600">{formatRp(p.budget)}</span>
+                          <span className="text-sky-600">{formatRp(p.budget)}</span>
                         </div>
                       </div>
                     </div>
@@ -1276,29 +1276,29 @@ function DanaProkerTab({ isAdmin }: { isAdmin?: boolean }) {
 
       <Dialog open={openAddProker} onOpenChange={v => !v && setOpenAddProker(false)}>
         <DialogContent className="form-dialog border-white/50 max-w-sm p-0 overflow-hidden">
-          <div className="px-6 pt-6 pb-4 bg-gradient-to-r from-orange-400/20 to-sky-400/20">
-            <DialogHeader><DialogTitle className="flex items-center gap-2"><Folder className="w-5 h-5 text-amber-500" />Tambah Proker Baru</DialogTitle></DialogHeader>
+          <div className="px-6 pt-6 pb-4 bg-gradient-to-r from-sky-400/20 to-teal-400/20">
+            <DialogHeader><DialogTitle className="flex items-center gap-2"><Folder className="w-5 h-5 text-sky-500" />Tambah Proker Baru</DialogTitle></DialogHeader>
           </div>
           <div className="px-6 pb-6 pt-4 space-y-3">
             <div>
-              <label className="text-xs font-semibold text-amber-800 uppercase tracking-wide mb-1.5 block">Nama Proker</label>
+              <label className="text-xs font-semibold text-sky-800 uppercase tracking-wide mb-1.5 block">Nama Proker</label>
               <Input placeholder="Nama program kerja..." value={editProkerForm.name} onChange={e => setEditProkerForm(f => ({ ...f, name: e.target.value }))} className="bg-white/90" />
             </div>
             <div>
-              <label className="text-xs font-semibold text-amber-800 uppercase tracking-wide mb-1.5 block">Anggaran (Rp)</label>
+              <label className="text-xs font-semibold text-sky-800 uppercase tracking-wide mb-1.5 block">Anggaran (Rp)</label>
               <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-medium text-amber-600">Rp</span>
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-medium text-sky-600">Rp</span>
                 <Input type="number" min={0} placeholder="0" value={editProkerForm.budget} onChange={e => setEditProkerForm(f => ({ ...f, budget: e.target.value }))} className="bg-white/90 pl-10 font-bold" />
               </div>
             </div>
             <div>
-              <label className="text-xs font-semibold text-amber-800 uppercase tracking-wide mb-1.5 block">Catatan (opsional)</label>
+              <label className="text-xs font-semibold text-sky-800 uppercase tracking-wide mb-1.5 block">Catatan (opsional)</label>
               <Input placeholder="Catatan..." value={editProkerForm.notes} onChange={e => setEditProkerForm(f => ({ ...f, notes: e.target.value }))} className="bg-white/90" />
             </div>
             <div className="flex gap-3 justify-end pt-1">
               <Button variant="outline" onClick={() => setOpenAddProker(false)} className="rounded-full">Batal</Button>
               <Button onClick={() => saveProker(false)} disabled={createProker.isPending || !editProkerForm.name}
-                className="rounded-full text-white border-0 bg-gradient-to-r from-orange-400 to-sky-400">Tambah</Button>
+                className="rounded-full text-white border-0 bg-gradient-to-r from-sky-400 to-teal-400">Tambah</Button>
             </div>
           </div>
         </DialogContent>
@@ -1315,10 +1315,10 @@ export default function KasPage() {
   const [tab, setTab] = useState<"umum" | "iuran_makan" | "darurat" | "proker">("iuran_makan");
 
   const tabs = [
-    { id: "umum", label: "Kas Umum", emoji: "💰", color: "from-emerald-400 to-teal-400" },
-    { id: "iuran_makan", label: "Iuran Makan", emoji: "🍽️", color: "from-orange-400 to-orange-400" },
-    { id: "darurat", label: "Dana Darurat", emoji: "🛡️", color: "from-rose-400 to-pink-500" },
-    { id: "proker", label: "Dana Proker", emoji: "📂", color: "from-orange-400 to-sky-400" },
+    { id: "umum", label: "Kas Umum", emoji: "💰", color: "from-emerald-400 to-teal-400", inactiveColor: "text-emerald-700 hover:text-emerald-900 hover:bg-white/90" },
+    { id: "iuran_makan", label: "Iuran Makan", emoji: "🍽️", color: "from-orange-400 to-orange-400", inactiveColor: "text-amber-700 hover:text-amber-900 hover:bg-white/90" },
+    { id: "darurat", label: "Dana Darurat", emoji: "🛡️", color: "from-rose-400 to-pink-500", inactiveColor: "text-rose-700 hover:text-rose-900 hover:bg-white/90" },
+    { id: "proker", label: "Dana Proker", emoji: "📂", color: "from-emerald-400 to-teal-500", inactiveColor: "text-emerald-700 hover:text-emerald-900 hover:bg-white/90" },
   ] as const;
 
   const summaryCards = [
@@ -1350,7 +1350,7 @@ export default function KasPage() {
         {tabs.map(t => (
           <button key={t.id} onClick={() => setTab(t.id)} className={cn(
             "flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold transition-all flex-1 justify-center",
-            tab === t.id ? `bg-gradient-to-r ${t.color} text-white shadow-sm` : "text-amber-700 hover:text-amber-900 hover:bg-white/90"
+            tab === t.id ? `bg-gradient-to-r ${t.color} text-white shadow-sm` : t.inactiveColor
           )}>
             <span>{t.emoji}</span><span className="hidden sm:inline">{t.label}</span>
           </button>
