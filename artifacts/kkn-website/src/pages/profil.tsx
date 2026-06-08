@@ -302,10 +302,10 @@ export default function ProfilPage() {
 
       {/* Ketua: change other user's password */}
       {role === "ketua" && (
-        <Card className="glass-card border-amber-100">
+        <Card className="glass-card border-violet-100">
           <CardHeader className="pb-2">
             <CardTitle className="text-base font-semibold text-gray-700 flex items-center gap-2">
-              <ShieldCheck className="w-4 h-4 text-amber-500" />
+              <ShieldCheck className="w-4 h-4 text-slate-500" />
               Ubah Password Anggota Lain
             </CardTitle>
           </CardHeader>
@@ -316,7 +316,7 @@ export default function ProfilPage() {
                 <select
                   value={selectedMemberId ?? ""}
                   onChange={(e) => setSelectedMemberId(e.target.value ? parseInt(e.target.value, 10) : null)}
-                  className="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 focus:outline-none focus:ring-1 focus:ring-amber-300 focus:border-amber-300 bg-white"
+                  className="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 focus:outline-none focus:ring-1 focus:ring-violet-300 focus:border-violet-300 bg-white"
                 >
                   <option value="">-- Pilih anggota --</option>
                   {(members ?? [])
@@ -349,7 +349,7 @@ export default function ProfilPage() {
               <Button
                 type="submit"
                 disabled={changeUserPassword.isPending || !selectedMemberId || !adminNewPw || !adminConfirm}
-                className="w-full rounded-xl bg-gradient-to-r from-amber-400 to-orange-400 text-white border-0"
+                className="w-full rounded-xl bg-gradient-to-r from-violet-400 to-violet-400 text-white border-0"
               >
                 {changeUserPassword.isPending ? (
                   <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Menyimpan...</>

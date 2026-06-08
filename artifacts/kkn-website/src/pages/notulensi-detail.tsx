@@ -306,7 +306,7 @@ export default function NotulensiDetailPage() {
   if (!notulensi) {
     return (
       <div className="flex flex-col items-center justify-center py-20 gap-4">
-        <p className="text-amber-800">Notulensi tidak ditemukan.</p>
+        <p className="text-violet-800">Notulensi tidak ditemukan.</p>
         <Button variant="outline" onClick={() => navigate("/notulensi")}>
           <ArrowLeft className="w-4 h-4 mr-2" />
           Kembali

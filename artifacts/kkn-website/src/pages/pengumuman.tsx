@@ -53,7 +53,7 @@ const priorityLabel: Record<Priority, string> = {
 
 const priorityClass: Record<Priority, string> = {
   high: "bg-rose-100/80 text-rose-700 border-rose-200",
-  medium: "bg-amber-100/80 text-amber-700 border-amber-200",
+  medium: "bg-violet-100/80 text-violet-700 border-violet-200",
   low: "bg-emerald-100/80 text-emerald-700 border-emerald-200",
 };
 
@@ -282,7 +282,7 @@ export default function PengumumanPage() {
             "px-4 py-2 rounded-full text-sm font-medium transition-all",
             tab === "pengumuman"
               ? "bg-white text-rose-600 shadow-sm"
-              : "text-amber-700 hover:text-amber-900"
+              : "text-violet-700 hover:text-violet-900"
           )}
         >
           <Megaphone className="w-3.5 h-3.5 inline mr-1.5 -mt-0.5" />
@@ -294,7 +294,7 @@ export default function PengumumanPage() {
             "px-4 py-2 rounded-full text-sm font-medium transition-all",
             tab === "notulensi"
               ? "bg-white text-rose-600 shadow-sm"
-              : "text-amber-700 hover:text-amber-900"
+              : "text-violet-700 hover:text-violet-900"
           )}
         >
           <FileText className="w-3.5 h-3.5 inline mr-1.5 -mt-0.5" />
@@ -500,7 +500,7 @@ export default function PengumumanPage() {
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="text-xs font-semibold text-amber-800 uppercase tracking-wide mb-1.5 block">
+                <label className="text-xs font-semibold text-violet-800 uppercase tracking-wide mb-1.5 block">
                   Tanggal Rapat
                 </label>
                 <Input
@@ -512,7 +512,7 @@ export default function PengumumanPage() {
                 {nFieldErrors.meetingDate && <p className="text-xs text-rose-500 mt-1">{nFieldErrors.meetingDate}</p>}
               </div>
               <div>
-                <label className="text-xs font-semibold text-amber-800 uppercase tracking-wide mb-1.5 block">
+                <label className="text-xs font-semibold text-violet-800 uppercase tracking-wide mb-1.5 block">
                   Penulis / Notulis
                 </label>
                 <Input
@@ -525,7 +525,7 @@ export default function PengumumanPage() {
               </div>
             </div>
             <div>
-              <label className="text-xs font-semibold text-amber-800 uppercase tracking-wide mb-1.5 block">
+              <label className="text-xs font-semibold text-violet-800 uppercase tracking-wide mb-1.5 block">
                 Peserta
               </label>
               <div className="bg-white/90 rounded-xl border border-white/60 p-3">
@@ -536,7 +536,7 @@ export default function PengumumanPage() {
               </div>
             </div>
             <div>
-              <label className="text-xs font-semibold text-amber-800 uppercase tracking-wide mb-1.5 block">
+              <label className="text-xs font-semibold text-violet-800 uppercase tracking-wide mb-1.5 block">
                 Agenda (opsional)
               </label>
               <Textarea
@@ -548,7 +548,7 @@ export default function PengumumanPage() {
               />
             </div>
             <div>
-              <label className="text-xs font-semibold text-amber-800 uppercase tracking-wide mb-1.5 block">
+              <label className="text-xs font-semibold text-violet-800 uppercase tracking-wide mb-1.5 block">
                 Isi Notulensi
               </label>
               <Textarea

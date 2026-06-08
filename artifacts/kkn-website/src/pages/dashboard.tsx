@@ -112,7 +112,7 @@ export default function Dashboard() {
                       <Badge className={cn(
                         "text-xs shrink-0 border mt-0.5",
                         a.priority === "high" ? "bg-rose-100 text-rose-700 border-rose-200"
-                          : a.priority === "medium" ? "bg-amber-100 text-amber-700 border-amber-200"
+                          : a.priority === "medium" ? "bg-violet-100 text-violet-700 border-violet-200"
                           : "bg-emerald-100 text-emerald-700 border-emerald-200"
                       )}>
                         {a.priority === "high" ? "Mendesak" : a.priority === "medium" ? "Penting" : "Normal"}
@@ -133,17 +133,17 @@ export default function Dashboard() {
         <div className="space-y-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-xl bg-amber-100 flex items-center justify-center">
-                <Calendar className="w-4 h-4 text-amber-500" />
+              <div className="w-8 h-8 rounded-xl bg-violet-100 flex items-center justify-center">
+                <Calendar className="w-4 h-4 text-slate-500" />
               </div>
               <h2 className="font-bold text-gray-800">Deadline</h2>
               {!isLoading && (
-                <span className="text-xs bg-amber-100 text-amber-600 px-2 py-0.5 rounded-full font-medium">
+                <span className="text-xs bg-violet-100 text-violet-600 px-2 py-0.5 rounded-full font-medium">
                   {summary?.upcomingDeadlines ?? 0} mendekat
                 </span>
               )}
             </div>
-            <Link href="/our-work" className="text-sm text-amber-600 hover:text-amber-700 transition-colors font-medium">
+            <Link href="/our-work" className="text-sm text-violet-600 hover:text-violet-700 transition-colors font-medium">
               Lihat semua
             </Link>
           </div>
@@ -160,11 +160,11 @@ export default function Dashboard() {
                   <Link href="/our-work" key={d.id} className="block">
                     <div className={cn(
                       "glass-card p-5 hover:-translate-y-0.5 transition-all cursor-pointer group",
-                      days <= 3 && days >= 0 && "ring-2 ring-amber-200/70"
+                      days <= 3 && days >= 0 && "ring-2 ring-violet-200/70"
                     )}>
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0 flex-1">
-                          <p className="font-semibold text-sm text-gray-900 group-hover:text-amber-600 transition-colors truncate">{d.title}</p>
+                          <p className="font-semibold text-sm text-gray-900 group-hover:text-violet-600 transition-colors truncate">{d.title}</p>
                           <p className="text-xs text-gray-500 mt-0.5">
                             {new Date(d.dueDate).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })}
                           </p>
@@ -173,7 +173,7 @@ export default function Dashboard() {
                           "text-xs shrink-0 border whitespace-nowrap",
                           days < 0 ? "bg-rose-200 text-rose-800 border-rose-300"
                             : days === 0 ? "bg-rose-100 text-rose-700 border-rose-200"
-                            : days <= 3 ? "bg-amber-100 text-amber-700 border-amber-200"
+                            : days <= 3 ? "bg-violet-100 text-violet-700 border-violet-200"
                             : "bg-sky-100 text-sky-700 border-sky-200"
                         )}>
                           {days < 0 ? "Terlambat" : days === 0 ? "Hari Ini" : `${days} hari`}
@@ -203,9 +203,9 @@ export default function Dashboard() {
             </Link>
             <Link href="/our-work">
               <div className="glass-card p-4 hover:-translate-y-1 transition-all cursor-pointer group text-center">
-                <Calendar className="w-5 h-5 text-amber-400 mx-auto mb-1" />
+                <Calendar className="w-5 h-5 text-violet-400 mx-auto mb-1" />
                 <div className="text-2xl font-bold text-gray-900">{summary?.upcomingDeadlines ?? 0}</div>
-                <p className="text-xs text-gray-400 group-hover:text-amber-500 transition-colors">Deadline</p>
+                <p className="text-xs text-gray-400 group-hover:text-slate-500 transition-colors">Deadline</p>
               </div>
             </Link>
             <Link href="/masalah">
@@ -251,7 +251,7 @@ export default function Dashboard() {
                   <Wallet className="w-3.5 h-3.5 text-sky-400" />
                   <p className="text-[10px] text-gray-400 uppercase tracking-wide">Saldo Umum</p>
                 </div>
-                <p className={cn("font-bold text-sm", (kasSummary?.saldoUmum ?? 0) >= 0 ? "text-sky-700" : "text-amber-600")}>
+                <p className={cn("font-bold text-sm", (kasSummary?.saldoUmum ?? 0) >= 0 ? "text-sky-700" : "text-violet-600")}>
                   {formatRp(kasSummary?.saldoUmum ?? 0)}
                 </p>
               </div>
@@ -266,11 +266,11 @@ export default function Dashboard() {
                   <div className="mt-1">
                     <div className="w-full h-1 bg-gray-200 rounded-full overflow-hidden">
                       <div
-                        className={cn("h-full rounded-full transition-all", kasSummary?.emergencyFundStatus === "sangat_cukup" ? "bg-emerald-400" : kasSummary?.emergencyFundStatus === "cukup" ? "bg-amber-400" : "bg-rose-400")}
+                        className={cn("h-full rounded-full transition-all", kasSummary?.emergencyFundStatus === "sangat_cukup" ? "bg-emerald-400" : kasSummary?.emergencyFundStatus === "cukup" ? "bg-violet-400" : "bg-rose-400")}
                         style={{ width: `${Math.min(100, Math.round(((kasSummary?.saldoDarurat ?? 0) / (kasSummary?.emergencyFundTarget ?? 1)) * 100))}%` }}
                       />
                     </div>
-                    <p className={cn("text-[10px] mt-0.5", kasSummary?.emergencyFundStatus === "sangat_cukup" ? "text-emerald-500" : kasSummary?.emergencyFundStatus === "cukup" ? "text-amber-500" : "text-rose-500")}>
+                    <p className={cn("text-[10px] mt-0.5", kasSummary?.emergencyFundStatus === "sangat_cukup" ? "text-emerald-500" : kasSummary?.emergencyFundStatus === "cukup" ? "text-slate-500" : "text-rose-500")}>
                       {kasSummary?.emergencyFundStatus === "sangat_cukup" ? "Sangat Cukup ✓" : kasSummary?.emergencyFundStatus === "cukup" ? "Cukup" : "Perlu Penambahan"}
                     </p>
                   </div>
@@ -279,10 +279,10 @@ export default function Dashboard() {
               {/* Jatah makan harian */}
               <div className="text-center">
                 <div className="flex items-center justify-center gap-1 mb-0.5">
-                  <Utensils className="w-3.5 h-3.5 text-amber-400" />
+                  <Utensils className="w-3.5 h-3.5 text-violet-400" />
                   <p className="text-[10px] text-gray-400 uppercase tracking-wide">Jatah/Hari</p>
                 </div>
-                <p className="font-bold text-sm text-amber-700">{formatRp(kasSummary?.dailyFoodAllowance ?? 0)}</p>
+                <p className="font-bold text-sm text-violet-700">{formatRp(kasSummary?.dailyFoodAllowance ?? 0)}</p>
               </div>
             </div>
           )}

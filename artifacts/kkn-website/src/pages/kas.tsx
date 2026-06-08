@@ -104,10 +104,10 @@ function toRelativeWeekNumber(label: string): number {
 }
 
 const KAS_CATEGORIES = [
-  { id: "makan", label: "Makan", emoji: "🍽️", color: "bg-orange-100 text-orange-700 border-orange-200" },
+  { id: "makan", label: "Makan", emoji: "🍽️", color: "bg-violet-100 text-violet-700 border-violet-200" },
   { id: "transport", label: "Transport", emoji: "🚗", color: "bg-sky-100 text-sky-700 border-sky-200" },
   { id: "perlengkapan", label: "Perlengkapan", emoji: "🛒", color: "bg-violet-100 text-violet-700 border-violet-200" },
-  { id: "administrasi", label: "Administrasi", emoji: "📄", color: "bg-amber-100 text-amber-700 border-amber-200" },
+  { id: "administrasi", label: "Administrasi", emoji: "📄", color: "bg-violet-100 text-violet-700 border-violet-200" },
   { id: "lainnya", label: "Lainnya", emoji: "📦", color: "bg-gray-100 text-gray-700 border-gray-200" },
 ];
 function getCatInfo(cat: string) { return KAS_CATEGORIES.find(c => c.id === cat) ?? KAS_CATEGORIES[4]; }
@@ -149,7 +149,7 @@ function ItemsEditor({ items, onChange }: {
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between">
-        <label className="text-xs font-semibold text-amber-800 uppercase tracking-wide">Rincian Belanja (opsional)</label>
+        <label className="text-xs font-semibold text-violet-800 uppercase tracking-wide">Rincian Belanja (opsional)</label>
         <button type="button" onClick={addRow} className="flex items-center gap-1 text-xs text-sky-600 hover:text-sky-700 font-medium">
           <Plus className="w-3 h-3" />Tambah Item
         </button>
@@ -330,7 +330,7 @@ function AddEditDialog({
             {["pemasukan", "pengeluaran"].map(t => (
               <button key={t} onClick={() => set("type", t as KasInputType)} className={cn(
                 "flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold border-2 transition-all",
-                form.type === t ? (t === "pemasukan" ? "bg-emerald-500 text-white border-emerald-500 shadow-md" : "bg-rose-500 text-white border-rose-500 shadow-md") : "bg-white text-amber-700 border-amber-200/50 hover:bg-white/80"
+                form.type === t ? (t === "pemasukan" ? "bg-emerald-500 text-white border-emerald-500 shadow-md" : "bg-rose-500 text-white border-rose-500 shadow-md") : "bg-white text-violet-700 border-violet-200/50 hover:bg-white/80"
               )}>
                 {t === "pemasukan" ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />}
                 {t === "pemasukan" ? "Pemasukan" : "Pengeluaran"}
@@ -340,17 +340,17 @@ function AddEditDialog({
         </div>
         <div className="px-6 pb-6 pt-4 space-y-4">
           <div>
-            <label className="text-xs font-semibold text-amber-800 uppercase tracking-wide mb-1.5 block">Keterangan</label>
+            <label className="text-xs font-semibold text-violet-800 uppercase tracking-wide mb-1.5 block">Keterangan</label>
             <Input placeholder="Deskripsi transaksi..." value={form.description} onChange={e => set("description", e.target.value)} className="bg-white/90" />
             {serverFieldErrors.description && <p className="text-xs text-rose-500 mt-1">{serverFieldErrors.description}</p>}
           </div>
           <div>
-            <label className="text-xs font-semibold text-amber-800 uppercase tracking-wide mb-1.5 block">Kategori</label>
+            <label className="text-xs font-semibold text-violet-800 uppercase tracking-wide mb-1.5 block">Kategori</label>
             <div className="flex flex-wrap gap-2">
               {KAS_CATEGORIES.map(cat => (
                 <button key={cat.id} onClick={() => set("category", cat.id as KasInputCategory)} className={cn(
                   "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border-2 transition-all",
-                  form.category === cat.id ? cat.color + " border-current shadow-sm scale-105" : "bg-white text-amber-700 border-amber-200/50 hover:bg-white/90"
+                  form.category === cat.id ? cat.color + " border-current shadow-sm scale-105" : "bg-white text-violet-700 border-violet-200/50 hover:bg-white/90"
                 )}>
                   <span>{cat.emoji}</span>{cat.label}
                 </button>
@@ -362,25 +362,25 @@ function AddEditDialog({
           <ItemsEditor items={form.items} onChange={handleItemsChange} />
 
           <div>
-            <label className="text-xs font-semibold text-amber-800 uppercase tracking-wide mb-1.5 block">
+            <label className="text-xs font-semibold text-violet-800 uppercase tracking-wide mb-1.5 block">
               Jumlah Total (Rp)
               {form.items.length > 0 && itemsTotal(form.items) > 0 && (
                 <span className="ml-1 normal-case font-normal text-gray-400">— auto dari rincian</span>
               )}
             </label>
             <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-medium text-amber-600">Rp</span>
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-medium text-violet-600">Rp</span>
               <Input type="number" min={0} placeholder="0" value={form.amount} onChange={e => set("amount", e.target.value)} className="bg-white/90 pl-10 text-lg font-bold" />
             </div>
             {serverFieldErrors.amount && <p className="text-xs text-rose-500 mt-1">{serverFieldErrors.amount}</p>}
           </div>
 
           <div>
-            <label className="text-xs font-semibold text-amber-800 uppercase tracking-wide mb-1.5 block">Tanggal</label>
+            <label className="text-xs font-semibold text-violet-800 uppercase tracking-wide mb-1.5 block">Tanggal</label>
             <Input type="date" value={form.date} onChange={e => set("date", e.target.value)} className="bg-white/90" />
           </div>
           <div>
-            <label className="text-xs font-semibold text-amber-800 uppercase tracking-wide mb-1.5 block">Catatan (opsional)</label>
+            <label className="text-xs font-semibold text-violet-800 uppercase tracking-wide mb-1.5 block">Catatan (opsional)</label>
             <Input placeholder="Catatan tambahan..." value={form.notes} onChange={e => set("notes", e.target.value)} className="bg-white/90" />
           </div>
           <div className="flex gap-3 justify-end pt-1">
@@ -463,7 +463,7 @@ function UmumTab({ isAdmin, summary }: { isAdmin?: boolean; summary: any }) {
           <Wallet className="w-5 h-5 text-sky-500" />
           <div>
             <p className="text-xs text-gray-500">Saldo Kas Umum</p>
-            <p className={cn("text-lg font-bold", saldo >= 0 ? "text-sky-700" : "text-amber-600")}>{formatRp(saldo)}{saldo < 0 && " (defisit)"}</p>
+            <p className={cn("text-lg font-bold", saldo >= 0 ? "text-sky-700" : "text-violet-600")}>{formatRp(saldo)}{saldo < 0 && " (defisit)"}</p>
           </div>
         </div>
         {isAdmin && (
@@ -523,33 +523,33 @@ function SimpleTxDialog({ open, onClose, title, headerColor, isPending, onSave, 
             {(["pengeluaran", "pemasukan"] as KasInputType[]).map(t => (
               <button key={t} onClick={() => set({ type: t })} className={cn(
                 "flex-1 py-2 rounded-xl border-2 text-xs font-semibold transition-all",
-                state.type === t ? (t === "pengeluaran" ? "bg-rose-500 text-white border-rose-500" : "bg-emerald-500 text-white border-emerald-500") : "bg-white text-amber-700 border-amber-200/50"
+                state.type === t ? (t === "pengeluaran" ? "bg-rose-500 text-white border-rose-500" : "bg-emerald-500 text-white border-emerald-500") : "bg-white text-violet-700 border-violet-200/50"
               )}>{t === "pengeluaran" ? "Pengeluaran" : "Pemasukan"}</button>
             ))}
           </div>
         </div>
         <div className="px-6 pb-6 pt-4 space-y-3">
           <div>
-            <label className="text-xs font-semibold text-amber-800 uppercase tracking-wide mb-1.5 block">Keterangan</label>
+            <label className="text-xs font-semibold text-violet-800 uppercase tracking-wide mb-1.5 block">Keterangan</label>
             <Input value={state.description} onChange={e => set({ description: e.target.value })} className="bg-white/90" />
           </div>
 
           <ItemsEditor items={state.items} onChange={handleItemsChange} />
 
           <div>
-            <label className="text-xs font-semibold text-amber-800 uppercase tracking-wide mb-1.5 block">
+            <label className="text-xs font-semibold text-violet-800 uppercase tracking-wide mb-1.5 block">
               Jumlah (Rp){state.items.length > 0 && itemsTotal(state.items) > 0 && <span className="ml-1 normal-case font-normal text-gray-400">— auto dari rincian</span>}
             </label>
             <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-medium text-amber-600">Rp</span>
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-medium text-violet-600">Rp</span>
               <Input type="number" min={0} value={state.amount} onChange={e => set({ amount: e.target.value })} className="bg-white/90 pl-10 font-bold" />
             </div>
             {state.type === "pengeluaran" && jatahHarian && jatahHarian > 0 && (
-              <p className="text-xs text-amber-600 mt-1">Jatah hari ini: {formatRp(jatahHarian)}</p>
+              <p className="text-xs text-violet-600 mt-1">Jatah hari ini: {formatRp(jatahHarian)}</p>
             )}
           </div>
           <div>
-            <label className="text-xs font-semibold text-amber-800 uppercase tracking-wide mb-1.5 block">Tanggal</label>
+            <label className="text-xs font-semibold text-violet-800 uppercase tracking-wide mb-1.5 block">Tanggal</label>
             <Input type="date" value={state.date} onChange={e => set({ date: e.target.value })} className="bg-white/90" />
           </div>
           <div className="flex gap-3 justify-end pt-1">
@@ -662,18 +662,18 @@ function IuranMakanTab({ isAdmin, summary }: { isAdmin?: boolean; summary: any }
   return (
     <div className="space-y-5">
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-        <div className="glass-card p-4 bg-gradient-to-br from-orange-50 to-amber-50">
+        <div className="glass-card p-4 bg-gradient-to-br from-slate-50 to-slate-50">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-xs text-gray-500 mb-0.5">Iuran Makan/Orang/Minggu</p>
-              <p className="text-xl font-bold text-orange-700">{formatRp(weeklyFood)}</p>
+              <p className="text-xl font-bold text-violet-700">{formatRp(weeklyFood)}</p>
             </div>
             {isAdmin && <Button variant="ghost" size="icon" className="h-7 w-7 rounded-full" onClick={() => { setConfigForm({ weeklyAmount: String(weeklyFood) }); setOpenConfig(true); }}><Settings className="w-3.5 h-3.5 text-gray-400" /></Button>}
           </div>
         </div>
-        <div className="glass-card p-4 bg-gradient-to-br from-amber-50 to-yellow-50">
+        <div className="glass-card p-4 bg-gradient-to-br from-slate-50 to-slate-50">
           <p className="text-xs text-gray-500 mb-0.5">Jatah Makan Harian</p>
-          <p className="text-xl font-bold text-amber-700">{formatRp(jatahHarian)}</p>
+          <p className="text-xl font-bold text-violet-700">{formatRp(jatahHarian)}</p>
           <p className="text-[10px] text-gray-400">({formatRp(weeklyFood)} × 9 ÷ 7)</p>
         </div>
         <div className={cn("glass-card p-4", saldoMakan >= 0 ? "bg-gradient-to-br from-emerald-50 to-teal-50" : "bg-gradient-to-br from-rose-50 to-pink-50")}>
@@ -691,7 +691,7 @@ function IuranMakanTab({ isAdmin, summary }: { isAdmin?: boolean; summary: any }
         ]).map(t => (
           <button key={t.id} onClick={() => setActiveSubTab(t.id)} className={cn(
             "flex-1 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all",
-            activeSubTab === t.id ? "bg-gradient-to-r from-orange-400 to-amber-400 text-white shadow-sm" : "text-amber-700 hover:text-amber-900 hover:bg-white/90"
+            activeSubTab === t.id ? "bg-gradient-to-r from-violet-400 to-sky-400 text-white shadow-sm" : "text-violet-700 hover:text-violet-900 hover:bg-white/90"
           )}>{t.label}</button>
         ))}
       </div>
@@ -706,8 +706,8 @@ function IuranMakanTab({ isAdmin, summary }: { isAdmin?: boolean; summary: any }
             <div className="text-center flex-1">
               <p className="text-sm font-bold text-gray-800">Minggu {Math.max(1, relativeWeekNum)}</p>
               <p className="text-xs text-gray-400">{weekLabelToRange(isBeforeWeek1 ? KKN_START_WEEK : selectedWeek)}</p>
-              {isCurrentWeek && !isBeforeWeek1 && <Badge className="text-[10px] bg-orange-100 text-orange-700 border-orange-200 mt-0.5">Minggu Ini</Badge>}
-              {isBeforeWeek1 && <Badge className="text-[10px] bg-amber-100 text-amber-700 border-amber-200 mt-0.5">Sebelum KKN dimulai</Badge>}
+              {isCurrentWeek && !isBeforeWeek1 && <Badge className="text-[10px] bg-violet-100 text-violet-700 border-violet-200 mt-0.5">Minggu Ini</Badge>}
+              {isBeforeWeek1 && <Badge className="text-[10px] bg-violet-100 text-violet-700 border-violet-200 mt-0.5">Sebelum KKN dimulai</Badge>}
             </div>
             <button onClick={() => setSelectedWeek(w => shiftWeek(w, 1))} disabled={isCurrentWeek} className={cn("p-1.5 rounded-lg transition-colors", isCurrentWeek ? "text-gray-300" : "hover:bg-white/90 text-gray-500")}>
               <ChevronRight className="w-4 h-4" />
@@ -716,16 +716,16 @@ function IuranMakanTab({ isAdmin, summary }: { isAdmin?: boolean; summary: any }
 
           {/* Progress bar */}
           {totalCount > 0 && (
-            <div className="glass-card p-4 bg-gradient-to-br from-orange-50 to-amber-50">
+            <div className="glass-card p-4 bg-gradient-to-br from-slate-50 to-slate-50">
               <div className="flex items-center justify-between mb-2">
                 <p className="text-sm font-semibold text-gray-700">Status Pembayaran</p>
-                <span className={cn("text-sm font-bold", paidCount === totalCount ? "text-emerald-600" : "text-amber-600")}>
+                <span className={cn("text-sm font-bold", paidCount === totalCount ? "text-emerald-600" : "text-violet-600")}>
                   {paidCount}/{totalCount} sudah bayar
                 </span>
               </div>
               <div className="w-full h-2.5 bg-gray-200 rounded-full overflow-hidden">
                 <div
-                  className={cn("h-full rounded-full transition-all duration-500", paidCount === totalCount ? "bg-emerald-400" : "bg-orange-400")}
+                  className={cn("h-full rounded-full transition-all duration-500", paidCount === totalCount ? "bg-emerald-400" : "bg-violet-400")}
                   style={{ width: `${totalCount > 0 ? (paidCount / totalCount) * 100 : 0}%` }}
                 />
               </div>
@@ -795,7 +795,7 @@ function IuranMakanTab({ isAdmin, summary }: { isAdmin?: boolean; summary: any }
           {/* Per-member cumulative summary */}
           {(memberSummary ?? []).length > 0 && (
             <div className="mt-4">
-              <p className="text-xs font-semibold text-amber-800 uppercase tracking-wide mb-2">Rekap Total Per Anggota (Semua Minggu)</p>
+              <p className="text-xs font-semibold text-violet-800 uppercase tracking-wide mb-2">Rekap Total Per Anggota (Semua Minggu)</p>
               <div className="space-y-2">
                 {(memberSummary ?? [])
                   .sort((a, b) => b.totalPaid - a.totalPaid)
@@ -803,7 +803,7 @@ function IuranMakanTab({ isAdmin, summary }: { isAdmin?: boolean; summary: any }
                     <div key={s.memberName} className="flex items-center justify-between gap-2 px-3 py-2 rounded-xl bg-white/90 border border-white/60">
                       <span className="text-sm text-gray-700 font-medium">{s.memberName}</span>
                       <div className="text-right">
-                        <p className="text-sm font-bold text-orange-700">{formatRp(s.totalPaid)}</p>
+                        <p className="text-sm font-bold text-violet-700">{formatRp(s.totalPaid)}</p>
                         <p className="text-[10px] text-gray-400">{s.weekCount} minggu</p>
                       </div>
                     </div>
@@ -821,7 +821,7 @@ function IuranMakanTab({ isAdmin, summary }: { isAdmin?: boolean; summary: any }
             {isAdmin && (
               <>
                 <Button size="sm" onClick={() => { setTxState(defaultSimpleTx({ type: "pengeluaran", description: "Belanja makan", category: "makan" })); setOpenTx(true); }}
-                  className="bg-gradient-to-r from-orange-400 to-amber-400 text-white border-0 rounded-full gap-1">
+                  className="bg-gradient-to-r from-violet-400 to-sky-400 text-white border-0 rounded-full gap-1">
                   <Plus className="w-4 h-4" />Catat Pengeluaran Makan
                 </Button>
                 <Button size="sm" onClick={() => { setTxState(defaultSimpleTx({ type: "pemasukan", description: "Iuran makan mingguan", category: "makan" })); setOpenTx(true); }}
@@ -844,28 +844,28 @@ function IuranMakanTab({ isAdmin, summary }: { isAdmin?: boolean; summary: any }
       )}
 
       <SimpleTxDialog open={openTx} onClose={() => setOpenTx(false)} title="Catat Transaksi Makan"
-        headerColor="bg-gradient-to-r from-orange-400/20 to-amber-400/20"
+        headerColor="bg-gradient-to-r from-violet-400/20 to-violet-400/20"
         isPending={create.isPending} onSave={saveTx} state={txState} setState={setTxState} jatahHarian={jatahHarian} />
 
       <Dialog open={openConfig} onOpenChange={v => !v && setOpenConfig(false)}>
         <DialogContent className="form-dialog border-white/50 max-w-sm p-0 overflow-hidden">
-          <div className="px-6 pt-6 pb-4 bg-gradient-to-r from-amber-400/20 to-yellow-400/20">
+          <div className="px-6 pt-6 pb-4 bg-gradient-to-r from-violet-400/20 to-sky-400/20">
             <DialogHeader><DialogTitle>Atur Iuran Makan</DialogTitle></DialogHeader>
           </div>
           <div className="px-6 pb-6 pt-4 space-y-3">
             <div>
-              <label className="text-xs font-semibold text-amber-800 uppercase tracking-wide mb-1.5 block">Iuran Mingguan Per Orang (Rp)</label>
+              <label className="text-xs font-semibold text-violet-800 uppercase tracking-wide mb-1.5 block">Iuran Mingguan Per Orang (Rp)</label>
               <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-medium text-amber-600">Rp</span>
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-medium text-violet-600">Rp</span>
                 <Input type="number" min={0} value={configForm.weeklyAmount} onChange={e => setConfigForm({ weeklyAmount: e.target.value })} className="bg-white/90 pl-10 font-bold text-lg" />
               </div>
               {Number(configForm.weeklyAmount) > 0 && (
-                <p className="text-xs text-amber-600 mt-1">Jatah harian: {formatRp(Math.floor(Number(configForm.weeklyAmount) * 9 / 7))} (× 9 anggota ÷ 7 hari)</p>
+                <p className="text-xs text-violet-600 mt-1">Jatah harian: {formatRp(Math.floor(Number(configForm.weeklyAmount) * 9 / 7))} (× 9 anggota ÷ 7 hari)</p>
               )}
             </div>
             <div className="flex gap-3 justify-end pt-1">
               <Button variant="outline" onClick={() => setOpenConfig(false)} className="rounded-full">Batal</Button>
-              <Button onClick={saveConfig} disabled={updateConfig.isPending} className="rounded-full text-white border-0 bg-gradient-to-r from-amber-400 to-orange-400">Simpan</Button>
+              <Button onClick={saveConfig} disabled={updateConfig.isPending} className="rounded-full text-white border-0 bg-gradient-to-r from-violet-400 to-violet-400">Simpan</Button>
             </div>
           </div>
         </DialogContent>
@@ -878,17 +878,17 @@ function IuranMakanTab({ isAdmin, summary }: { isAdmin?: boolean; summary: any }
           </div>
           <div className="px-6 pb-6 pt-4 space-y-3">
             <div className="glass-card p-3 bg-sky-50/60 rounded-xl">
-              <p className="text-xs text-gray-500">Jatah harian: <span className="font-bold text-amber-700">{formatRp(jatahHarian)}</span></p>
+              <p className="text-xs text-gray-500">Jatah harian: <span className="font-bold text-violet-700">{formatRp(jatahHarian)}</span></p>
               <p className="text-xs text-gray-400 mt-0.5">Sisa = Jatah - Terpakai akan dipindah ke dana darurat</p>
             </div>
             <div>
-              <label className="text-xs font-semibold text-amber-800 uppercase tracking-wide mb-1.5 block">Tanggal</label>
+              <label className="text-xs font-semibold text-violet-800 uppercase tracking-wide mb-1.5 block">Tanggal</label>
               <Input type="date" value={transferForm.date} onChange={e => setTransferForm(f => ({ ...f, date: e.target.value }))} className="bg-white/90" />
             </div>
             <div>
-              <label className="text-xs font-semibold text-amber-800 uppercase tracking-wide mb-1.5 block">Pengeluaran Makan Hari Ini (Rp)</label>
+              <label className="text-xs font-semibold text-violet-800 uppercase tracking-wide mb-1.5 block">Pengeluaran Makan Hari Ini (Rp)</label>
               <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-medium text-amber-600">Rp</span>
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-medium text-violet-600">Rp</span>
                 <Input type="number" min={0} value={transferForm.terpakai} onChange={e => setTransferForm(f => ({ ...f, terpakai: e.target.value }))} className="bg-white/90 pl-10 font-bold" />
               </div>
               {transferForm.terpakai && jatahHarian > 0 && (
@@ -930,7 +930,7 @@ function DanadaruratTab({ isAdmin, summary }: { isAdmin?: boolean; summary: any 
 
   const statusMap: Record<string, { label: string; color: string; bgColor: string; barColor: string }> = {
     kurang: { label: "Perlu Penambahan", color: "text-rose-600", bgColor: "bg-rose-100 border-rose-200", barColor: "bg-rose-400" },
-    cukup: { label: "Cukup", color: "text-amber-600", bgColor: "bg-amber-100 border-amber-200", barColor: "bg-amber-400" },
+    cukup: { label: "Cukup", color: "text-violet-600", bgColor: "bg-violet-100 border-violet-200", barColor: "bg-violet-400" },
     sangat_cukup: { label: "Sangat Cukup ✓", color: "text-emerald-600", bgColor: "bg-emerald-100 border-emerald-200", barColor: "bg-emerald-400" },
   };
   const statusInfo = statusMap[status] ?? statusMap.kurang;
@@ -1024,9 +1024,9 @@ function DanadaruratTab({ isAdmin, summary }: { isAdmin?: boolean; summary: any 
           </div>
           <div className="px-6 pb-6 pt-4 space-y-3">
             <div>
-              <label className="text-xs font-semibold text-amber-800 uppercase tracking-wide mb-1.5 block">Target Dana Darurat (Rp)</label>
+              <label className="text-xs font-semibold text-violet-800 uppercase tracking-wide mb-1.5 block">Target Dana Darurat (Rp)</label>
               <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-medium text-amber-600">Rp</span>
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-medium text-violet-600">Rp</span>
                 <Input type="number" min={0} value={targetForm.target} onChange={e => setTargetForm({ target: e.target.value })} className="bg-white/90 pl-10 font-bold text-lg" />
               </div>
             </div>
@@ -1104,10 +1104,10 @@ function DanaProkerTab({ isAdmin }: { isAdmin?: boolean }) {
 
   if (selectedProker !== null && selectedProkerData) {
     const pct = selectedProkerData.budget > 0 ? Math.min(100, Math.round((selectedProkerData.pengeluaran / selectedProkerData.budget) * 100)) : 0;
-    const barColor = pct >= 100 ? "bg-rose-400" : pct >= 75 ? "bg-amber-400" : "bg-emerald-400";
+    const barColor = pct >= 100 ? "bg-rose-400" : pct >= 75 ? "bg-violet-400" : "bg-emerald-400";
     return (
       <div className="space-y-4">
-        <button onClick={() => setSelectedProker(null)} className="flex items-center gap-1 text-sm text-amber-700 hover:text-amber-900">
+        <button onClick={() => setSelectedProker(null)} className="flex items-center gap-1 text-sm text-violet-700 hover:text-violet-900">
           ← Kembali ke Daftar Proker
         </button>
         <div className="glass-card p-5 bg-gradient-to-br from-violet-50 to-sky-50">
@@ -1178,18 +1178,18 @@ function DanaProkerTab({ isAdmin }: { isAdmin?: boolean }) {
             </div>
             <div className="px-6 pb-6 pt-4 space-y-3">
               <div>
-                <label className="text-xs font-semibold text-amber-800 uppercase tracking-wide mb-1.5 block">Nama Proker</label>
+                <label className="text-xs font-semibold text-violet-800 uppercase tracking-wide mb-1.5 block">Nama Proker</label>
                 <Input value={editProkerForm.name} onChange={e => setEditProkerForm(f => ({ ...f, name: e.target.value }))} className="bg-white/90" />
               </div>
               <div>
-                <label className="text-xs font-semibold text-amber-800 uppercase tracking-wide mb-1.5 block">Anggaran (Rp)</label>
+                <label className="text-xs font-semibold text-violet-800 uppercase tracking-wide mb-1.5 block">Anggaran (Rp)</label>
                 <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-medium text-amber-600">Rp</span>
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-medium text-violet-600">Rp</span>
                   <Input type="number" min={0} value={editProkerForm.budget} onChange={e => setEditProkerForm(f => ({ ...f, budget: e.target.value }))} className="bg-white/90 pl-10 font-bold" />
                 </div>
               </div>
               <div>
-                <label className="text-xs font-semibold text-amber-800 uppercase tracking-wide mb-1.5 block">Catatan (opsional)</label>
+                <label className="text-xs font-semibold text-violet-800 uppercase tracking-wide mb-1.5 block">Catatan (opsional)</label>
                 <Input value={editProkerForm.notes} onChange={e => setEditProkerForm(f => ({ ...f, notes: e.target.value }))} className="bg-white/90" />
               </div>
               <div className="flex gap-3 justify-end pt-1">
@@ -1228,7 +1228,7 @@ function DanaProkerTab({ isAdmin }: { isAdmin?: boolean }) {
         <div className="space-y-3">
           {(prokers ?? []).map(p => {
             const pct = p.budget > 0 ? Math.min(100, Math.round((p.pengeluaran / p.budget) * 100)) : 0;
-            const barColor = pct >= 100 ? "bg-rose-400" : pct >= 75 ? "bg-amber-400" : "bg-emerald-400";
+            const barColor = pct >= 100 ? "bg-rose-400" : pct >= 75 ? "bg-violet-400" : "bg-emerald-400";
             return (
               <div key={p.id} className="glass-card p-4 group hover:-translate-y-0.5 transition-all cursor-pointer" onClick={() => setSelectedProker(p.id)}>
                 <div className="flex items-center justify-between gap-3">
@@ -1281,18 +1281,18 @@ function DanaProkerTab({ isAdmin }: { isAdmin?: boolean }) {
           </div>
           <div className="px-6 pb-6 pt-4 space-y-3">
             <div>
-              <label className="text-xs font-semibold text-amber-800 uppercase tracking-wide mb-1.5 block">Nama Proker</label>
+              <label className="text-xs font-semibold text-violet-800 uppercase tracking-wide mb-1.5 block">Nama Proker</label>
               <Input placeholder="Nama program kerja..." value={editProkerForm.name} onChange={e => setEditProkerForm(f => ({ ...f, name: e.target.value }))} className="bg-white/90" />
             </div>
             <div>
-              <label className="text-xs font-semibold text-amber-800 uppercase tracking-wide mb-1.5 block">Anggaran (Rp)</label>
+              <label className="text-xs font-semibold text-violet-800 uppercase tracking-wide mb-1.5 block">Anggaran (Rp)</label>
               <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-medium text-amber-600">Rp</span>
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-medium text-violet-600">Rp</span>
                 <Input type="number" min={0} placeholder="0" value={editProkerForm.budget} onChange={e => setEditProkerForm(f => ({ ...f, budget: e.target.value }))} className="bg-white/90 pl-10 font-bold" />
               </div>
             </div>
             <div>
-              <label className="text-xs font-semibold text-amber-800 uppercase tracking-wide mb-1.5 block">Catatan (opsional)</label>
+              <label className="text-xs font-semibold text-violet-800 uppercase tracking-wide mb-1.5 block">Catatan (opsional)</label>
               <Input placeholder="Catatan..." value={editProkerForm.notes} onChange={e => setEditProkerForm(f => ({ ...f, notes: e.target.value }))} className="bg-white/90" />
             </div>
             <div className="flex gap-3 justify-end pt-1">
@@ -1316,7 +1316,7 @@ export default function KasPage() {
 
   const tabs = [
     { id: "umum", label: "Kas Umum", emoji: "💰", color: "from-emerald-400 to-teal-400" },
-    { id: "iuran_makan", label: "Iuran Makan", emoji: "🍽️", color: "from-orange-400 to-amber-400" },
+    { id: "iuran_makan", label: "Iuran Makan", emoji: "🍽️", color: "from-violet-400 to-violet-400" },
     { id: "darurat", label: "Dana Darurat", emoji: "🛡️", color: "from-rose-400 to-pink-500" },
     { id: "proker", label: "Dana Proker", emoji: "📂", color: "from-violet-400 to-sky-400" },
   ] as const;
@@ -1324,7 +1324,7 @@ export default function KasPage() {
   const summaryCards = [
     { label: "Saldo Umum", value: summary?.saldoUmum ?? 0, icon: <Wallet className="w-4 h-4 text-sky-500" />, color: "text-sky-700" },
     { label: "Dana Darurat", value: summary?.saldoDarurat ?? 0, icon: <ShieldCheck className="w-4 h-4 text-rose-500" />, color: "text-rose-700" },
-    { label: "Jatah Makan/Hari", value: summary?.dailyFoodAllowance ?? 0, icon: <Utensils className="w-4 h-4 text-amber-500" />, color: "text-amber-700" },
+    { label: "Jatah Makan/Hari", value: summary?.dailyFoodAllowance ?? 0, icon: <Utensils className="w-4 h-4 text-slate-500" />, color: "text-violet-700" },
   ];
 
   return (
@@ -1350,7 +1350,7 @@ export default function KasPage() {
         {tabs.map(t => (
           <button key={t.id} onClick={() => setTab(t.id)} className={cn(
             "flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold transition-all flex-1 justify-center",
-            tab === t.id ? `bg-gradient-to-r ${t.color} text-white shadow-sm` : "text-amber-700 hover:text-amber-900 hover:bg-white/90"
+            tab === t.id ? `bg-gradient-to-r ${t.color} text-white shadow-sm` : "text-violet-700 hover:text-violet-900 hover:bg-white/90"
           )}>
             <span>{t.emoji}</span><span className="hidden sm:inline">{t.label}</span>
           </button>

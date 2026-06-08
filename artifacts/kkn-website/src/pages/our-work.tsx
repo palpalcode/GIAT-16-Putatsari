@@ -42,7 +42,7 @@ const MEMBERS = [
 
 const MEMBER_COLORS = [
   "from-rose-400 to-pink-400", "from-sky-400 to-blue-400", "from-violet-400 to-purple-400",
-  "from-amber-400 to-orange-400", "from-emerald-400 to-teal-400", "from-fuchsia-400 to-pink-400",
+  "from-violet-400 to-violet-400", "from-emerald-400 to-teal-400", "from-fuchsia-400 to-pink-400",
   "from-cyan-400 to-sky-400", "from-lime-400 to-green-400", "from-indigo-400 to-violet-400",
 ];
 
@@ -58,7 +58,7 @@ function formatDate(d: string) {
 
 const STATUS_OPTIONS = [
   { id: "planned", label: "Direncanakan", icon: Clock, color: "bg-violet-100 text-violet-700 border-violet-200", activeGrad: "from-violet-400 to-purple-500" },
-  { id: "ongoing", label: "Berjalan", icon: Loader2, color: "bg-amber-100 text-amber-700 border-amber-200", activeGrad: "from-amber-400 to-orange-500" },
+  { id: "ongoing", label: "Berjalan", icon: Loader2, color: "bg-violet-100 text-violet-700 border-violet-200", activeGrad: "from-violet-400 to-slate-500" },
   { id: "done", label: "Selesai", icon: CheckCircle2, color: "bg-emerald-100 text-emerald-700 border-emerald-200", activeGrad: "from-emerald-400 to-teal-500" },
 ];
 
@@ -94,19 +94,19 @@ function ProgramDialog({ open, onClose, editId, initial, onSave, isPending, fiel
 
         <div className="px-6 pb-6 pt-4 space-y-5">
           <div>
-            <label className="text-xs font-semibold text-amber-800 uppercase tracking-wide mb-1.5 block">Nama Program</label>
+            <label className="text-xs font-semibold text-violet-800 uppercase tracking-wide mb-1.5 block">Nama Program</label>
             <Input placeholder="Nama program kerja..." value={form.programName} onChange={e => setF("programName", e.target.value)} className="bg-white/90" />
             {fieldErrors.programName && <p className="text-xs text-rose-500 mt-1">{fieldErrors.programName}</p>}
           </div>
 
           <div>
-            <label className="text-xs font-semibold text-amber-800 uppercase tracking-wide mb-1.5 block">Tanggal Pelaksanaan</label>
+            <label className="text-xs font-semibold text-violet-800 uppercase tracking-wide mb-1.5 block">Tanggal Pelaksanaan</label>
             <Input type="date" value={form.date} onChange={e => setF("date", e.target.value)} className="bg-white/90" />
             {fieldErrors.date && <p className="text-xs text-rose-500 mt-1">{fieldErrors.date}</p>}
           </div>
 
           <div>
-            <label className="text-xs font-semibold text-amber-800 uppercase tracking-wide mb-1.5 block">Status</label>
+            <label className="text-xs font-semibold text-violet-800 uppercase tracking-wide mb-1.5 block">Status</label>
             <div className="flex gap-2">
               {STATUS_OPTIONS.map(s => {
                 const Icon = s.icon;
@@ -115,7 +115,7 @@ function ProgramDialog({ open, onClose, editId, initial, onSave, isPending, fiel
                     "flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-semibold border-2 transition-all",
                     form.status === s.id
                       ? `bg-gradient-to-r ${s.activeGrad} text-white border-transparent shadow`
-                      : "bg-white text-amber-700 border-amber-200/50 hover:bg-white/90"
+                      : "bg-white text-violet-700 border-violet-200/50 hover:bg-white/90"
                   )}>
                     <Icon className="w-3.5 h-3.5" />{s.label}
                   </button>
@@ -125,7 +125,7 @@ function ProgramDialog({ open, onClose, editId, initial, onSave, isPending, fiel
           </div>
 
           <div>
-            <label className="text-xs font-semibold text-amber-800 uppercase tracking-wide mb-2 block">Penanggung Jawab</label>
+            <label className="text-xs font-semibold text-violet-800 uppercase tracking-wide mb-2 block">Penanggung Jawab</label>
             <div className="grid grid-cols-3 gap-2">
               {MEMBERS.map(m => (
                 <button key={m} onClick={() => setF("leader", m)} className={cn(
@@ -142,7 +142,7 @@ function ProgramDialog({ open, onClose, editId, initial, onSave, isPending, fiel
           </div>
 
           <div>
-            <label className="text-xs font-semibold text-amber-800 uppercase tracking-wide mb-2 block">Anggota Tim</label>
+            <label className="text-xs font-semibold text-violet-800 uppercase tracking-wide mb-2 block">Anggota Tim</label>
             <div className="flex flex-wrap gap-2">
               {MEMBERS.map(m => (
                 <button key={m} onClick={() => toggleMember(m)} className={cn(
@@ -159,7 +159,7 @@ function ProgramDialog({ open, onClose, editId, initial, onSave, isPending, fiel
           </div>
 
           <div>
-            <label className="text-xs font-semibold text-amber-800 uppercase tracking-wide mb-1.5 block">Catatan (opsional)</label>
+            <label className="text-xs font-semibold text-violet-800 uppercase tracking-wide mb-1.5 block">Catatan (opsional)</label>
             <Input placeholder="Catatan..." value={form.notes} onChange={e => setF("notes", e.target.value)} className="bg-white/90" />
           </div>
 
@@ -189,7 +189,7 @@ function DaysLeftBadge({ dueDate, status }: { dueDate: string; status: string })
   const d = daysLeft(dueDate);
   if (d < 0) return <Badge className="bg-rose-200 text-rose-800 border-rose-300 border text-xs">Terlambat {Math.abs(d)} hari</Badge>;
   if (d === 0) return <Badge className="bg-rose-100 text-rose-700 border-rose-200 border text-xs">Hari Ini</Badge>;
-  if (d <= 3) return <Badge className="bg-amber-100 text-amber-700 border-amber-200 border text-xs">{d} hari lagi</Badge>;
+  if (d <= 3) return <Badge className="bg-violet-100 text-violet-700 border-violet-200 border text-xs">{d} hari lagi</Badge>;
   return <Badge className="bg-sky-100 text-sky-700 border-sky-200 border text-xs">{d} hari lagi</Badge>;
 }
 
@@ -360,7 +360,7 @@ export default function OurWorkPage() {
           {/* Status filter chips */}
           <div className="flex flex-wrap gap-2">
             {[
-              { id: "ongoing", label: "Berjalan", dot: "bg-amber-400", active: "bg-amber-50 border-amber-300 text-amber-700", count: counts.ongoing },
+              { id: "ongoing", label: "Berjalan", dot: "bg-violet-400", active: "bg-slate-50 border-violet-300 text-violet-700", count: counts.ongoing },
               { id: "planned", label: "Direncanakan", dot: "bg-violet-400", active: "bg-violet-50 border-violet-300 text-violet-700", count: counts.planned },
               { id: "done", label: "Selesai", dot: "bg-emerald-400", active: "bg-emerald-50 border-emerald-300 text-emerald-700", count: counts.done },
             ].map(f => (
@@ -466,8 +466,8 @@ export default function OurWorkPage() {
         <div className="glass-card p-5 space-y-4">
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-2">
-              <div className="w-7 h-7 rounded-xl bg-amber-100 flex items-center justify-center">
-                <CalendarClock className="w-4 h-4 text-amber-500" />
+              <div className="w-7 h-7 rounded-xl bg-violet-100 flex items-center justify-center">
+                <CalendarClock className="w-4 h-4 text-slate-500" />
               </div>
               <h2 className="font-bold text-gray-800">Deadline</h2>
             </div>
@@ -494,7 +494,7 @@ export default function OurWorkPage() {
               </button>
             ))}
             {[
-              { id: "pending", label: "Belum Selesai", dot: "bg-amber-400", active: "bg-amber-50 border-amber-300 text-amber-700", count: dlCountPending },
+              { id: "pending", label: "Belum Selesai", dot: "bg-violet-400", active: "bg-slate-50 border-violet-300 text-violet-700", count: dlCountPending },
               { id: "done", label: "Selesai", dot: "bg-emerald-400", active: "bg-emerald-50 border-emerald-300 text-emerald-700", count: dlCountDone },
             ].map(f => (
               <button key={f.id} onClick={() => setDlFilterStatus(dlFilterStatus === f.id ? null : f.id)}
@@ -519,8 +519,8 @@ export default function OurWorkPage() {
               <div className="animate-pulse space-y-3">{[1,2,3].map(i => <div key={i} className="bg-white/90 rounded-xl h-20" />)}</div>
             ) : dlSorted.length === 0 ? (
               <div className="flex flex-col items-center py-12 gap-3">
-                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-amber-100 to-rose-100 flex items-center justify-center">
-                  <CalendarClock className="w-5 h-5 text-amber-400" />
+                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-violet-100 to-rose-100 flex items-center justify-center">
+                  <CalendarClock className="w-5 h-5 text-violet-400" />
                 </div>
                 <p className="text-gray-400 text-sm">Belum ada deadline.</p>
               </div>

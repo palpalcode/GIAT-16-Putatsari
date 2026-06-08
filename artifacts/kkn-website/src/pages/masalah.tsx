@@ -36,7 +36,7 @@ const MEMBERS = [
 
 const MEMBER_COLORS = [
   "from-rose-400 to-pink-400", "from-sky-400 to-blue-400", "from-violet-400 to-purple-400",
-  "from-amber-400 to-orange-400", "from-emerald-400 to-teal-400", "from-fuchsia-400 to-pink-400",
+  "from-violet-400 to-violet-400", "from-emerald-400 to-teal-400", "from-fuchsia-400 to-pink-400",
   "from-cyan-400 to-sky-400", "from-lime-400 to-green-400", "from-indigo-400 to-violet-400",
 ];
 
@@ -100,7 +100,7 @@ function LifeTab({ isAdmin }: { isAdmin?: boolean }) {
       <div className="flex items-center justify-between flex-wrap gap-2">
         <div className="flex items-center gap-3">
           <h2 className="text-lg font-semibold text-gray-700">Keluhan Our Life</h2>
-          <span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full border border-amber-200">{open_count} terbuka</span>
+          <span className="text-xs bg-violet-100 text-violet-700 px-2 py-0.5 rounded-full border border-violet-200">{open_count} terbuka</span>
           <span className="text-xs bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full border border-emerald-200">{resolved_count} selesai</span>
         </div>
         {isAdmin && (
@@ -126,7 +126,7 @@ function LifeTab({ isAdmin }: { isAdmin?: boolean }) {
               <div className="flex justify-between items-start gap-4">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1 flex-wrap">
-                    <Badge className={cn("text-xs border", c.status === "open" ? "bg-amber-100 text-amber-700 border-amber-200" : "bg-emerald-100 text-emerald-700 border-emerald-200")}>
+                    <Badge className={cn("text-xs border", c.status === "open" ? "bg-violet-100 text-violet-700 border-violet-200" : "bg-emerald-100 text-emerald-700 border-emerald-200")}>
                       {c.status === "open" ? "Terbuka" : "Selesai"}
                     </Badge>
                     <div className={cn("w-4 h-4 rounded-full bg-gradient-to-br flex items-center justify-center text-white text-[8px] font-bold shrink-0", getMemberColor(c.reportedBy))}>
@@ -164,27 +164,27 @@ function LifeTab({ isAdmin }: { isAdmin?: boolean }) {
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="form-dialog border-white/50 max-w-md p-0 overflow-hidden">
-          <div className="px-6 pt-6 pb-4 bg-gradient-to-r from-rose-400/15 to-amber-400/15">
+          <div className="px-6 pt-6 pb-4 bg-gradient-to-r from-rose-400/15 to-violet-400/15">
             <DialogHeader><DialogTitle>{editId ? "Edit Keluhan" : "Catat Keluhan Our Life"}</DialogTitle></DialogHeader>
           </div>
           <div className="px-6 pb-6 pt-4 space-y-4">
             <div>
-              <label className="text-xs font-semibold text-amber-800 uppercase tracking-wide mb-1.5 block">Judul Keluhan</label>
+              <label className="text-xs font-semibold text-violet-800 uppercase tracking-wide mb-1.5 block">Judul Keluhan</label>
               <Input placeholder="Judul keluhan..." value={form.title} onChange={e => { setForm(f => ({ ...f, title: e.target.value })); setFieldErrors(fe => ({ ...fe, title: "" })); }} className="bg-white/90" />
               {fieldErrors.title && <p className="text-xs text-rose-500 mt-1">{fieldErrors.title}</p>}
             </div>
             <div>
-              <label className="text-xs font-semibold text-amber-800 uppercase tracking-wide mb-1.5 block">Deskripsi</label>
+              <label className="text-xs font-semibold text-violet-800 uppercase tracking-wide mb-1.5 block">Deskripsi</label>
               <Textarea placeholder="Ceritakan keluhannya..." value={form.description} onChange={e => { setForm(f => ({ ...f, description: e.target.value })); setFieldErrors(fe => ({ ...fe, description: "" })); }} rows={3} className="bg-white/90" />
               {fieldErrors.description && <p className="text-xs text-rose-500 mt-1">{fieldErrors.description}</p>}
             </div>
             <div>
-              <label className="text-xs font-semibold text-amber-800 uppercase tracking-wide mb-2 block">Dilaporkan Oleh</label>
+              <label className="text-xs font-semibold text-violet-800 uppercase tracking-wide mb-2 block">Dilaporkan Oleh</label>
               <div className="grid grid-cols-3 gap-2">
                 {MEMBERS.map(m => (
                   <button key={m} onClick={() => setForm(f => ({ ...f, reportedBy: m }))} className={cn(
                     "flex flex-col items-center gap-1 p-2 rounded-xl border-2 text-xs transition-all",
-                    form.reportedBy === m ? "border-rose-400 bg-rose-50 shadow-sm" : "border-amber-200/40 bg-white/60 hover:bg-white shadow-sm"
+                    form.reportedBy === m ? "border-rose-400 bg-rose-50 shadow-sm" : "border-violet-200/40 bg-white/60 hover:bg-white shadow-sm"
                   )}>
                     <div className={cn("w-7 h-7 rounded-full bg-gradient-to-br flex items-center justify-center text-white text-[9px] font-bold", getMemberColor(m))}>
                       <User className="w-3.5 h-3.5" />
@@ -195,14 +195,14 @@ function LifeTab({ isAdmin }: { isAdmin?: boolean }) {
               </div>
             </div>
             <div>
-              <label className="text-xs font-semibold text-amber-800 uppercase tracking-wide mb-1.5 block">Status</label>
+              <label className="text-xs font-semibold text-violet-800 uppercase tracking-wide mb-1.5 block">Status</label>
               <div className="flex gap-2">
                 {[{ id: "open", label: "Terbuka" }, { id: "resolved", label: "Selesai" }].map(s => (
                   <button key={s.id} onClick={() => setForm(f => ({ ...f, status: s.id as ComplaintInputStatus }))} className={cn(
                     "flex-1 py-2 rounded-xl text-sm font-medium border-2 transition-all",
                     form.status === s.id
-                      ? s.id === "open" ? "bg-amber-400 text-white border-amber-400 shadow" : "bg-emerald-500 text-white border-emerald-500 shadow"
-                      : "bg-white/90 text-amber-600 border-amber-200/40 hover:bg-white shadow-sm"
+                      ? s.id === "open" ? "bg-violet-400 text-white border-violet-400 shadow" : "bg-emerald-500 text-white border-emerald-500 shadow"
+                      : "bg-white/90 text-violet-600 border-violet-200/40 hover:bg-white shadow-sm"
                   )}>{s.label}</button>
                 ))}
               </div>
@@ -222,7 +222,7 @@ function LifeTab({ isAdmin }: { isAdmin?: boolean }) {
 const ISSUE_CATEGORIES = [
   { id: "proker", label: "Proker", emoji: "📋", color: "bg-sky-100 text-sky-700 border-sky-200" },
   { id: "administrasi", label: "Administrasi", emoji: "📄", color: "bg-violet-100 text-violet-700 border-violet-200" },
-  { id: "logistik", label: "Logistik", emoji: "📦", color: "bg-amber-100 text-amber-700 border-amber-200" },
+  { id: "logistik", label: "Logistik", emoji: "📦", color: "bg-violet-100 text-violet-700 border-violet-200" },
   { id: "lainnya", label: "Lainnya", emoji: "🔧", color: "bg-gray-100 text-gray-700 border-gray-200" },
 ];
 
@@ -230,13 +230,13 @@ function getCatInfo(cat: string) { return ISSUE_CATEGORIES.find(c => c.id === ca
 
 const priorityClass: Record<string, string> = {
   high: "bg-rose-100 text-rose-700 border-rose-200",
-  medium: "bg-amber-100 text-amber-700 border-amber-200",
+  medium: "bg-violet-100 text-violet-700 border-violet-200",
   low: "bg-emerald-100 text-emerald-700 border-emerald-200",
 };
 const priorityLabel: Record<string, string> = { high: "Tinggi", medium: "Sedang", low: "Rendah" };
 const statusClass: Record<string, string> = {
   open: "bg-rose-100 text-rose-700 border-rose-200",
-  in_progress: "bg-amber-100 text-amber-700 border-amber-200",
+  in_progress: "bg-violet-100 text-violet-700 border-violet-200",
   resolved: "bg-emerald-100 text-emerald-700 border-emerald-200",
 };
 const statusLabel: Record<string, string> = { open: "Terbuka", in_progress: "Diproses", resolved: "Selesai" };
@@ -289,7 +289,7 @@ function WorkTab({ isAdmin }: { isAdmin?: boolean }) {
       <div className="flex items-center justify-between flex-wrap gap-2">
         <div className="flex items-center gap-3">
           <h2 className="text-lg font-semibold text-gray-700">Masalah Our Work</h2>
-          <span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full border border-amber-200">{open_count} terbuka</span>
+          <span className="text-xs bg-violet-100 text-violet-700 px-2 py-0.5 rounded-full border border-violet-200">{open_count} terbuka</span>
           <span className="text-xs bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full border border-emerald-200">{resolved_count} selesai</span>
         </div>
         {isAdmin && (
@@ -363,22 +363,22 @@ function WorkTab({ isAdmin }: { isAdmin?: boolean }) {
           </div>
           <div className="px-6 pb-6 pt-4 space-y-4">
             <div>
-              <label className="text-xs font-semibold text-amber-800 uppercase tracking-wide mb-1.5 block">Judul Masalah</label>
+              <label className="text-xs font-semibold text-violet-800 uppercase tracking-wide mb-1.5 block">Judul Masalah</label>
               <Input placeholder="Judul masalah..." value={form.title} onChange={e => { setForm(f => ({ ...f, title: e.target.value })); setFieldErrors(fe => ({ ...fe, title: "" })); }} className="bg-white/90" />
               {fieldErrors.title && <p className="text-xs text-rose-500 mt-1">{fieldErrors.title}</p>}
             </div>
             <div>
-              <label className="text-xs font-semibold text-amber-800 uppercase tracking-wide mb-1.5 block">Deskripsi</label>
+              <label className="text-xs font-semibold text-violet-800 uppercase tracking-wide mb-1.5 block">Deskripsi</label>
               <Textarea placeholder="Ceritakan masalahnya..." value={form.description} onChange={e => { setForm(f => ({ ...f, description: e.target.value })); setFieldErrors(fe => ({ ...fe, description: "" })); }} rows={3} className="bg-white/90" />
               {fieldErrors.description && <p className="text-xs text-rose-500 mt-1">{fieldErrors.description}</p>}
             </div>
             <div>
-              <label className="text-xs font-semibold text-amber-800 uppercase tracking-wide mb-1.5 block">Kategori</label>
+              <label className="text-xs font-semibold text-violet-800 uppercase tracking-wide mb-1.5 block">Kategori</label>
               <div className="grid grid-cols-2 gap-2">
                 {ISSUE_CATEGORIES.map(cat => (
                   <button key={cat.id} onClick={() => setForm(f => ({ ...f, category: cat.id as IssueInputCategory }))} className={cn(
                     "flex items-center gap-2 px-3 py-2 rounded-xl border-2 text-sm transition-all",
-                    form.category === cat.id ? cat.color + " border-current shadow-sm" : "bg-white/90 text-amber-600 border-amber-200/40 hover:bg-white shadow-sm"
+                    form.category === cat.id ? cat.color + " border-current shadow-sm" : "bg-white/90 text-violet-600 border-violet-200/40 hover:bg-white shadow-sm"
                   )}>
                     <span>{cat.emoji}</span><span className="font-medium">{cat.label}</span>
                   </button>
@@ -386,31 +386,31 @@ function WorkTab({ isAdmin }: { isAdmin?: boolean }) {
               </div>
             </div>
             <div>
-              <label className="text-xs font-semibold text-amber-800 uppercase tracking-wide mb-1.5 block">Prioritas</label>
+              <label className="text-xs font-semibold text-violet-800 uppercase tracking-wide mb-1.5 block">Prioritas</label>
               <div className="flex gap-2">
                 {[{ id: "high", label: "🔴 Tinggi" }, { id: "medium", label: "🟡 Sedang" }, { id: "low", label: "🟢 Rendah" }].map(p => (
                   <button key={p.id} onClick={() => setForm(f => ({ ...f, priority: p.id as IssueInputPriority }))} className={cn(
                     "flex-1 py-2 rounded-xl text-xs font-semibold border-2 transition-all",
                     form.priority === p.id
                       ? p.id === "high" ? "bg-rose-500 text-white border-rose-500 shadow"
-                        : p.id === "medium" ? "bg-amber-400 text-white border-amber-400 shadow"
+                        : p.id === "medium" ? "bg-violet-400 text-white border-violet-400 shadow"
                         : "bg-emerald-500 text-white border-emerald-500 shadow"
-                      : "bg-white/90 text-amber-600 border-amber-200/40 hover:bg-white shadow-sm"
+                      : "bg-white/90 text-violet-600 border-violet-200/40 hover:bg-white shadow-sm"
                   )}>{p.label}</button>
                 ))}
               </div>
             </div>
             <div>
-              <label className="text-xs font-semibold text-amber-800 uppercase tracking-wide mb-1.5 block">Status</label>
+              <label className="text-xs font-semibold text-violet-800 uppercase tracking-wide mb-1.5 block">Status</label>
               <div className="flex gap-2">
                 {[{ id: "open", label: "Terbuka" }, { id: "in_progress", label: "Diproses" }, { id: "resolved", label: "Selesai" }].map(s => (
                   <button key={s.id} onClick={() => setForm(f => ({ ...f, status: s.id as IssueInputStatus }))} className={cn(
                     "flex-1 py-2 rounded-xl text-xs font-semibold border-2 transition-all",
                     form.status === s.id
                       ? s.id === "open" ? "bg-rose-500 text-white border-rose-500 shadow"
-                        : s.id === "in_progress" ? "bg-amber-400 text-white border-amber-400 shadow"
+                        : s.id === "in_progress" ? "bg-violet-400 text-white border-violet-400 shadow"
                         : "bg-emerald-500 text-white border-emerald-500 shadow"
-                      : "bg-white/90 text-amber-600 border-amber-200/40 hover:bg-white shadow-sm"
+                      : "bg-white/90 text-violet-600 border-violet-200/40 hover:bg-white shadow-sm"
                   )}>{s.label}</button>
                 ))}
               </div>
@@ -444,7 +444,7 @@ export default function MasalahPage() {
         <p className="text-gray-500 text-sm mt-1">Kendala dan keluhan dari kehidupan maupun program kerja</p>
       </div>
 
-      <div className="flex gap-2 p-1 bg-white/60 backdrop-blur-sm border-amber-200/50 rounded-2xl border border-white/40">
+      <div className="flex gap-2 p-1 bg-white/60 backdrop-blur-sm border-violet-200/50 rounded-2xl border border-white/40">
         {tabs.map(tab => {
           const Icon = tab.icon;
           const count = tab.id === "life" ? lifeCount : workCount;
@@ -456,7 +456,7 @@ export default function MasalahPage() {
                 "flex flex-1 items-center justify-center gap-2 px-6 py-2.5 rounded-xl text-sm font-medium transition-all",
                 activeTab === tab.id
                   ? "bg-gradient-to-r from-rose-400 to-sky-400 text-white shadow-sm"
-                  : "text-gray-600 hover:text-amber-800 hover:bg-white/90 border-amber-200/50"
+                  : "text-gray-600 hover:text-violet-800 hover:bg-white/90 border-violet-200/50"
               )}
             >
               <Icon className="w-4 h-4 shrink-0" />

@@ -59,7 +59,7 @@ export default function AdminPage() {
                 <button
                   type="button"
                   onClick={() => setShowDropdown((v) => !v)}
-                  className="w-full flex items-center justify-between px-3 py-2 rounded-md border border-white/50 bg-white border-amber-200/50 text-sm focus:border-rose-300 focus:outline-none focus:ring-1 focus:ring-rose-300"
+                  className="w-full flex items-center justify-between px-3 py-2 rounded-md border border-white/50 bg-white border-violet-200/50 text-sm focus:border-rose-300 focus:outline-none focus:ring-1 focus:ring-rose-300"
                 >
                   <span className={name ? "text-gray-900" : "text-gray-400"}>
                     {name || "Pilih nama kamu..."}
@@ -90,7 +90,7 @@ export default function AdminPage() {
                 placeholder="Masukkan password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="bg-white border-amber-200/50 border-white/50 focus:border-rose-300"
+                className="bg-white border-violet-200/50 border-white/50 focus:border-rose-300"
               />
             </div>
 

@@ -20,7 +20,7 @@ const MEMBERS = [
 
 const MEMBER_COLORS = [
   "from-rose-400 to-pink-400", "from-sky-400 to-blue-400", "from-violet-400 to-purple-400",
-  "from-amber-400 to-orange-400", "from-emerald-400 to-teal-400", "from-fuchsia-400 to-pink-400",
+  "from-violet-400 to-violet-400", "from-emerald-400 to-teal-400", "from-fuchsia-400 to-pink-400",
   "from-cyan-400 to-sky-400", "from-lime-400 to-green-400", "from-indigo-400 to-violet-400",
 ];
 
@@ -31,7 +31,7 @@ function getMemberColor(name: string) {
 
 const ATTENDANCE_CONFIG: Record<AttendanceStatus, { label: string; color: string; bg: string; emoji: string }> = {
   hadir: { label: "Hadir", color: "text-emerald-700", bg: "bg-emerald-100 border-emerald-300", emoji: "✅" },
-  izin: { label: "Izin", color: "text-amber-700", bg: "bg-amber-100 border-amber-300", emoji: "📋" },
+  izin: { label: "Izin", color: "text-violet-700", bg: "bg-violet-100 border-violet-300", emoji: "📋" },
   sakit: { label: "Sakit", color: "text-rose-700", bg: "bg-rose-100 border-rose-300", emoji: "🤒" },
   alfa: { label: "Alfa", color: "text-gray-600", bg: "bg-gray-100 border-gray-300", emoji: "❓" },
 };
@@ -219,7 +219,7 @@ export function AttendanceSummary({ summary }: {
 }) {
   const items = [
     { label: "Hadir", emoji: "✅", count: summary?.attendanceSummary?.hadir ?? 0, color: "bg-emerald-50 text-emerald-700 border-emerald-200" },
-    { label: "Izin", emoji: "📋", count: summary?.attendanceSummary?.izin ?? 0, color: "bg-amber-50 text-amber-700 border-amber-200" },
+    { label: "Izin", emoji: "📋", count: summary?.attendanceSummary?.izin ?? 0, color: "bg-slate-50 text-violet-700 border-violet-200" },
     { label: "Sakit", emoji: "🤒", count: summary?.attendanceSummary?.sakit ?? 0, color: "bg-rose-50 text-rose-700 border-rose-200" },
     { label: "Alfa", emoji: "❓", count: summary?.attendanceSummary?.alfa ?? 0, color: "bg-gray-50 text-gray-600 border-gray-200" },
     { label: "Belum diisi", emoji: "—", count: 9 - ((summary?.presentToday ?? 0) + (summary?.absentToday ?? 0)), color: "bg-gray-50 text-gray-400 border-gray-100" },
