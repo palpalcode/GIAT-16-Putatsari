@@ -64,10 +64,14 @@ export function AttendanceWidget({
   }
 
   function canSetFor(member: string) {
-    return isLoggedIn && (memberName === member || isKetSek);
+    return isLoggedIn && (memberName === member || isKetSek) && selectedDate <= today();
   }
 
   function handleStatus(member: string, status: AttendanceStatus) {
+    if (selectedDate > today()) {
+      toast({ title: "Tidak bisa mengisi presensi untuk hari esok", variant: "destructive" });
+      return;
+    }
     submitAttendance.mutate(
       { data: { memberName: member, date: selectedDate, status } },
       { onSuccess: () => { invalidate(); toast({ title: `Absensi ${member}: ${status}` }); } }
@@ -92,9 +96,20 @@ export function AttendanceWidget({
               <input
                 type="date"
                 value={selectedDate}
+                max={today()}
                 onChange={e => setSelectedDate(e.target.value)}
                 className="text-sm px-3 py-1.5 rounded-xl border border-white/50 bg-white/60 focus:outline-none focus:border-rose-300 focus:ring-1 focus:ring-rose-300"
               />
+              {selectedDate === today() && (
+                <span className="text-xs font-medium text-emerald-600 bg-emerald-50 border border-emerald-200 px-2 py-1 rounded-full">
+                  Hari Ini
+                </span>
+              )}
+              {selectedDate < today() && (
+                <span className="text-xs font-medium text-sky-600 bg-sky-50 border border-sky-200 px-2 py-1 rounded-full">
+                  Riwayat
+                </span>
+              )}
             </>
           )}
           {isKetSek && (

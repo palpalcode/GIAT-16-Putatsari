@@ -8,6 +8,14 @@ const router = Router();
 
 const VALID_STATUSES = ["hadir", "izin", "sakit", "alfa"] as const;
 
+function today() {
+  return new Date().toISOString().split("T")[0];
+}
+
+function isFutureDate(date: string): boolean {
+  return date > today();
+}
+
 const MEMBERS = [
   "Muhamad Naufal", "Fadhilah Apta Nur Safitri", "Lutfia Tri Rahmacahyani",
   "Navida Fitria", "Miftakhul Jannah", "Vrizcka Aullia Asmara",
@@ -238,8 +246,12 @@ function buildWeekSheet(
 // GET /attendance?date=YYYY-MM-DD \u2014 list attendance, optionally filter by date
 router.get("/attendance", async (req, res) => {
   try {
-    const rows = await db.select().from(attendanceTable).orderBy(attendanceTable.date, attendanceTable.memberName);
     const dateFilter = typeof req.query.date === "string" ? req.query.date : null;
+    if (dateFilter && isFutureDate(dateFilter)) {
+      res.status(400).json({ error: "Tidak dapat melihat presensi untuk tanggal di masa depan" });
+      return;
+    }
+    const rows = await db.select().from(attendanceTable).orderBy(attendanceTable.date, attendanceTable.memberName);
     const filtered = dateFilter ? rows.filter(r => r.date === dateFilter) : rows;
     res.json(filtered.map(r => ({ ...r, createdAt: r.createdAt.toISOString() })));
   } catch (err) {
@@ -253,6 +265,9 @@ router.post("/attendance", requireLogin, async (req, res) => {
   const { memberName, date, status, notes } = req.body;
   if (!memberName || !date || !status) {
     res.status(400).json({ error: "memberName, date, dan status wajib diisi" }); return;
+  }
+  if (isFutureDate(date)) {
+    res.status(400).json({ error: "Tidak dapat mengisi presensi untuk tanggal di masa depan" }); return;
   }
   if (!VALID_STATUSES.includes(status)) {
     res.status(400).json({ error: `status harus salah satu dari: ${VALID_STATUSES.join(", ")}` }); return;
