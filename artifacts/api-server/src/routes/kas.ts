@@ -3,6 +3,10 @@ import { db } from "@workspace/db";
 import { kasTable, kasItemsTable, kasConfigTable, iuranMakanPaymentsTable } from "@workspace/db";
 import { and, eq, desc, inArray, sql, sum } from "drizzle-orm";
 import { requireEdit } from "../lib/auth";
+import {
+  CreateKasBody, UpdateKasBody, UpdateKasConfigBody,
+  CreateIuranPaymentBody, TransferSisaMakanBody,
+} from "@workspace/api-zod";
 
 const router = Router();
 
@@ -41,7 +45,12 @@ router.get("/kas", async (req, res) => {
 
 router.post("/kas", requireEdit("kas"), async (req, res) => {
   try {
-    const { type, amount, description, category, date, notes, fund, prokerId, items } = req.body;
+    const parsed = CreateKasBody.safeParse(req.body);
+    if (!parsed.success) {
+      res.status(400).json({ error: "Data tidak valid", details: parsed.error.flatten() });
+      return;
+    }
+    const { type, amount, description, category, date, notes, fund, prokerId, items } = parsed.data;
     const { row, insertedItems } = await db.transaction(async (tx) => {
       const [row] = await tx.insert(kasTable).values({
         type, amount, description, category, date, notes,
@@ -66,7 +75,12 @@ router.post("/kas", requireEdit("kas"), async (req, res) => {
 router.patch("/kas/:id", requireEdit("kas"), async (req, res) => {
   try {
     const id = Number(req.params.id as string);
-    const { type, amount, description, category, date, notes, fund, prokerId, items } = req.body;
+    const parsed = UpdateKasBody.safeParse(req.body);
+    if (!parsed.success) {
+      res.status(400).json({ error: "Data tidak valid", details: parsed.error.flatten() });
+      return;
+    }
+    const { type, amount, description, category, date, notes, fund, prokerId, items } = parsed.data;
     const updates: any = {};
     if (type !== undefined) updates.type = type;
     if (amount !== undefined) updates.amount = amount;
@@ -134,7 +148,12 @@ router.get("/kas/config", async (req, res) => {
 
 router.post("/kas/config", requireEdit("kas"), async (req, res) => {
   try {
-    const { weeklyFoodAmount, emergencyFundTarget } = req.body;
+    const parsed = UpdateKasConfigBody.safeParse(req.body);
+    if (!parsed.success) {
+      res.status(400).json({ error: "Data tidak valid", details: parsed.error.flatten() });
+      return;
+    }
+    const { weeklyFoodAmount, emergencyFundTarget } = parsed.data;
     if (weeklyFoodAmount !== undefined) {
       await db.insert(kasConfigTable).values({ key: "weekly_food_amount", value: String(weeklyFoodAmount) })
         .onConflictDoUpdate({ target: kasConfigTable.key, set: { value: String(weeklyFoodAmount) } });
@@ -237,10 +256,12 @@ router.get("/kas/iuran-payments", async (req, res) => {
 
 router.post("/kas/iuran-payments", requireEdit("kas"), async (req, res) => {
   try {
-    const { memberName, weekLabel, amount, notes } = req.body;
-    if (!memberName || !weekLabel || amount === undefined) {
-      res.status(400).json({ error: "memberName, weekLabel, amount wajib diisi" }); return;
+    const parsed = CreateIuranPaymentBody.safeParse(req.body);
+    if (!parsed.success) {
+      res.status(400).json({ error: "Data tidak valid", details: parsed.error.flatten() });
+      return;
     }
+    const { memberName, weekLabel, amount, notes } = parsed.data;
     const [row] = await db
       .insert(iuranMakanPaymentsTable)
       .values({ memberName, weekLabel, amount: Number(amount), notes: notes ?? null })
@@ -270,10 +291,12 @@ router.delete("/kas/iuran-payments/:id", requireEdit("kas"), async (req, res) =>
 
 router.post("/kas/transfer-sisa-makan", requireEdit("kas"), async (req, res) => {
   try {
-    const { date, terpakai } = req.body;
-    if (!date || terpakai === undefined) {
-      res.status(400).json({ error: "date dan terpakai wajib diisi" }); return;
+    const parsed = TransferSisaMakanBody.safeParse(req.body);
+    if (!parsed.success) {
+      res.status(400).json({ error: "Data tidak valid", details: parsed.error.flatten() });
+      return;
     }
+    const { date, terpakai } = parsed.data;
 
     const weeklyFood = await getConfigValue("weekly_food_amount", 0);
     const jatah = Math.floor((weeklyFood * 9) / 7);

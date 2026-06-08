@@ -3,6 +3,7 @@ import { db } from "@workspace/db";
 import { notulensiTable } from "@workspace/db";
 import { eq, desc } from "drizzle-orm";
 import { requireEdit } from "../lib/auth";
+import { CreateNotulensiBody, UpdateNotulensiBody } from "@workspace/api-zod";
 
 const router = Router();
 
@@ -34,7 +35,12 @@ router.get("/notulensi/:id", async (req, res) => {
 
 router.post("/notulensi", requireEdit("notulensi"), async (req, res) => {
   try {
-    const { title, meetingDate, attendees, agenda, content, author } = req.body;
+    const parsed = CreateNotulensiBody.safeParse(req.body);
+    if (!parsed.success) {
+      res.status(400).json({ error: "Data tidak valid", details: parsed.error.flatten() });
+      return;
+    }
+    const { title, meetingDate, attendees, agenda, content, author } = parsed.data;
     const [row] = await db.insert(notulensiTable).values({ title, meetingDate, attendees, agenda, content, author }).returning();
     res.status(201).json(mapRow(row));
   } catch (err) {
@@ -46,7 +52,12 @@ router.post("/notulensi", requireEdit("notulensi"), async (req, res) => {
 router.patch("/notulensi/:id", requireEdit("notulensi"), async (req, res) => {
   try {
     const id = Number(req.params.id as string);
-    const { title, meetingDate, attendees, agenda, content, author } = req.body;
+    const parsed = UpdateNotulensiBody.safeParse(req.body);
+    if (!parsed.success) {
+      res.status(400).json({ error: "Data tidak valid", details: parsed.error.flatten() });
+      return;
+    }
+    const { title, meetingDate, attendees, agenda, content, author } = parsed.data;
     const updates: Partial<typeof notulensiTable.$inferInsert> = {};
     if (title !== undefined) updates.title = title;
     if (meetingDate !== undefined) updates.meetingDate = meetingDate;

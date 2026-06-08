@@ -3,6 +3,7 @@ import { db } from "@workspace/db";
 import { templatesTable } from "@workspace/db";
 import { eq, desc } from "drizzle-orm";
 import { requireEdit } from "../lib/auth";
+import { CreateTemplateBody, UpdateTemplateBody } from "@workspace/api-zod";
 
 const router = Router();
 
@@ -22,7 +23,12 @@ router.get("/templates", async (req, res) => {
 
 router.post("/templates", requireEdit("our-work"), async (req, res) => {
   try {
-    const { title, category, content } = req.body;
+    const parsed = CreateTemplateBody.safeParse(req.body);
+    if (!parsed.success) {
+      res.status(400).json({ error: "Data tidak valid", details: parsed.error.flatten() });
+      return;
+    }
+    const { title, category, content } = parsed.data;
     const [row] = await db.insert(templatesTable).values({ title, category, content }).returning();
     res.status(201).json(mapRow(row));
   } catch (err) {
@@ -34,7 +40,12 @@ router.post("/templates", requireEdit("our-work"), async (req, res) => {
 router.patch("/templates/:id", requireEdit("our-work"), async (req, res) => {
   try {
     const id = Number(req.params.id as string);
-    const { title, category, content } = req.body;
+    const parsed = UpdateTemplateBody.safeParse(req.body);
+    if (!parsed.success) {
+      res.status(400).json({ error: "Data tidak valid", details: parsed.error.flatten() });
+      return;
+    }
+    const { title, category, content } = parsed.data;
     const updates: any = {};
     if (title !== undefined) updates.title = title;
     if (category !== undefined) updates.category = category;

@@ -3,6 +3,7 @@ import { db } from "@workspace/db";
 import { prokerFundsTable, kasTable } from "@workspace/db";
 import { eq, desc } from "drizzle-orm";
 import { requireEdit } from "../lib/auth";
+import { CreateProkerFundBody, UpdateProkerFundBody } from "@workspace/api-zod";
 
 const router = Router();
 
@@ -33,7 +34,12 @@ router.get("/proker-funds", async (req, res) => {
 
 router.post("/proker-funds", requireEdit("kas"), async (req, res) => {
   try {
-    const { name, budget, notes } = req.body;
+    const parsed = CreateProkerFundBody.safeParse(req.body);
+    if (!parsed.success) {
+      res.status(400).json({ error: "Data tidak valid", details: parsed.error.flatten() });
+      return;
+    }
+    const { name, budget, notes } = parsed.data;
     const [row] = await db.insert(prokerFundsTable).values({ name, budget: budget ?? 0, notes }).returning();
     res.status(201).json(mapRow(row));
   } catch (err) {
@@ -45,7 +51,12 @@ router.post("/proker-funds", requireEdit("kas"), async (req, res) => {
 router.patch("/proker-funds/:id", requireEdit("kas"), async (req, res) => {
   try {
     const id = Number(req.params.id as string);
-    const { name, budget, notes } = req.body;
+    const parsed = UpdateProkerFundBody.safeParse(req.body);
+    if (!parsed.success) {
+      res.status(400).json({ error: "Data tidak valid", details: parsed.error.flatten() });
+      return;
+    }
+    const { name, budget, notes } = parsed.data;
     const updates: any = {};
     if (name !== undefined) updates.name = name;
     if (budget !== undefined) updates.budget = budget;

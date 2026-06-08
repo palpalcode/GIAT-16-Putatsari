@@ -3,6 +3,7 @@ import { db } from "@workspace/db";
 import { announcementsTable } from "@workspace/db";
 import { eq, desc } from "drizzle-orm";
 import { requireEdit } from "../lib/auth";
+import { CreateAnnouncementBody, UpdateAnnouncementBody } from "@workspace/api-zod";
 
 const router = Router();
 
@@ -21,7 +22,12 @@ router.get("/announcements", async (req, res) => {
 
 router.post("/announcements", requireEdit("pengumuman"), async (req, res) => {
   try {
-    const { title, content, priority } = req.body;
+    const parsed = CreateAnnouncementBody.safeParse(req.body);
+    if (!parsed.success) {
+      res.status(400).json({ error: "Data tidak valid", details: parsed.error.flatten() });
+      return;
+    }
+    const { title, content, priority } = parsed.data;
     const [row] = await db.insert(announcementsTable).values({ title, content, priority }).returning();
     res.status(201).json({ ...row, createdAt: row.createdAt.toISOString() });
   } catch (err) {
@@ -33,7 +39,12 @@ router.post("/announcements", requireEdit("pengumuman"), async (req, res) => {
 router.patch("/announcements/:id", requireEdit("pengumuman"), async (req, res) => {
   try {
     const id = Number(req.params.id as string);
-    const { title, content, priority } = req.body;
+    const parsed = UpdateAnnouncementBody.safeParse(req.body);
+    if (!parsed.success) {
+      res.status(400).json({ error: "Data tidak valid", details: parsed.error.flatten() });
+      return;
+    }
+    const { title, content, priority } = parsed.data;
     const updates: any = {};
     if (title !== undefined) updates.title = title;
     if (content !== undefined) updates.content = content;

@@ -3,6 +3,11 @@ import { db } from "@workspace/db";
 import { cookingSchedulesTable, cleaningSchedulesTable, programSchedulesTable } from "@workspace/db";
 import { eq, desc } from "drizzle-orm";
 import { requireEdit, requireLogin } from "../lib/auth";
+import {
+  CreateCookingScheduleBody, UpdateCookingScheduleBody,
+  CreateCleaningScheduleBody, UpdateCleaningScheduleBody,
+  CreateProgramScheduleBody, UpdateProgramScheduleBody,
+} from "@workspace/api-zod";
 
 const router = Router();
 
@@ -23,7 +28,12 @@ router.get("/schedules/cooking", async (req, res) => {
 
 router.post("/schedules/cooking", requireLogin, async (req, res) => {
   try {
-    const { date, persons, menu, notes } = req.body;
+    const parsed = CreateCookingScheduleBody.safeParse(req.body);
+    if (!parsed.success) {
+      res.status(400).json({ error: "Data tidak valid", details: parsed.error.flatten() });
+      return;
+    }
+    const { date, persons, menu, notes } = parsed.data;
     const [row] = await db.insert(cookingSchedulesTable).values({ date, persons, menu, notes }).returning();
     res.status(201).json(mapRow(row));
   } catch (err) {
@@ -35,7 +45,12 @@ router.post("/schedules/cooking", requireLogin, async (req, res) => {
 router.patch("/schedules/cooking/:id", requireLogin, async (req, res) => {
   try {
     const id = Number(req.params.id as string);
-    const { date, persons, menu, notes } = req.body;
+    const parsed = UpdateCookingScheduleBody.safeParse(req.body);
+    if (!parsed.success) {
+      res.status(400).json({ error: "Data tidak valid", details: parsed.error.flatten() });
+      return;
+    }
+    const { date, persons, menu, notes } = parsed.data;
     const updates: any = {};
     if (date !== undefined) updates.date = date;
     if (persons !== undefined) updates.persons = persons;
@@ -73,7 +88,12 @@ router.get("/schedules/cleaning", async (req, res) => {
 
 router.post("/schedules/cleaning", requireEdit("our-life"), async (req, res) => {
   try {
-    const { date, persons, area, notes } = req.body;
+    const parsed = CreateCleaningScheduleBody.safeParse(req.body);
+    if (!parsed.success) {
+      res.status(400).json({ error: "Data tidak valid", details: parsed.error.flatten() });
+      return;
+    }
+    const { date, persons, area, notes } = parsed.data;
     const [row] = await db.insert(cleaningSchedulesTable).values({ date, persons, area, notes }).returning();
     res.status(201).json(mapRow(row));
   } catch (err) {
@@ -85,7 +105,12 @@ router.post("/schedules/cleaning", requireEdit("our-life"), async (req, res) => 
 router.patch("/schedules/cleaning/:id", requireEdit("our-life"), async (req, res) => {
   try {
     const id = Number(req.params.id as string);
-    const { date, persons, area, notes } = req.body;
+    const parsed = UpdateCleaningScheduleBody.safeParse(req.body);
+    if (!parsed.success) {
+      res.status(400).json({ error: "Data tidak valid", details: parsed.error.flatten() });
+      return;
+    }
+    const { date, persons, area, notes } = parsed.data;
     const updates: any = {};
     if (date !== undefined) updates.date = date;
     if (persons !== undefined) updates.persons = persons;
@@ -123,7 +148,12 @@ router.get("/schedules/programs", async (req, res) => {
 
 router.post("/schedules/programs", requireEdit("our-work"), async (req, res) => {
   try {
-    const { programName, date, leader, members, status, notes } = req.body;
+    const parsed = CreateProgramScheduleBody.safeParse(req.body);
+    if (!parsed.success) {
+      res.status(400).json({ error: "Data tidak valid", details: parsed.error.flatten() });
+      return;
+    }
+    const { programName, date, leader, members, status, notes } = parsed.data;
     const [row] = await db.insert(programSchedulesTable).values({ programName, date, leader, members, status, notes }).returning();
     res.status(201).json(mapRow(row));
   } catch (err) {
@@ -135,7 +165,12 @@ router.post("/schedules/programs", requireEdit("our-work"), async (req, res) => 
 router.patch("/schedules/programs/:id", requireEdit("our-work"), async (req, res) => {
   try {
     const id = Number(req.params.id as string);
-    const { programName, date, leader, members, status, notes } = req.body;
+    const parsed = UpdateProgramScheduleBody.safeParse(req.body);
+    if (!parsed.success) {
+      res.status(400).json({ error: "Data tidak valid", details: parsed.error.flatten() });
+      return;
+    }
+    const { programName, date, leader, members, status, notes } = parsed.data;
     const updates: any = {};
     if (programName !== undefined) updates.programName = programName;
     if (date !== undefined) updates.date = date;
