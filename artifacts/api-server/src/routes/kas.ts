@@ -64,7 +64,11 @@ router.post("/kas", requireEdit("kas"), async (req, res) => {
     const { type, amount, description, date, notes, fund, prokerId, items } = parsed.data;
     const targetFund = fund ?? "umum";
     if (type === "pengeluaran") {
-      if (targetFund === "proker" && prokerId) {
+      if (targetFund === "proker") {
+        if (!prokerId) {
+          res.status(400).json({ error: "prokerId wajib diisi untuk pengeluaran dana proker" });
+          return;
+        }
         const [proker] = await db.select().from(prokerFundsTable).where(eq(prokerFundsTable.id, prokerId));
         if (!proker) {
           res.status(400).json({ error: "Proker tidak ditemukan" });
