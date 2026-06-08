@@ -44,9 +44,9 @@ router.get("/inventory/catalog", async (req, res) => {
 
 router.post("/inventory/catalog", async (req, res) => {
   try {
-    const divisionRole = getDivisionRole(req);
-    if (!isKetSek(divisionRole)) {
-      res.status(403).json({ error: "Hanya ketua/sekretaris yang dapat mengelola katalog" });
+    const memberName = getMemberName(req);
+    if (!memberName) {
+      res.status(401).json({ error: "Login terlebih dahulu" });
       return;
     }
     const { name, category, unit } = req.body;

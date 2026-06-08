@@ -17,12 +17,14 @@ type Props = {
   unit: string;
   onChangeName: (name: string) => void;
   onChangeUnit: (unit: string) => void;
+  onChangeCategory?: (category: string) => void;
   isPrivileged: boolean;
+  isLoggedIn: boolean;
   category: string;
   className?: string;
 };
 
-export function ItemCatalogCombobox({ name, unit, onChangeName, onChangeUnit, isPrivileged, category, className }: Props) {
+export function ItemCatalogCombobox({ name, unit, onChangeName, onChangeUnit, onChangeCategory, isPrivileged, isLoggedIn, category, className }: Props) {
   const qc = useQueryClient();
   const { toast } = useToast();
   const { data: catalog = [] } = useGetItemCatalog();
@@ -66,6 +68,7 @@ export function ItemCatalogCombobox({ name, unit, onChangeName, onChangeUnit, is
     setSelectedFromCatalog(true);
     onChangeName(item.name);
     onChangeUnit(item.unit);
+    onChangeCategory?.(item.category);
     setOpen(false);
     setAddMode(false);
   }
@@ -75,6 +78,7 @@ export function ItemCatalogCombobox({ name, unit, onChangeName, onChangeUnit, is
     setSelectedFromCatalog(false);
     setOpen(true);
     setAddMode(false);
+    onChangeCategory?.("");
   }
 
   function handleFocus() {
@@ -100,7 +104,7 @@ export function ItemCatalogCombobox({ name, unit, onChangeName, onChangeUnit, is
     );
   }
 
-  const showAddOption = isPrivileged && query.trim().length > 0 && !exactMatch;
+  const showAddOption = isLoggedIn && query.trim().length > 0 && !exactMatch;
 
   return (
     <div ref={containerRef} className={cn("relative", className)}>
@@ -137,9 +141,9 @@ export function ItemCatalogCombobox({ name, unit, onChangeName, onChangeUnit, is
             </div>
           )}
 
-          {filtered.length === 0 && query.trim().length > 0 && !isPrivileged && (
+          {filtered.length === 0 && query.trim().length > 0 && !isLoggedIn && (
             <div className="px-3 py-3 text-sm text-gray-400 text-center italic">
-              Nama ini belum ada di katalog. Hubungi ketua/sekretaris untuk menambahkan.
+              Login untuk menambahkan nama baru ke katalog.
             </div>
           )}
 

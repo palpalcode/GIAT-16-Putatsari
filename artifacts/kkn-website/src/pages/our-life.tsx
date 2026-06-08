@@ -429,7 +429,7 @@ function defaultInvForm(defaultType: InvItemType = InventoryItemInputItemType.ke
 
 // ─── SingleItemFields: form fields tanpa tombol submit ────────────────────────
 function SingleItemFields({
-  form, setForm, allowedTypes, isPrivileged, isKetSek, selfName,
+  form, setForm, allowedTypes, isPrivileged, isKetSek, selfName, isLoggedIn,
 }: {
   form: InvForm;
   setForm: React.Dispatch<React.SetStateAction<InvForm>>;
@@ -437,10 +437,12 @@ function SingleItemFields({
   isPrivileged: boolean;
   isKetSek: boolean;
   selfName: string | null;
+  isLoggedIn: boolean;
 }) {
   const { data: catalog = [] } = useGetItemCatalog();
   const catalogEntry = catalog.find(c => c.name.toLowerCase() === form.name.toLowerCase());
   const unitLocked = !!catalogEntry && !isKetSek;
+  const categoryLocked = !!catalogEntry && !isKetSek;
 
   const showOwner = (form.itemType === "pribadi" || form.itemType === "pinjaman") && isPrivileged;
   return (
@@ -452,13 +454,17 @@ function SingleItemFields({
           unit={form.unit}
           onChangeName={name => setForm(f => ({ ...f, name }))}
           onChangeUnit={unit => setForm(f => ({ ...f, unit }))}
+          onChangeCategory={cat => setForm(f => ({ ...f, category: cat as InventoryItemInputCategory }))}
           isPrivileged={isKetSek}
+          isLoggedIn={isLoggedIn}
           category={form.category}
         />
       </div>
       <div>
-        <label className="text-xs font-semibold text-violet-800 uppercase tracking-wide mb-2 block">Kategori</label>
-        <div className="grid grid-cols-2 gap-2">
+        <label className="text-xs font-semibold text-violet-800 uppercase tracking-wide mb-2 block">
+          Kategori {categoryLocked ? <span className="text-xs font-normal text-gray-400 ml-1">(terkunci dari katalog)</span> : ""}
+        </label>
+        <div className={cn("grid grid-cols-2 gap-2", categoryLocked && "opacity-60 pointer-events-none")}>
           {invCategories.map(cat => (
             <button key={cat.id} type="button" onClick={() => setForm(f => ({ ...f, category: cat.id as InventoryItemInputCategory }))} className={cn(
               "flex items-center gap-2 px-3 py-2.5 rounded-xl border-2 text-sm transition-all",
@@ -469,6 +475,11 @@ function SingleItemFields({
             </button>
           ))}
         </div>
+        {categoryLocked && (
+          <p className="text-xs text-gray-500 mt-1">
+            Kategori otomatis terkunci ke <span className="font-semibold text-gray-700">{getCatLabel(catalogEntry.category)}</span> dari katalog. Ketua/sekretaris bisa mengubahnya.
+          </p>
+        )}
       </div>
       <div className="flex gap-3">
         <div className="w-28">
@@ -525,7 +536,7 @@ function SingleItemFields({
 
 // ─── MultiItemDialog: form dengan keranjang (untuk tambah baru) ───────────────
 function MultiItemDialog({
-  open, onOpenChange, allowedTypes, defaultItemType, isPrivileged, isKetSek, selfName, onSubmitAll, title, headerGradient,
+  open, onOpenChange, allowedTypes, defaultItemType, isPrivileged, isKetSek, selfName, isLoggedIn, onSubmitAll, title, headerGradient,
 }: {
   open: boolean;
   onOpenChange: (v: boolean) => void;
@@ -534,6 +545,7 @@ function MultiItemDialog({
   isPrivileged: boolean;
   isKetSek: boolean;
   selfName: string | null;
+  isLoggedIn: boolean;
   onSubmitAll: (items: DraftItem[]) => Promise<void>;
   title: string;
   headerGradient: string;
@@ -599,7 +611,7 @@ function MultiItemDialog({
         <div className="flex flex-col sm:flex-row">
           {/* Kiri: form isian */}
           <div className="flex-1 px-5 py-4 border-b sm:border-b-0 sm:border-r border-white/30">
-            <SingleItemFields form={form} setForm={setForm} allowedTypes={allowedTypes} isPrivileged={isPrivileged} isKetSek={isKetSek} selfName={selfName} />
+            <SingleItemFields form={form} setForm={setForm} allowedTypes={allowedTypes} isPrivileged={isPrivileged} isKetSek={isKetSek} selfName={selfName} isLoggedIn={isLoggedIn} />
             <Button
               type="button"
               onClick={addToCart}
@@ -777,6 +789,7 @@ function BrgKelompokTab({ isAdmin, isKetSek }: { isAdmin?: boolean; isKetSek?: b
         isPrivileged={false}
         isKetSek={isKetSek ?? false}
         selfName={null}
+        isLoggedIn={true}
         onSubmitAll={handleSubmitAll}
         title="Tambah Barang Kelompok"
         headerGradient="bg-gradient-to-r from-emerald-400/20 to-teal-400/20"
@@ -789,7 +802,7 @@ function BrgKelompokTab({ isAdmin, isKetSek }: { isAdmin?: boolean; isKetSek?: b
             <DialogHeader><DialogTitle className="flex items-center gap-2"><Package className="w-5 h-5 text-emerald-500" />Edit Barang Kelompok</DialogTitle></DialogHeader>
           </div>
           <div className="px-6 pb-6 pt-4">
-            <SingleItemFields form={editForm} setForm={setEditForm} allowedTypes={[InventoryItemInputItemType.kelompok]} isPrivileged={false} isKetSek={isKetSek ?? false} selfName={null} />
+            <SingleItemFields form={editForm} setForm={setEditForm} allowedTypes={[InventoryItemInputItemType.kelompok]} isPrivileged={false} isKetSek={isKetSek ?? false} selfName={null} isLoggedIn={true} />
             <div className="flex gap-3 justify-end pt-4">
               <Button variant="outline" onClick={() => setEditOpen(false)} className="rounded-full">Batal</Button>
               <Button onClick={handleEditSave} disabled={!editForm.name || !editForm.unit || update.isPending} className="bg-gradient-to-r from-emerald-400 to-teal-400 text-white border-0 rounded-full">Simpan</Button>
@@ -942,6 +955,7 @@ function BrgPribadiTab({ selfName, isPrivileged, isKetSek, isLoggedIn }: { selfN
         isPrivileged={isPrivileged}
         isKetSek={isKetSek}
         selfName={selfName}
+        isLoggedIn={isLoggedIn}
         onSubmitAll={handleSubmitAll}
         title="Tambah Barang Pribadi"
         headerGradient="bg-gradient-to-r from-violet-400/20 to-sky-400/20"
@@ -954,7 +968,7 @@ function BrgPribadiTab({ selfName, isPrivileged, isKetSek, isLoggedIn }: { selfN
             <DialogHeader><DialogTitle className="flex items-center gap-2"><User className="w-5 h-5 text-violet-500" />Edit Barang Pribadi</DialogTitle></DialogHeader>
           </div>
           <div className="px-6 pb-6 pt-4">
-            <SingleItemFields form={editForm} setForm={setEditForm} allowedTypes={editAllowedTypes} isPrivileged={isPrivileged} isKetSek={isKetSek} selfName={selfName} />
+            <SingleItemFields form={editForm} setForm={setEditForm} allowedTypes={editAllowedTypes} isPrivileged={isPrivileged} isKetSek={isKetSek} selfName={selfName} isLoggedIn={true} />
             <div className="flex gap-3 justify-end pt-4">
               <Button variant="outline" onClick={() => setEditOpen(false)} className="rounded-full">Batal</Button>
               <Button onClick={handleEditSave} disabled={!editForm.name || !editForm.unit || update.isPending} className="bg-gradient-to-r from-violet-400 to-sky-400 text-white border-0 rounded-full">Simpan</Button>
