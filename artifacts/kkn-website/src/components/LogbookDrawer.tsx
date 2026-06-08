@@ -21,7 +21,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Plus, Pencil, Trash2, Download, Camera, X, ImageIcon, Loader2, ChevronLeft, ChevronRight, ZoomIn } from "lucide-react";
+import { Plus, Pencil, Trash2, Download, Camera, X, ImageIcon, Loader2, ChevronLeft, ChevronRight, ZoomIn, FileText, FileType } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { cn, TEAM_MEMBERS } from "@/lib/utils";
 
@@ -432,6 +432,161 @@ function LogbookFormDialog({ open, onClose, editEntry, program, onSaved }: Logbo
   );
 }
 
+type ExportDialogProps = {
+  open: boolean;
+  onClose: () => void;
+  program: ProgramInfo;
+  hasEntries: boolean;
+};
+
+function ExportDialog({ open, onClose, program, hasEntries }: ExportDialogProps) {
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
+  const [format, setFormat] = useState<"word" | "pdf">("word");
+  const [exporting, setExporting] = useState(false);
+  const { toast } = useToast();
+
+  function handleClose() {
+    setDateFrom("");
+    setDateTo("");
+    setFormat("word");
+    onClose();
+  }
+
+  async function handleExport() {
+    if (!hasEntries) return;
+    setExporting(true);
+    try {
+      const params = new URLSearchParams({ programId: String(program.id) });
+      if (dateFrom) params.set("dateFrom", dateFrom);
+      if (dateTo) params.set("dateTo", dateTo);
+
+      const endpoint = format === "pdf" ? "pdf" : "word";
+      const url = `${BASE_URL}api/logbook/export/${endpoint}?${params.toString()}`;
+
+      const res = await fetch(url, { credentials: "include" });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        toast({ title: (body as any).error ?? "Gagal mengekspor logbook", variant: "destructive" });
+        return;
+      }
+
+      const blob = await res.blob();
+      const objUrl = URL.createObjectURL(blob);
+      const safeName = program.programName.replace(/[^a-zA-Z0-9]/g, "_");
+      const rangeLabel = dateFrom && dateTo
+        ? `${dateFrom}_sd_${dateTo}`
+        : dateFrom
+          ? `mulai_${dateFrom}`
+          : dateTo
+            ? `sd_${dateTo}`
+            : "semua";
+      const ext = format === "pdf" ? "pdf" : "docx";
+      const a = document.createElement("a");
+      a.href = objUrl;
+      a.download = `logbook_${safeName}_${rangeLabel}.${ext}`;
+      a.click();
+      URL.revokeObjectURL(objUrl);
+      handleClose();
+    } catch {
+      toast({ title: "Gagal mengekspor logbook", variant: "destructive" });
+    } finally {
+      setExporting(false);
+    }
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={(v) => !v && handleClose()}>
+      <DialogContent className="border-white/50 max-w-sm p-0 overflow-hidden">
+        <div className="px-6 pt-6 pb-4 bg-gradient-to-r from-emerald-400/15 to-sky-400/15">
+          <DialogHeader>
+            <DialogTitle className="text-base font-bold">Ekspor Logbook</DialogTitle>
+            <p className="text-xs text-gray-500 mt-0.5">{program.programName}</p>
+          </DialogHeader>
+        </div>
+        <div className="px-6 pb-6 pt-4 space-y-5">
+          <div className="space-y-3">
+            <p className="text-xs font-semibold text-emerald-800 uppercase tracking-wide">Rentang Tanggal (opsional)</p>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-xs text-gray-500 mb-1 block">Mulai</label>
+                <Input
+                  type="date"
+                  value={dateFrom}
+                  onChange={(e) => setDateFrom(e.target.value)}
+                  className="bg-white/90 text-sm h-9"
+                />
+              </div>
+              <div>
+                <label className="text-xs text-gray-500 mb-1 block">Selesai</label>
+                <Input
+                  type="date"
+                  value={dateTo}
+                  min={dateFrom || undefined}
+                  onChange={(e) => setDateTo(e.target.value)}
+                  className="bg-white/90 text-sm h-9"
+                />
+              </div>
+            </div>
+            {!dateFrom && !dateTo && (
+              <p className="text-[11px] text-gray-400">Kosongkan untuk mengekspor semua entri.</p>
+            )}
+          </div>
+
+          <div className="space-y-2">
+            <p className="text-xs font-semibold text-emerald-800 uppercase tracking-wide">Format</p>
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={() => setFormat("word")}
+                className={cn(
+                  "flex flex-col items-center gap-1.5 p-3 rounded-xl border-2 transition-all text-sm font-medium",
+                  format === "word"
+                    ? "border-sky-400 bg-sky-50 text-sky-700"
+                    : "border-gray-200 bg-white/80 text-gray-500 hover:border-gray-300",
+                )}
+              >
+                <FileType className="w-5 h-5" />
+                Word (.docx)
+              </button>
+              <button
+                type="button"
+                onClick={() => setFormat("pdf")}
+                className={cn(
+                  "flex flex-col items-center gap-1.5 p-3 rounded-xl border-2 transition-all text-sm font-medium",
+                  format === "pdf"
+                    ? "border-rose-400 bg-rose-50 text-rose-700"
+                    : "border-gray-200 bg-white/80 text-gray-500 hover:border-gray-300",
+                )}
+              >
+                <FileText className="w-5 h-5" />
+                PDF
+              </button>
+            </div>
+          </div>
+
+          <div className="flex gap-3 justify-end pt-1">
+            <Button variant="outline" onClick={handleClose} className="rounded-full" disabled={exporting}>
+              Batal
+            </Button>
+            <Button
+              onClick={handleExport}
+              disabled={!hasEntries || exporting}
+              className="bg-gradient-to-r from-emerald-400 to-sky-400 text-white border-0 rounded-full gap-1.5"
+            >
+              {exporting ? (
+                <><Loader2 className="w-3.5 h-3.5 animate-spin" />Mengekspor...</>
+              ) : (
+                <><Download className="w-3.5 h-3.5" />Ekspor</>
+              )}
+            </Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 type LightboxState = { photos: LogbookPhoto[]; index: number } | null;
 
 function PhotoLightbox({ state, onClose, goTo }: { state: LightboxState; onClose: () => void; goTo: (i: number) => void }) {
@@ -558,6 +713,7 @@ export function LogbookDrawer({ open, onClose, program, isKetSek, canEdit }: Pro
   const qc = useQueryClient();
   const [formOpen, setFormOpen] = useState(false);
   const [editEntry, setEditEntry] = useState<LogbookEntry | null>(null);
+  const [exportOpen, setExportOpen] = useState(false);
   const delEntry = useDeleteLogbookEntry();
   const { lightbox, open: openLightbox, close: closeLightbox, goTo } = useLightbox();
 
@@ -579,15 +735,6 @@ export function LogbookDrawer({ open, onClose, program, isKetSek, canEdit }: Pro
       onSuccess: () => { invalidate(); toast({ title: "Entri dihapus" }); },
       onError: () => { toast({ title: "Gagal menghapus entri", variant: "destructive" }); },
     });
-  }
-
-  function handleExport() {
-    if (!program) return;
-    const url = `${BASE_URL}api/logbook/export/word?programId=${program.id}`;
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `logbook_${program.programName.replace(/[^a-zA-Z0-9]/g, "_")}.docx`;
-    a.click();
   }
 
   const sorted = entries ?? [];
@@ -618,11 +765,11 @@ export function LogbookDrawer({ open, onClose, program, isKetSek, canEdit }: Pro
               <Button
                 variant="outline"
                 size="sm"
-                onClick={handleExport}
+                onClick={() => setExportOpen(true)}
                 disabled={!entries || entries.length === 0}
                 className="rounded-full gap-1.5 text-xs h-8 px-3 border-emerald-300 text-emerald-700 hover:bg-emerald-50"
               >
-                <Download className="w-3.5 h-3.5" />Export ke Word
+                <Download className="w-3.5 h-3.5" />Ekspor
               </Button>
             </div>
           </div>
@@ -729,6 +876,15 @@ export function LogbookDrawer({ open, onClose, program, isKetSek, canEdit }: Pro
           editEntry={editEntry}
           program={program}
           onSaved={invalidate}
+        />
+      )}
+
+      {program && (
+        <ExportDialog
+          open={exportOpen}
+          onClose={() => setExportOpen(false)}
+          program={program}
+          hasEntries={(entries?.length ?? 0) > 0}
         />
       )}
 

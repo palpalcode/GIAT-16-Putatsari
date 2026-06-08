@@ -3,7 +3,7 @@ import multer from "multer";
 import { randomUUID } from "crypto";
 import { db } from "@workspace/db";
 import { logbookEntriesTable, logbookPhotosTable, programSchedulesTable } from "@workspace/db";
-import { eq, desc, inArray } from "drizzle-orm";
+import { eq, desc, inArray, and, gte, lte } from "drizzle-orm";
 import { requireKetSek, requireLogin } from "../lib/auth";
 import {
   CreateLogbookEntryBody,
@@ -23,6 +23,7 @@ import {
   AlignmentType,
   HeadingLevel,
 } from "docx";
+import PDFDocument from "pdfkit";
 
 const router = Router();
 
@@ -77,6 +78,17 @@ function mapEntry(row: any, photos: any[]) {
     createdAt: row.createdAt.toISOString(),
     photos: photos.map(mapPhoto),
   };
+}
+
+function formatTanggalId(d: string) {
+  return new Date(d + "T00:00:00").toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" });
+}
+
+function safeDateRangeLabel(dateFrom?: string, dateTo?: string): string {
+  if (dateFrom && dateTo) return `${dateFrom}_sd_${dateTo}`;
+  if (dateFrom) return `mulai_${dateFrom}`;
+  if (dateTo) return `sd_${dateTo}`;
+  return "semua";
 }
 
 // GET /logbook?programId=
@@ -265,7 +277,34 @@ router.delete("/logbook/photos/:id", requireKetSek, async (req, res) => {
   }
 });
 
-// GET /logbook/export/word?programId=
+async function fetchEntriesFiltered(programId: number, dateFrom?: string, dateTo?: string) {
+  const conditions = [eq(logbookEntriesTable.programId, programId)];
+  if (dateFrom) conditions.push(gte(logbookEntriesTable.tanggal, dateFrom));
+  if (dateTo) conditions.push(lte(logbookEntriesTable.tanggal, dateTo));
+
+  const entries = await db
+    .select()
+    .from(logbookEntriesTable)
+    .where(and(...conditions))
+    .orderBy(desc(logbookEntriesTable.tanggal));
+
+  const entryIds = entries.map((e) => e.id);
+  const photos =
+    entryIds.length > 0
+      ? await db.select().from(logbookPhotosTable).where(inArray(logbookPhotosTable.logbookEntryId, entryIds))
+      : [];
+
+  const photosByEntry = new Map<number, typeof photos>();
+  for (const p of photos) {
+    const arr = photosByEntry.get(p.logbookEntryId) ?? [];
+    arr.push(p);
+    photosByEntry.set(p.logbookEntryId, arr);
+  }
+
+  return { entries, photosByEntry };
+}
+
+// GET /logbook/export/word?programId=&dateFrom=YYYY-MM-DD&dateTo=YYYY-MM-DD
 router.get("/logbook/export/word", requireLogin, async (req, res) => {
   try {
     const programId = Number(req.query["programId"]);
@@ -273,6 +312,8 @@ router.get("/logbook/export/word", requireLogin, async (req, res) => {
       res.status(400).json({ error: "programId diperlukan" });
       return;
     }
+    const dateFrom = req.query["dateFrom"] as string | undefined;
+    const dateTo = req.query["dateTo"] as string | undefined;
 
     const [program] = await db.select().from(programSchedulesTable).where(eq(programSchedulesTable.id, programId));
     if (!program) {
@@ -280,23 +321,7 @@ router.get("/logbook/export/word", requireLogin, async (req, res) => {
       return;
     }
 
-    const entries = await db
-      .select()
-      .from(logbookEntriesTable)
-      .where(eq(logbookEntriesTable.programId, programId))
-      .orderBy(desc(logbookEntriesTable.tanggal));
-
-    const entryIds = entries.map((e) => e.id);
-    const photos =
-      entryIds.length > 0
-        ? await db.select().from(logbookPhotosTable).where(inArray(logbookPhotosTable.logbookEntryId, entryIds))
-        : [];
-    const photosByEntry = new Map<number, typeof photos>();
-    for (const p of photos) {
-      const arr = photosByEntry.get(p.logbookEntryId) ?? [];
-      arr.push(p);
-      photosByEntry.set(p.logbookEntryId, arr);
-    }
+    const { entries, photosByEntry } = await fetchEntriesFiltered(programId, dateFrom, dateTo);
 
     function makeBorderedCell(text: string, bold = false, shading?: string) {
       return new TableCell({
@@ -352,6 +377,16 @@ router.get("/logbook/export/word", requireLogin, async (req, res) => {
       );
     });
 
+    const subtitleParts = [`Program Kerja: ${program.programName}`];
+    if (dateFrom || dateTo) {
+      const rangeStr = dateFrom && dateTo
+        ? `${formatTanggalId(dateFrom)} – ${formatTanggalId(dateTo)}`
+        : dateFrom
+          ? `Mulai ${formatTanggalId(dateFrom)}`
+          : `Sampai ${formatTanggalId(dateTo!)}`;
+      subtitleParts.push(`Periode: ${rangeStr}`);
+    }
+
     const doc = new Document({
       sections: [
         {
@@ -367,11 +402,13 @@ router.get("/logbook/export/word", requireLogin, async (req, res) => {
               alignment: AlignmentType.CENTER,
               spacing: { after: 120 },
             }),
-            new Paragraph({
-              children: [new TextRun({ text: `Program Kerja: ${program.programName}`, bold: true, size: 24 })],
-              alignment: AlignmentType.CENTER,
-              spacing: { after: 240 },
-            }),
+            ...subtitleParts.map((text, i) =>
+              new Paragraph({
+                children: [new TextRun({ text, bold: i === 0, size: 24 })],
+                alignment: AlignmentType.CENTER,
+                spacing: { after: i === subtitleParts.length - 1 ? 240 : 80 },
+              })
+            ),
             new Table({
               width: { size: 100, type: WidthType.PERCENTAGE },
               rows: tableRows,
@@ -391,9 +428,196 @@ router.get("/logbook/export/word", requireLogin, async (req, res) => {
 
     const buffer = await Packer.toBuffer(doc);
     const safeName = program.programName.replace(/[^a-zA-Z0-9_\-]/g, "_");
-    res.setHeader("Content-Disposition", `attachment; filename="logbook_${safeName}.docx"`);
+    const rangeLabel = safeDateRangeLabel(dateFrom, dateTo);
+    res.setHeader("Content-Disposition", `attachment; filename="logbook_${safeName}_${rangeLabel}.docx"`);
     res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.wordprocessingml.document");
     res.send(buffer);
+  } catch (err) {
+    req.log.error(err);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+// GET /logbook/export/pdf?programId=&dateFrom=YYYY-MM-DD&dateTo=YYYY-MM-DD
+router.get("/logbook/export/pdf", requireLogin, async (req, res) => {
+  try {
+    const programId = Number(req.query["programId"]);
+    if (!programId) {
+      res.status(400).json({ error: "programId diperlukan" });
+      return;
+    }
+    const dateFrom = req.query["dateFrom"] as string | undefined;
+    const dateTo = req.query["dateTo"] as string | undefined;
+
+    const [program] = await db.select().from(programSchedulesTable).where(eq(programSchedulesTable.id, programId));
+    if (!program) {
+      res.status(404).json({ error: "Program tidak ditemukan" });
+      return;
+    }
+
+    const { entries, photosByEntry } = await fetchEntriesFiltered(programId, dateFrom, dateTo);
+
+    const doc = new PDFDocument({ size: "A4", layout: "landscape", margin: 30 });
+    const chunks: Buffer[] = [];
+    doc.on("data", (chunk: Buffer) => chunks.push(chunk));
+
+    const pageW = 841.89;
+    const margin = 30;
+    const usableW = pageW - margin * 2;
+
+    const COLS = [
+      { label: "No", w: 0.03 },
+      { label: "Tanggal", w: 0.08 },
+      { label: "Kegiatan", w: 0.14 },
+      { label: "Lokasi", w: 0.08 },
+      { label: "Peserta", w: 0.10 },
+      { label: "Sasaran", w: 0.10 },
+      { label: "Hasil Kegiatan", w: 0.18 },
+      { label: "Kendala", w: 0.09 },
+      { label: "Tindak Lanjut", w: 0.09 },
+      { label: "Penanggung Jawab", w: 0.11 },
+    ];
+    const colWidths = COLS.map((c) => c.w * usableW);
+
+    const FONT_SIZE = 7;
+    const HEADER_FONT_SIZE = 7.5;
+    const LINE_HEIGHT = FONT_SIZE * 1.3;
+    const CELL_PAD_X = 3;
+    const CELL_PAD_Y = 3;
+
+    function drawCell(
+      x: number,
+      y: number,
+      w: number,
+      h: number,
+      text: string,
+      opts: { bold?: boolean; bg?: string; fontSize?: number } = {}
+    ) {
+      if (opts.bg) {
+        doc.save().rect(x, y, w, h).fill(opts.bg).restore();
+      }
+      doc
+        .rect(x, y, w, h)
+        .stroke("#999999");
+      doc
+        .font(opts.bold ? "Helvetica-Bold" : "Helvetica")
+        .fontSize(opts.fontSize ?? FONT_SIZE)
+        .fillColor("#111111")
+        .text(text, x + CELL_PAD_X, y + CELL_PAD_Y, {
+          width: w - CELL_PAD_X * 2,
+          height: h - CELL_PAD_Y * 2,
+          ellipsis: false,
+          lineBreak: true,
+        });
+    }
+
+    function calcRowHeight(cells: string[]): number {
+      let maxLines = 1;
+      cells.forEach((text, i) => {
+        const w = colWidths[i] - CELL_PAD_X * 2;
+        const approxCharsPerLine = Math.floor(w / (FONT_SIZE * 0.45));
+        const lines = text.split("\n").reduce((acc, line) => {
+          return acc + Math.max(1, Math.ceil(line.length / Math.max(1, approxCharsPerLine)));
+        }, 0);
+        if (lines > maxLines) maxLines = lines;
+      });
+      return maxLines * LINE_HEIGHT + CELL_PAD_Y * 2;
+    }
+
+    let cursorY = margin;
+
+    doc
+      .font("Helvetica-Bold")
+      .fontSize(13)
+      .fillColor("#111111")
+      .text("LOGBOOK KEGIATAN", margin, cursorY, { width: usableW, align: "center" });
+    cursorY += 18;
+
+    doc
+      .font("Helvetica-Bold")
+      .fontSize(9)
+      .fillColor("#333333")
+      .text(`Program Kerja: ${program.programName}`, margin, cursorY, { width: usableW, align: "center" });
+    cursorY += 13;
+
+    if (dateFrom || dateTo) {
+      const rangeStr = dateFrom && dateTo
+        ? `${formatTanggalId(dateFrom)} – ${formatTanggalId(dateTo)}`
+        : dateFrom
+          ? `Mulai ${formatTanggalId(dateFrom)}`
+          : `Sampai ${formatTanggalId(dateTo!)}`;
+      doc
+        .font("Helvetica")
+        .fontSize(8)
+        .fillColor("#555555")
+        .text(`Periode: ${rangeStr}`, margin, cursorY, { width: usableW, align: "center" });
+      cursorY += 12;
+    }
+    cursorY += 6;
+
+    const headerRowH = HEADER_FONT_SIZE * 1.3 + CELL_PAD_Y * 2 + 2;
+    let x = margin;
+    COLS.forEach((col, i) => {
+      drawCell(x, cursorY, colWidths[i], headerRowH, col.label, { bold: true, bg: "#D9D9D9", fontSize: HEADER_FONT_SIZE });
+      x += colWidths[i];
+    });
+    cursorY += headerRowH;
+
+    const pageH = 595.28;
+
+    for (let idx = 0; idx < entries.length; idx++) {
+      const entry = entries[idx];
+      const entryPhotos = photosByEntry.get(entry.id) ?? [];
+      const photoNames = entryPhotos.map((p) => p.fileName).join(", ") || "-";
+
+      const cells = [
+        String(idx + 1),
+        entry.tanggal,
+        entry.kegiatan,
+        entry.lokasi,
+        (entry.peserta as string[]).join(", "),
+        entry.sasaran,
+        entry.hasilKegiatan,
+        entry.kendala ?? "-",
+        entry.tindakLanjut ?? "-",
+        entry.penanggungjawab,
+      ];
+
+      const rowH = calcRowHeight(cells);
+
+      if (cursorY + rowH > pageH - margin) {
+        doc.addPage({ size: "A4", layout: "landscape", margin: 30 });
+        cursorY = margin;
+
+        x = margin;
+        COLS.forEach((col, i) => {
+          drawCell(x, cursorY, colWidths[i], headerRowH, col.label, { bold: true, bg: "#D9D9D9", fontSize: HEADER_FONT_SIZE });
+          x += colWidths[i];
+        });
+        cursorY += headerRowH;
+      }
+
+      const bg = idx % 2 === 1 ? "#F7FAFB" : undefined;
+      x = margin;
+      cells.forEach((text, i) => {
+        drawCell(x, cursorY, colWidths[i], rowH, text, { bg });
+        x += colWidths[i];
+      });
+
+      void photoNames;
+      cursorY += rowH;
+    }
+
+    doc.end();
+
+    await new Promise<void>((resolve) => doc.on("end", resolve));
+
+    const pdfBuffer = Buffer.concat(chunks);
+    const safeName = program.programName.replace(/[^a-zA-Z0-9_\-]/g, "_");
+    const rangeLabel = safeDateRangeLabel(dateFrom, dateTo);
+    res.setHeader("Content-Disposition", `attachment; filename="logbook_${safeName}_${rangeLabel}.pdf"`);
+    res.setHeader("Content-Type", "application/pdf");
+    res.send(pdfBuffer);
   } catch (err) {
     req.log.error(err);
     res.status(500).json({ error: "Server error" });
