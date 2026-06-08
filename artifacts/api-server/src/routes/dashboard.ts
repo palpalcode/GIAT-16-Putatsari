@@ -9,8 +9,9 @@ import {
   cleaningSchedulesTable,
   programSchedulesTable,
   inventoryTable,
+  attendanceTable,
 } from "@workspace/db";
-import { eq, desc } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
 
 const router = Router();
 
@@ -18,7 +19,7 @@ router.get("/dashboard/summary", async (req, res) => {
   try {
     const today = new Date().toISOString().split("T")[0];
 
-    const [announcements, deadlines, issues, complaints, cooking, cleaning, programs, inventory] =
+    const [announcements, deadlines, issues, complaints, cooking, cleaning, programs, inventory, todayAttendance] =
       await Promise.all([
         db.select().from(announcementsTable).orderBy(desc(announcementsTable.createdAt)),
         db.select().from(deadlinesTable).orderBy(deadlinesTable.dueDate),
@@ -28,6 +29,7 @@ router.get("/dashboard/summary", async (req, res) => {
         db.select().from(cleaningSchedulesTable).orderBy(cleaningSchedulesTable.date),
         db.select().from(programSchedulesTable),
         db.select().from(inventoryTable),
+        db.select().from(attendanceTable).where(eq(attendanceTable.date, today!)),
       ]);
 
     const upcomingDeadlines = deadlines.filter(d => d.status === "pending" && d.dueDate >= today!).length;
@@ -38,12 +40,8 @@ router.get("/dashboard/summary", async (req, res) => {
     const todayCookingRow = cooking.find(c => c.date === today);
     const todayCleaningRow = cleaning.find(c => c.date === today);
 
-    const todayCooking = todayCookingRow
-      ? (todayCookingRow.persons as string[])
-      : null;
-    const todayCleaning = todayCleaningRow
-      ? (todayCleaningRow.persons as string[])
-      : null;
+    const todayCooking = todayCookingRow ? (todayCookingRow.persons as string[]) : null;
+    const todayCleaning = todayCleaningRow ? (todayCleaningRow.persons as string[]) : null;
 
     const recentAnnouncements = announcements.slice(0, 3).map(r => ({
       ...r,
@@ -53,10 +51,17 @@ router.get("/dashboard/summary", async (req, res) => {
     const urgentDeadlines = deadlines
       .filter(d => d.status === "pending" && d.dueDate >= today!)
       .slice(0, 3)
-      .map(r => ({
-        ...r,
-        createdAt: r.createdAt.toISOString(),
-      }));
+      .map(r => ({ ...r, createdAt: r.createdAt.toISOString() }));
+
+    const presentToday = todayAttendance.filter(a => a.status === "hadir").length;
+    const absentToday = todayAttendance.filter(a => a.status !== "hadir").length;
+    const attendanceSummary = todayAttendance.map(a => ({
+      id: a.id,
+      memberName: a.memberName,
+      status: a.status,
+      notes: a.notes ?? null,
+      createdAt: a.createdAt.toISOString(),
+    }));
 
     res.json({
       totalAnnouncements: announcements.length,
@@ -69,6 +74,9 @@ router.get("/dashboard/summary", async (req, res) => {
       totalInventoryItems: inventory.length,
       recentAnnouncements,
       urgentDeadlines,
+      presentToday,
+      absentToday,
+      attendanceSummary,
     });
   } catch (err) {
     req.log.error(err);

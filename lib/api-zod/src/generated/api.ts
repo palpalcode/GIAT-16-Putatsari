@@ -701,6 +701,16 @@ export const GetDashboardSummaryResponse = zod.object({
   "assignedTo": zod.array(zod.string()),
   "notes": zod.string().nullish(),
   "createdAt": zod.string()
+})).optional(),
+  "presentToday": zod.number().optional(),
+  "absentToday": zod.number().optional(),
+  "attendanceSummary": zod.array(zod.object({
+  "id": zod.number(),
+  "memberName": zod.string(),
+  "date": zod.string(),
+  "status": zod.enum(['hadir', 'izin', 'sakit', 'alfa']),
+  "notes": zod.string().nullish(),
+  "createdAt": zod.string()
 })).optional()
 })
 
@@ -881,6 +891,117 @@ export const GetPublicObjectParams = zod.object({
  */
 export const GetStorageObjectParams = zod.object({
   "objectPath": zod.coerce.string()
+})
+
+
+/**
+ * @summary Get all member conditions (public)
+ */
+export const GetConditionsResponseItem = zod.object({
+  "id": zod.number(),
+  "memberName": zod.string(),
+  "type": zod.enum(['alergi', 'kondisi', 'fobia', 'catatan']),
+  "description": zod.string(),
+  "createdAt": zod.string()
+})
+export const GetConditionsResponse = zod.array(GetConditionsResponseItem)
+
+
+/**
+ * @summary Add a condition entry (self or ketua/sekretaris)
+ */
+export const CreateConditionBody = zod.object({
+  "memberName": zod.string(),
+  "type": zod.enum(['alergi', 'kondisi', 'fobia', 'catatan']),
+  "description": zod.string()
+})
+
+
+/**
+ * @summary Update a condition entry (self or ketua/sekretaris)
+ */
+export const UpdateConditionParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const UpdateConditionBody = zod.object({
+  "type": zod.enum(['alergi', 'kondisi', 'fobia', 'catatan']).optional(),
+  "description": zod.string().optional()
+})
+
+export const UpdateConditionResponse = zod.object({
+  "id": zod.number(),
+  "memberName": zod.string(),
+  "type": zod.enum(['alergi', 'kondisi', 'fobia', 'catatan']),
+  "description": zod.string(),
+  "createdAt": zod.string()
+})
+
+
+/**
+ * @summary Delete a condition entry (self or ketua/sekretaris)
+ */
+export const DeleteConditionParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+
+/**
+ * @summary Get attendance records (optionally filtered by date)
+ */
+export const GetAttendanceQueryParams = zod.object({
+  "date": zod.coerce.string().optional().describe('Filter by date (YYYY-MM-DD)')
+})
+
+export const GetAttendanceResponseItem = zod.object({
+  "id": zod.number(),
+  "memberName": zod.string(),
+  "date": zod.string(),
+  "status": zod.enum(['hadir', 'izin', 'sakit', 'alfa']),
+  "notes": zod.string().nullish(),
+  "createdAt": zod.string()
+})
+export const GetAttendanceResponse = zod.array(GetAttendanceResponseItem)
+
+
+/**
+ * @summary Submit attendance (self) or override (ketua/sekretaris). Upserts by memberName+date.
+ */
+export const CreateAttendanceBody = zod.object({
+  "memberName": zod.string(),
+  "date": zod.string(),
+  "status": zod.enum(['hadir', 'izin', 'sakit', 'alfa']),
+  "notes": zod.string().optional()
+})
+
+
+/**
+ * @summary Update attendance record (self or ketua/sekretaris)
+ */
+export const UpdateAttendanceParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const UpdateAttendanceBody = zod.object({
+  "status": zod.enum(['hadir', 'izin', 'sakit', 'alfa']).optional(),
+  "notes": zod.string().optional()
+})
+
+export const UpdateAttendanceResponse = zod.object({
+  "id": zod.number(),
+  "memberName": zod.string(),
+  "date": zod.string(),
+  "status": zod.enum(['hadir', 'izin', 'sakit', 'alfa']),
+  "notes": zod.string().nullish(),
+  "createdAt": zod.string()
+})
+
+
+/**
+ * @summary Delete attendance record (ketua/sekretaris only)
+ */
+export const DeleteAttendanceParams = zod.object({
+  "id": zod.coerce.number()
 })
 
 

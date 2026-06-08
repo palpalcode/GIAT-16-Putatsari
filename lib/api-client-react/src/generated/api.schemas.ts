@@ -644,6 +644,26 @@ export interface KasUpdate {
   notes?: string;
 }
 
+export type AttendanceStatus = typeof AttendanceStatus[keyof typeof AttendanceStatus];
+
+
+export const AttendanceStatus = {
+  hadir: 'hadir',
+  izin: 'izin',
+  sakit: 'sakit',
+  alfa: 'alfa',
+} as const;
+
+export interface Attendance {
+  id: number;
+  memberName: string;
+  date: string;
+  status: AttendanceStatus;
+  /** @nullable */
+  notes?: string | null;
+  createdAt: string;
+}
+
 export interface DashboardSummary {
   totalAnnouncements: number;
   upcomingDeadlines: number;
@@ -657,6 +677,9 @@ export interface DashboardSummary {
   totalInventoryItems: number;
   recentAnnouncements?: Announcement[];
   urgentDeadlines?: Deadline[];
+  presentToday?: number;
+  absentToday?: number;
+  attendanceSummary?: Attendance[];
 }
 
 export interface Notulensi {
@@ -688,4 +711,92 @@ export interface NotulensiUpdate {
   content?: string;
   author?: string;
 }
+
+export type MemberConditionType = typeof MemberConditionType[keyof typeof MemberConditionType];
+
+
+export const MemberConditionType = {
+  alergi: 'alergi',
+  kondisi: 'kondisi',
+  fobia: 'fobia',
+  catatan: 'catatan',
+} as const;
+
+export interface MemberCondition {
+  id: number;
+  memberName: string;
+  type: MemberConditionType;
+  description: string;
+  createdAt: string;
+}
+
+export type MemberConditionInputType = typeof MemberConditionInputType[keyof typeof MemberConditionInputType];
+
+
+export const MemberConditionInputType = {
+  alergi: 'alergi',
+  kondisi: 'kondisi',
+  fobia: 'fobia',
+  catatan: 'catatan',
+} as const;
+
+export interface MemberConditionInput {
+  memberName: string;
+  type: MemberConditionInputType;
+  description: string;
+}
+
+export type MemberConditionUpdateType = typeof MemberConditionUpdateType[keyof typeof MemberConditionUpdateType];
+
+
+export const MemberConditionUpdateType = {
+  alergi: 'alergi',
+  kondisi: 'kondisi',
+  fobia: 'fobia',
+  catatan: 'catatan',
+} as const;
+
+export interface MemberConditionUpdate {
+  type?: MemberConditionUpdateType;
+  description?: string;
+}
+
+export type AttendanceInputStatus = typeof AttendanceInputStatus[keyof typeof AttendanceInputStatus];
+
+
+export const AttendanceInputStatus = {
+  hadir: 'hadir',
+  izin: 'izin',
+  sakit: 'sakit',
+  alfa: 'alfa',
+} as const;
+
+export interface AttendanceInput {
+  memberName: string;
+  date: string;
+  status: AttendanceInputStatus;
+  notes?: string;
+}
+
+export type AttendanceUpdateStatus = typeof AttendanceUpdateStatus[keyof typeof AttendanceUpdateStatus];
+
+
+export const AttendanceUpdateStatus = {
+  hadir: 'hadir',
+  izin: 'izin',
+  sakit: 'sakit',
+  alfa: 'alfa',
+} as const;
+
+export interface AttendanceUpdate {
+  status?: AttendanceUpdateStatus;
+  notes?: string;
+}
+
+export type GetAttendanceParams = {
+/**
+ * Filter by date (YYYY-MM-DD)
+ */
+date?: string;
+};
 

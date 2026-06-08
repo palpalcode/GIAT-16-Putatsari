@@ -23,6 +23,9 @@ import type {
   Announcement,
   AnnouncementInput,
   AnnouncementUpdate,
+  Attendance,
+  AttendanceInput,
+  AttendanceUpdate,
   AuthResult,
   AuthStatus,
   AvatarUpdateInput,
@@ -40,6 +43,7 @@ import type {
   DeadlineInput,
   DeadlineUpdate,
   ErrorEnvelope,
+  GetAttendanceParams,
   HealthStatus,
   InventoryItem,
   InventoryItemInput,
@@ -51,6 +55,9 @@ import type {
   KasInput,
   KasUpdate,
   LoginInput,
+  MemberCondition,
+  MemberConditionInput,
+  MemberConditionUpdate,
   MemberProfile,
   Notulensi,
   NotulensiInput,
@@ -4316,4 +4323,591 @@ export function useGetStorageObject<TData = Awaited<ReturnType<typeof getStorage
 
 
 
+
+export const getGetConditionsUrl = () => {
+
+
+
+
+  return `/api/conditions`
+}
+
+/**
+ * @summary Get all member conditions (public)
+ */
+export const getConditions = async ( options?: RequestInit): Promise<MemberCondition[]> => {
+
+  return customFetch<MemberCondition[]>(getGetConditionsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetConditionsQueryKey = () => {
+    return [
+    `/api/conditions`
+    ] as const;
+    }
+
+
+export const getGetConditionsQueryOptions = <TData = Awaited<ReturnType<typeof getConditions>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getConditions>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetConditionsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getConditions>>> = ({ signal }) => getConditions({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getConditions>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetConditionsQueryResult = NonNullable<Awaited<ReturnType<typeof getConditions>>>
+export type GetConditionsQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Get all member conditions (public)
+ */
+
+export function useGetConditions<TData = Awaited<ReturnType<typeof getConditions>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getConditions>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetConditionsQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getCreateConditionUrl = () => {
+
+
+
+
+  return `/api/conditions`
+}
+
+/**
+ * @summary Add a condition entry (self or ketua/sekretaris)
+ */
+export const createCondition = async (memberConditionInput: MemberConditionInput, options?: RequestInit): Promise<MemberCondition> => {
+
+  return customFetch<MemberCondition>(getCreateConditionUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      memberConditionInput,)
+  }
+);}
+
+
+
+
+export const getCreateConditionMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createCondition>>, TError,{data: BodyType<MemberConditionInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createCondition>>, TError,{data: BodyType<MemberConditionInput>}, TContext> => {
+
+const mutationKey = ['createCondition'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createCondition>>, {data: BodyType<MemberConditionInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  createCondition(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateConditionMutationResult = NonNullable<Awaited<ReturnType<typeof createCondition>>>
+    export type CreateConditionMutationBody = BodyType<MemberConditionInput>
+    export type CreateConditionMutationError = ErrorType<void>
+
+    /**
+ * @summary Add a condition entry (self or ketua/sekretaris)
+ */
+export const useCreateCondition = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createCondition>>, TError,{data: BodyType<MemberConditionInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createCondition>>,
+        TError,
+        {data: BodyType<MemberConditionInput>},
+        TContext
+      > => {
+      return useMutation(getCreateConditionMutationOptions(options));
+    }
+
+export const getUpdateConditionUrl = (id: number,) => {
+
+
+
+
+  return `/api/conditions/${id}`
+}
+
+/**
+ * @summary Update a condition entry (self or ketua/sekretaris)
+ */
+export const updateCondition = async (id: number,
+    memberConditionUpdate: MemberConditionUpdate, options?: RequestInit): Promise<MemberCondition> => {
+
+  return customFetch<MemberCondition>(getUpdateConditionUrl(id),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      memberConditionUpdate,)
+  }
+);}
+
+
+
+
+export const getUpdateConditionMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateCondition>>, TError,{id: number;data: BodyType<MemberConditionUpdate>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateCondition>>, TError,{id: number;data: BodyType<MemberConditionUpdate>}, TContext> => {
+
+const mutationKey = ['updateCondition'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateCondition>>, {id: number;data: BodyType<MemberConditionUpdate>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  updateCondition(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateConditionMutationResult = NonNullable<Awaited<ReturnType<typeof updateCondition>>>
+    export type UpdateConditionMutationBody = BodyType<MemberConditionUpdate>
+    export type UpdateConditionMutationError = ErrorType<void>
+
+    /**
+ * @summary Update a condition entry (self or ketua/sekretaris)
+ */
+export const useUpdateCondition = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateCondition>>, TError,{id: number;data: BodyType<MemberConditionUpdate>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateCondition>>,
+        TError,
+        {id: number;data: BodyType<MemberConditionUpdate>},
+        TContext
+      > => {
+      return useMutation(getUpdateConditionMutationOptions(options));
+    }
+
+export const getDeleteConditionUrl = (id: number,) => {
+
+
+
+
+  return `/api/conditions/${id}`
+}
+
+/**
+ * @summary Delete a condition entry (self or ketua/sekretaris)
+ */
+export const deleteCondition = async (id: number, options?: RequestInit): Promise<void> => {
+
+  return customFetch<void>(getDeleteConditionUrl(id),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+export const getDeleteConditionMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteCondition>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteCondition>>, TError,{id: number}, TContext> => {
+
+const mutationKey = ['deleteCondition'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteCondition>>, {id: number}> = (props) => {
+          const {id} = props ?? {};
+
+          return  deleteCondition(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteConditionMutationResult = NonNullable<Awaited<ReturnType<typeof deleteCondition>>>
+
+    export type DeleteConditionMutationError = ErrorType<void>
+
+    /**
+ * @summary Delete a condition entry (self or ketua/sekretaris)
+ */
+export const useDeleteCondition = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteCondition>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof deleteCondition>>,
+        TError,
+        {id: number},
+        TContext
+      > => {
+      return useMutation(getDeleteConditionMutationOptions(options));
+    }
+
+export const getGetAttendanceUrl = (params?: GetAttendanceParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/attendance?${stringifiedParams}` : `/api/attendance`
+}
+
+/**
+ * @summary Get attendance records (optionally filtered by date)
+ */
+export const getAttendance = async (params?: GetAttendanceParams, options?: RequestInit): Promise<Attendance[]> => {
+
+  return customFetch<Attendance[]>(getGetAttendanceUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetAttendanceQueryKey = (params?: GetAttendanceParams,) => {
+    return [
+    `/api/attendance`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetAttendanceQueryOptions = <TData = Awaited<ReturnType<typeof getAttendance>>, TError = ErrorType<unknown>>(params?: GetAttendanceParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAttendance>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetAttendanceQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAttendance>>> = ({ signal }) => getAttendance(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getAttendance>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetAttendanceQueryResult = NonNullable<Awaited<ReturnType<typeof getAttendance>>>
+export type GetAttendanceQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Get attendance records (optionally filtered by date)
+ */
+
+export function useGetAttendance<TData = Awaited<ReturnType<typeof getAttendance>>, TError = ErrorType<unknown>>(
+ params?: GetAttendanceParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAttendance>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetAttendanceQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getCreateAttendanceUrl = () => {
+
+
+
+
+  return `/api/attendance`
+}
+
+/**
+ * @summary Submit attendance (self) or override (ketua/sekretaris). Upserts by memberName+date.
+ */
+export const createAttendance = async (attendanceInput: AttendanceInput, options?: RequestInit): Promise<Attendance> => {
+
+  return customFetch<Attendance>(getCreateAttendanceUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      attendanceInput,)
+  }
+);}
+
+
+
+
+export const getCreateAttendanceMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createAttendance>>, TError,{data: BodyType<AttendanceInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createAttendance>>, TError,{data: BodyType<AttendanceInput>}, TContext> => {
+
+const mutationKey = ['createAttendance'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createAttendance>>, {data: BodyType<AttendanceInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  createAttendance(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateAttendanceMutationResult = NonNullable<Awaited<ReturnType<typeof createAttendance>>>
+    export type CreateAttendanceMutationBody = BodyType<AttendanceInput>
+    export type CreateAttendanceMutationError = ErrorType<void>
+
+    /**
+ * @summary Submit attendance (self) or override (ketua/sekretaris). Upserts by memberName+date.
+ */
+export const useCreateAttendance = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createAttendance>>, TError,{data: BodyType<AttendanceInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createAttendance>>,
+        TError,
+        {data: BodyType<AttendanceInput>},
+        TContext
+      > => {
+      return useMutation(getCreateAttendanceMutationOptions(options));
+    }
+
+export const getUpdateAttendanceUrl = (id: number,) => {
+
+
+
+
+  return `/api/attendance/${id}`
+}
+
+/**
+ * @summary Update attendance record (self or ketua/sekretaris)
+ */
+export const updateAttendance = async (id: number,
+    attendanceUpdate: AttendanceUpdate, options?: RequestInit): Promise<Attendance> => {
+
+  return customFetch<Attendance>(getUpdateAttendanceUrl(id),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      attendanceUpdate,)
+  }
+);}
+
+
+
+
+export const getUpdateAttendanceMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateAttendance>>, TError,{id: number;data: BodyType<AttendanceUpdate>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateAttendance>>, TError,{id: number;data: BodyType<AttendanceUpdate>}, TContext> => {
+
+const mutationKey = ['updateAttendance'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateAttendance>>, {id: number;data: BodyType<AttendanceUpdate>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  updateAttendance(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateAttendanceMutationResult = NonNullable<Awaited<ReturnType<typeof updateAttendance>>>
+    export type UpdateAttendanceMutationBody = BodyType<AttendanceUpdate>
+    export type UpdateAttendanceMutationError = ErrorType<void>
+
+    /**
+ * @summary Update attendance record (self or ketua/sekretaris)
+ */
+export const useUpdateAttendance = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateAttendance>>, TError,{id: number;data: BodyType<AttendanceUpdate>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateAttendance>>,
+        TError,
+        {id: number;data: BodyType<AttendanceUpdate>},
+        TContext
+      > => {
+      return useMutation(getUpdateAttendanceMutationOptions(options));
+    }
+
+export const getDeleteAttendanceUrl = (id: number,) => {
+
+
+
+
+  return `/api/attendance/${id}`
+}
+
+/**
+ * @summary Delete attendance record (ketua/sekretaris only)
+ */
+export const deleteAttendance = async (id: number, options?: RequestInit): Promise<void> => {
+
+  return customFetch<void>(getDeleteAttendanceUrl(id),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+export const getDeleteAttendanceMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteAttendance>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteAttendance>>, TError,{id: number}, TContext> => {
+
+const mutationKey = ['deleteAttendance'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteAttendance>>, {id: number}> = (props) => {
+          const {id} = props ?? {};
+
+          return  deleteAttendance(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteAttendanceMutationResult = NonNullable<Awaited<ReturnType<typeof deleteAttendance>>>
+
+    export type DeleteAttendanceMutationError = ErrorType<void>
+
+    /**
+ * @summary Delete attendance record (ketua/sekretaris only)
+ */
+export const useDeleteAttendance = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteAttendance>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof deleteAttendance>>,
+        TError,
+        {id: number},
+        TContext
+      > => {
+      return useMutation(getDeleteAttendanceMutationOptions(options));
+    }
 

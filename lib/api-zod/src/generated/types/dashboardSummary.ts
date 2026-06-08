@@ -6,6 +6,7 @@
  * OpenAPI spec version: 0.1.0
  */
 import type { Announcement } from './announcement';
+import type { Attendance } from './attendance';
 import type { Deadline } from './deadline';
 
 export interface DashboardSummary {
@@ -21,4 +22,7 @@ export interface DashboardSummary {
   totalInventoryItems: number;
   recentAnnouncements?: Announcement[];
   urgentDeadlines?: Deadline[];
+  presentToday?: number;
+  absentToday?: number;
+  attendanceSummary?: Attendance[];
 }

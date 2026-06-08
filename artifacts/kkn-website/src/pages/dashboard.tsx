@@ -1,6 +1,6 @@
 import { useGetDashboardSummary, useGetMembers } from "@workspace/api-client-react";
 import { Badge } from "@/components/ui/badge";
-import { Megaphone, Calendar, AlertTriangle, CheckCircle2, ChefHat, SprayCan, Package } from "lucide-react";
+import { Megaphone, Calendar, AlertTriangle, CheckCircle2, ChefHat, SprayCan, Package, CalendarCheck } from "lucide-react";
 import { Link } from "wouter";
 import { cn } from "@/lib/utils";
 import { getMemberColor } from "@/components/ui/member-picker";
@@ -271,6 +271,42 @@ export default function Dashboard() {
             </p>
           }
         </div>
+      </div>
+
+      {/* ── Absensi Hari Ini ─────────────────────────────────────────────────── */}
+      <div className="glass-card p-4">
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <div className="w-6 h-6 rounded-lg bg-violet-100 flex items-center justify-center">
+              <CalendarCheck className="w-3 h-3 text-violet-500" />
+            </div>
+            <span className="text-sm font-semibold text-gray-600">Absensi Hari Ini</span>
+          </div>
+          <Link href="/our-life">
+            <span className="text-xs text-rose-400 hover:text-rose-600 cursor-pointer font-medium">Isi Absensi →</span>
+          </Link>
+        </div>
+        {isLoading ? (
+          <div className="flex gap-3">
+            {[1,2,3,4].map(i => <SkeletonBlock key={i} className="h-12 w-24" />)}
+          </div>
+        ) : (
+          <div className="flex flex-wrap gap-3">
+            {[
+              { label: "Hadir", emoji: "✅", count: summary?.presentToday ?? 0, color: "bg-emerald-50 text-emerald-700 border-emerald-200" },
+              { label: "Izin", emoji: "📋", count: (summary?.attendanceSummary as any)?.izin ?? 0, color: "bg-amber-50 text-amber-700 border-amber-200" },
+              { label: "Sakit", emoji: "🤒", count: (summary?.attendanceSummary as any)?.sakit ?? 0, color: "bg-rose-50 text-rose-700 border-rose-200" },
+              { label: "Alfa", emoji: "❓", count: (summary?.attendanceSummary as any)?.alfa ?? 0, color: "bg-gray-50 text-gray-600 border-gray-200" },
+              { label: "Belum diisi", emoji: "—", count: 9 - ((summary?.presentToday ?? 0) + (summary?.absentToday ?? 0)), color: "bg-gray-50 text-gray-400 border-gray-100" },
+            ].map(({ label, emoji, count, color }) => (
+              <div key={label} className={cn("flex items-center gap-2 px-3 py-2 rounded-xl border text-xs font-medium", color)}>
+                <span>{emoji}</span>
+                <span>{label}</span>
+                <span className="font-bold text-base leading-none">{count}</span>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* ── Tim Putatsari Wellness — 3x3 Grid ───────────────────────────────── */}

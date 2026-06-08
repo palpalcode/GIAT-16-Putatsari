@@ -14,6 +14,8 @@ import permissionsRouter from "./permissions";
 import notulensiRouter from "./notulensi";
 import membersRouter from "./members";
 import storageRouter from "./storage";
+import conditionsRouter from "./conditions";
+import attendanceRouter from "./attendance";
 
 const router: IRouter = Router();
 
@@ -32,5 +34,7 @@ router.use(permissionsRouter);
 router.use(notulensiRouter);
 router.use(membersRouter);
 router.use(storageRouter);
+router.use(conditionsRouter);
+router.use(attendanceRouter);
 
 export default router;

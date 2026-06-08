@@ -35,6 +35,10 @@ tags:
     description: Notulensi rapat tim
   - name: storage
     description: Object storage upload dan serving
+  - name: conditions
+    description: Kondisi pribadi anggota (alergi, fobia, kondisi, catatan)
+  - name: attendance
+    description: Absensi harian anggota
 
 paths:
   /healthz:
@@ -1069,6 +1073,164 @@ paths:
                 type: string
                 format: binary
 
+  /conditions:
+    get:
+      operationId: getConditions
+      tags: [conditions]
+      summary: Get all member conditions (public)
+      responses:
+        "200":
+          description: List of conditions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/MemberCondition"
+    post:
+      operationId: createCondition
+      tags: [conditions]
+      summary: Add a condition entry (self or ketua/sekretaris)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MemberConditionInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MemberCondition"
+        "403":
+          description: Forbidden
+
+  /conditions/{id}:
+    patch:
+      operationId: updateCondition
+      tags: [conditions]
+      summary: Update a condition entry (self or ketua/sekretaris)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MemberConditionUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MemberCondition"
+        "403":
+          description: Forbidden
+    delete:
+      operationId: deleteCondition
+      tags: [conditions]
+      summary: Delete a condition entry (self or ketua/sekretaris)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+        "403":
+          description: Forbidden
+
+  /attendance:
+    get:
+      operationId: getAttendance
+      tags: [attendance]
+      summary: Get attendance records (optionally filtered by date)
+      parameters:
+        - name: date
+          in: query
+          schema:
+            type: string
+          description: Filter by date (YYYY-MM-DD)
+      responses:
+        "200":
+          description: List of attendance records
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Attendance"
+    post:
+      operationId: createAttendance
+      tags: [attendance]
+      summary: Submit attendance (self) or override (ketua/sekretaris). Upserts by memberName+date.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AttendanceInput"
+      responses:
+        "201":
+          description: Created or updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Attendance"
+        "403":
+          description: Forbidden
+
+  /attendance/{id}:
+    patch:
+      operationId: updateAttendance
+      tags: [attendance]
+      summary: Update attendance record (self or ketua/sekretaris)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AttendanceUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Attendance"
+        "403":
+          description: Forbidden
+    delete:
+      operationId: deleteAttendance
+      tags: [attendance]
+      summary: Delete attendance record (ketua/sekretaris only)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+        "403":
+          description: Forbidden
+
 components:
   schemas:
     HealthStatus:
@@ -1758,6 +1920,14 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/Deadline"
+        presentToday:
+          type: integer
+        absentToday:
+          type: integer
+        attendanceSummary:
+          type: array
+          items:
+            $ref: "#/components/schemas/Attendance"
 
     Notulensi:
       type: object
@@ -1817,4 +1987,82 @@ components:
         content:
           type: string
         author:
+          type: string
+
+    MemberCondition:
+      type: object
+      required: [id, memberName, type, description, createdAt]
+      properties:
+        id:
+          type: integer
+        memberName:
+          type: string
+        type:
+          type: string
+          enum: [alergi, kondisi, fobia, catatan]
+        description:
+          type: string
+        createdAt:
+          type: string
+
+    MemberConditionInput:
+      type: object
+      required: [memberName, type, description]
+      properties:
+        memberName:
+          type: string
+        type:
+          type: string
+          enum: [alergi, kondisi, fobia, catatan]
+        description:
+          type: string
+
+    MemberConditionUpdate:
+      type: object
+      properties:
+        type:
+          type: string
+          enum: [alergi, kondisi, fobia, catatan]
+        description:
+          type: string
+
+    Attendance:
+      type: object
+      required: [id, memberName, date, status, createdAt]
+      properties:
+        id:
+          type: integer
+        memberName:
+          type: string
+        date:
+          type: string
+        status:
+          type: string
+          enum: [hadir, izin, sakit, alfa]
+        notes:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+
+    AttendanceInput:
+      type: object
+      required: [memberName, date, status]
+      properties:
+        memberName:
+          type: string
+        date:
+          type: string
+        status:
+          type: string
+          enum: [hadir, izin, sakit, alfa]
+        notes:
+          type: string
+
+    AttendanceUpdate:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [hadir, izin, sakit, alfa]
+        notes:
           type: string

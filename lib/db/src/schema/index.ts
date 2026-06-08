@@ -181,3 +181,32 @@ export const membersTable = pgTable(
 export const insertMemberSchema = createInsertSchema(membersTable).omit({ id: true, createdAt: true });
 export type InsertMember = z.infer<typeof insertMemberSchema>;
 export type Member = typeof membersTable.$inferSelect;
+
+export const memberConditionsTable = pgTable("member_conditions", {
+  id: serial("id").primaryKey(),
+  memberName: text("member_name").notNull(),
+  type: text("type").notNull(), // alergi | kondisi | fobia | catatan
+  description: text("description").notNull(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const insertMemberConditionSchema = createInsertSchema(memberConditionsTable).omit({ id: true, createdAt: true });
+export type InsertMemberCondition = z.infer<typeof insertMemberConditionSchema>;
+export type MemberCondition = typeof memberConditionsTable.$inferSelect;
+
+export const attendanceTable = pgTable(
+  "attendance",
+  {
+    id: serial("id").primaryKey(),
+    memberName: text("member_name").notNull(),
+    date: text("date").notNull(),
+    status: text("status").notNull().default("hadir"), // hadir | izin | sakit | alfa
+    notes: text("notes"),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+  },
+  (t) => [uniqueIndex("attendance_member_date_unique").on(t.memberName, t.date)],
+);
+
+export const insertAttendanceSchema = createInsertSchema(attendanceTable).omit({ id: true, createdAt: true });
+export type InsertAttendance = z.infer<typeof insertAttendanceSchema>;
+export type Attendance = typeof attendanceTable.$inferSelect;

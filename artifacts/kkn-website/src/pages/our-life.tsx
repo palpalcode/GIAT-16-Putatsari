@@ -18,13 +18,25 @@ import {
   getGetCleaningSchedulesQueryKey,
   getGetInventoryQueryKey,
   getGetDashboardSummaryQueryKey,
+  useGetConditions,
+  useCreateCondition,
+  useUpdateCondition,
+  useDeleteCondition,
+  MemberConditionInputType,
+  type MemberConditionInputType as ConditionType,
+  useGetAttendance,
+  useCreateAttendance,
+  AttendanceInputStatus,
+  type AttendanceInputStatus as AttendanceStatus,
+  getGetConditionsQueryKey,
+  getGetAttendanceQueryKey,
 } from "@workspace/api-client-react";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Plus, Pencil, Trash2, ChefHat, SprayCan, Package, User } from "lucide-react";
+import { Plus, Pencil, Trash2, ChefHat, SprayCan, Package, User, Heart, CalendarCheck } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 
@@ -49,6 +61,8 @@ const tabs = [
   { id: "masak", label: "Jadwal Masak", icon: ChefHat },
   { id: "bersih", label: "Bersih-Bersih", icon: SprayCan },
   { id: "inventaris", label: "Inventaris", icon: Package },
+  { id: "kondisi", label: "Kondisi Anggota", icon: Heart },
+  { id: "absensi", label: "Absensi", icon: CalendarCheck },
 ];
 
 function today() { return new Date().toISOString().split("T")[0]; }
@@ -499,17 +513,315 @@ function InventarisTab({ isAdmin }: { isAdmin?: boolean }) {
   );
 }
 
+// ─── KONDISI ANGGOTA TAB ──────────────────────────────────────────────────────
+const CONDITION_CONFIG: Record<ConditionType, { label: string; color: string; emoji: string }> = {
+  alergi: { label: "Alergi", color: "bg-rose-100 text-rose-700 border-rose-200", emoji: "🚫" },
+  kondisi: { label: "Kondisi", color: "bg-sky-100 text-sky-700 border-sky-200", emoji: "💙" },
+  fobia: { label: "Fobia", color: "bg-amber-100 text-amber-700 border-amber-200", emoji: "⚡" },
+  catatan: { label: "Catatan", color: "bg-emerald-100 text-emerald-700 border-emerald-200", emoji: "📝" },
+};
+
+function KondisiTab({ memberName: selfName, isKetSek }: { memberName: string | null; isKetSek: boolean }) {
+  const qc = useQueryClient();
+  const { toast } = useToast();
+  const { data: conditions, isLoading } = useGetConditions();
+  const createCond = useCreateCondition();
+  const updateCond = useUpdateCondition();
+  const deleteCond = useDeleteCondition();
+
+  const [open, setOpen] = useState(false);
+  const [editId, setEditId] = useState<number | null>(null);
+  const [form, setForm] = useState<{ memberName: string; type: ConditionType; description: string }>({
+    memberName: "", type: MemberConditionInputType.alergi, description: ""
+  });
+
+  function invalidate() { qc.invalidateQueries({ queryKey: getGetConditionsQueryKey() }); }
+
+  function canManage(owner: string) { return selfName === owner || isKetSek; }
+
+  function openAdd(forMember: string) {
+    setEditId(null);
+    setForm({ memberName: forMember, type: MemberConditionInputType.alergi, description: "" });
+    setOpen(true);
+  }
+  function openEdit(c: any) {
+    setEditId(c.id);
+    setForm({ memberName: c.memberName, type: c.type as ConditionType, description: c.description });
+    setOpen(true);
+  }
+
+  function handleSave() {
+    if (!form.description.trim()) return;
+    if (editId !== null) {
+      updateCond.mutate({ id: editId, data: { type: form.type, description: form.description } }, {
+        onSuccess: () => { invalidate(); setOpen(false); toast({ title: "Kondisi diperbarui" }); }
+      });
+    } else {
+      createCond.mutate({ data: form }, {
+        onSuccess: () => { invalidate(); setOpen(false); toast({ title: "Kondisi ditambahkan" }); }
+      });
+    }
+  }
+
+  const byMember = MEMBERS.reduce((acc, m) => {
+    acc[m] = (conditions ?? []).filter(c => c.memberName === m);
+    return acc;
+  }, {} as Record<string, typeof conditions extends (infer T)[] | undefined ? T[] : never[]>);
+
+  return (
+    <div className="space-y-4">
+      <div className="flex justify-between items-center">
+        <h2 className="text-lg font-semibold text-gray-700">Kondisi Anggota</h2>
+        <p className="text-xs text-gray-400">Klik kartu untuk menambah kondisi</p>
+      </div>
+
+      {isLoading ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {[1,2,3,4,5,6].map(i => <div key={i} className="animate-pulse glass-card h-32" />)}
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {MEMBERS.map(member => {
+            const memberConds = byMember[member] ?? [];
+            const canEdit = canManage(member);
+            return (
+              <div key={member} className="glass-card p-4 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className={cn("w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-sm bg-gradient-to-br", getMemberColor(member))}>
+                      {member.charAt(0)}
+                    </div>
+                    <p className="text-sm font-semibold text-gray-800 leading-tight">{member}</p>
+                  </div>
+                  {canEdit && (
+                    <Button variant="ghost" size="icon" className="h-7 w-7 rounded-full hover:bg-rose-50" onClick={() => openAdd(member)}>
+                      <Plus className="w-3.5 h-3.5 text-rose-500" />
+                    </Button>
+                  )}
+                </div>
+
+                {memberConds.length === 0 ? (
+                  <p className="text-xs text-gray-400 italic">Belum ada catatan kondisi.</p>
+                ) : (
+                  <div className="space-y-2">
+                    {memberConds.map(c => {
+                      const cfg = CONDITION_CONFIG[c.type as ConditionType] ?? CONDITION_CONFIG.catatan;
+                      return (
+                        <div key={c.id} className="group flex items-start gap-2">
+                          <Badge className={cn("text-xs px-2 py-0.5 border flex items-center gap-1 shrink-0", cfg.color)}>
+                            <span>{cfg.emoji}</span>{cfg.label}
+                          </Badge>
+                          <span className="text-xs text-gray-600 flex-1 leading-relaxed">{c.description}</span>
+                          {canEdit && (
+                            <div className="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+                              <Button variant="ghost" size="icon" className="h-5 w-5 rounded-full" onClick={() => openEdit(c)}>
+                                <Pencil className="w-2.5 h-2.5 text-sky-500" />
+                              </Button>
+                              <Button variant="ghost" size="icon" className="h-5 w-5 rounded-full" onClick={() =>
+                                deleteCond.mutate({ id: c.id }, { onSuccess: () => { invalidate(); toast({ title: "Kondisi dihapus" }); } })}>
+                                <Trash2 className="w-2.5 h-2.5 text-rose-500" />
+                              </Button>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent className="glass-panel border-white/50 max-w-md p-0 overflow-hidden">
+          <div className="px-6 pt-6 pb-4 bg-gradient-to-r from-rose-400/20 to-sky-400/20">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Heart className="w-5 h-5 text-rose-500" />
+                {editId ? "Edit Kondisi" : `Tambah Kondisi — ${form.memberName}`}
+              </DialogTitle>
+            </DialogHeader>
+          </div>
+          <div className="px-6 pb-6 pt-4 space-y-4">
+            <div>
+              <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2 block">Tipe Kondisi</label>
+              <div className="grid grid-cols-2 gap-2">
+                {(Object.entries(CONDITION_CONFIG) as [ConditionType, typeof CONDITION_CONFIG[ConditionType]][]).map(([type, cfg]) => (
+                  <button key={type} type="button" onClick={() => setForm(f => ({ ...f, type: type as ConditionType }))}
+                    className={cn("flex items-center gap-2 p-2.5 rounded-xl border-2 text-xs font-medium transition-all text-left",
+                      form.type === type ? "border-rose-400 bg-rose-50 text-rose-700" : "border-white/40 bg-white/30 hover:bg-white/60 text-gray-600")}>
+                    <span className="text-lg">{cfg.emoji}</span>{cfg.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div>
+              <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 block">Keterangan</label>
+              <Input placeholder="Contoh: Alergi udang, Fobia ketinggian..." value={form.description}
+                onChange={e => setForm(f => ({ ...f, description: e.target.value }))} className="bg-white/60" />
+            </div>
+            <div className="flex gap-3 justify-end pt-1">
+              <Button variant="outline" onClick={() => setOpen(false)} className="rounded-full">Batal</Button>
+              <Button onClick={handleSave} className="bg-gradient-to-r from-rose-400 to-sky-400 text-white border-0 rounded-full"
+                disabled={!form.description.trim() || createCond.isPending || updateCond.isPending}>
+                Simpan
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
+
+// ─── ABSENSI TAB ──────────────────────────────────────────────────────────────
+const ATTENDANCE_CONFIG: Record<AttendanceStatus, { label: string; color: string; bg: string; emoji: string }> = {
+  hadir: { label: "Hadir", color: "text-emerald-700", bg: "bg-emerald-100 border-emerald-300", emoji: "✅" },
+  izin: { label: "Izin", color: "text-amber-700", bg: "bg-amber-100 border-amber-300", emoji: "📋" },
+  sakit: { label: "Sakit", color: "text-rose-700", bg: "bg-rose-100 border-rose-300", emoji: "🤒" },
+  alfa: { label: "Alfa", color: "text-gray-600", bg: "bg-gray-100 border-gray-300", emoji: "❓" },
+};
+
+function AbsensiTab({ memberName: selfName, isKetSek, isLoggedIn }: { memberName: string | null; isKetSek: boolean; isLoggedIn: boolean }) {
+  const qc = useQueryClient();
+  const { toast } = useToast();
+  const [selectedDate, setSelectedDate] = useState(today());
+
+  const { data: attendance, isLoading } = useGetAttendance({ date: selectedDate });
+  const submitAttendance = useCreateAttendance();
+
+  function invalidate() {
+    qc.invalidateQueries({ queryKey: getGetAttendanceQueryKey({ date: selectedDate }) });
+    qc.invalidateQueries({ queryKey: getGetDashboardSummaryQueryKey() });
+  }
+
+  function canSetFor(member: string) {
+    return isLoggedIn && (selfName === member || isKetSek);
+  }
+
+  function handleStatus(member: string, status: AttendanceStatus, notes?: string) {
+    submitAttendance.mutate(
+      { data: { memberName: member, date: selectedDate, status, notes } },
+      { onSuccess: () => { invalidate(); toast({ title: `Absensi ${member} dicatat: ${status}` }); } }
+    );
+  }
+
+  const attendanceMap = new Map((attendance ?? []).map(a => [a.memberName, a]));
+
+  const presentCount = (attendance ?? []).filter(a => a.status === "hadir").length;
+  const izinCount = (attendance ?? []).filter(a => a.status === "izin").length;
+  const sakitCount = (attendance ?? []).filter(a => a.status === "sakit").length;
+  const alfaCount = (attendance ?? []).filter(a => a.status === "alfa").length;
+  const totalFilled = (attendance ?? []).length;
+
+  return (
+    <div className="space-y-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <h2 className="text-lg font-semibold text-gray-700">Rekap Absensi</h2>
+        <div className="flex items-center gap-2">
+          <label className="text-xs text-gray-500 font-medium">Tanggal:</label>
+          <input type="date" value={selectedDate} onChange={e => setSelectedDate(e.target.value)}
+            className="text-sm px-3 py-1.5 rounded-xl border border-white/50 bg-white/60 focus:outline-none focus:border-rose-300 focus:ring-1 focus:ring-rose-300" />
+        </div>
+      </div>
+
+      {/* Summary pills */}
+      <div className="flex gap-2 flex-wrap">
+        {([["hadir", presentCount], ["izin", izinCount], ["sakit", sakitCount], ["alfa", alfaCount]] as [AttendanceStatus, number][]).map(([s, count]) => {
+          const cfg = ATTENDANCE_CONFIG[s];
+          return (
+            <div key={s} className={cn("flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border", cfg.bg)}>
+              <span>{cfg.emoji}</span>
+              <span className={cfg.color}>{cfg.label}: <strong>{count}</strong></span>
+            </div>
+          );
+        })}
+        <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border bg-gray-50 border-gray-200">
+          <span className="text-gray-500">Belum diisi: <strong>{9 - totalFilled}</strong></span>
+        </div>
+      </div>
+
+      {!isLoggedIn && (
+        <div className="glass-card p-4 text-center text-sm text-gray-400">
+          Login untuk mengisi absensi diri sendiri.
+        </div>
+      )}
+
+      {isLoading ? (
+        <div className="space-y-2">{[1,2,3,4,5].map(i => <div key={i} className="animate-pulse glass-card h-16" />)}</div>
+      ) : (
+        <div className="space-y-2">
+          {MEMBERS.map(member => {
+            const record = attendanceMap.get(member);
+            const canSet = canSetFor(member);
+            const currentStatus = record?.status as AttendanceStatus | undefined;
+            const isSelf = selfName === member;
+
+            return (
+              <div key={member} className={cn("glass-card p-3 flex items-center gap-3 transition-all",
+                isSelf && "ring-1 ring-rose-200")}>
+                <div className={cn("w-9 h-9 rounded-full flex items-center justify-center text-white font-bold text-sm shrink-0 bg-gradient-to-br", getMemberColor(member))}>
+                  {member.charAt(0)}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-gray-800 truncate">
+                    {member}
+                    {isSelf && <span className="ml-1.5 text-xs text-rose-400 font-normal">(saya)</span>}
+                  </p>
+                  {record?.notes && <p className="text-xs text-gray-400 truncate">{record.notes}</p>}
+                </div>
+                <div className="flex items-center gap-1.5 shrink-0">
+                  {canSet ? (
+                    (Object.keys(ATTENDANCE_CONFIG) as AttendanceStatus[]).map(s => {
+                      const cfg = ATTENDANCE_CONFIG[s];
+                      const isActive = currentStatus === s;
+                      return (
+                        <button key={s} type="button"
+                          onClick={() => handleStatus(member, s)}
+                          disabled={submitAttendance.isPending}
+                          title={cfg.label}
+                          className={cn("flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium border-2 transition-all",
+                            isActive ? cn("border-current", cfg.bg, cfg.color, "shadow-sm") : "border-gray-200 bg-white/40 text-gray-400 hover:bg-white/70"
+                          )}>
+                          <span>{cfg.emoji}</span>
+                          <span className="hidden sm:inline">{cfg.label}</span>
+                        </button>
+                      );
+                    })
+                  ) : (
+                    currentStatus ? (
+                      <div className={cn("flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium border", ATTENDANCE_CONFIG[currentStatus].bg)}>
+                        <span>{ATTENDANCE_CONFIG[currentStatus].emoji}</span>
+                        <span className={ATTENDANCE_CONFIG[currentStatus].color}>{ATTENDANCE_CONFIG[currentStatus].label}</span>
+                      </div>
+                    ) : (
+                      <span className="text-xs text-gray-300 italic">Belum diisi</span>
+                    )
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─── MAIN PAGE ────────────────────────────────────────────────────────────────
 export default function OurLifePage() {
   const [activeTab, setActiveTab] = useState("masak");
-  const { can } = useAuth();
+  const { can, memberName, role, isLoggedIn } = useAuth();
   const isAdmin = can("our-life");
+  const isKetSek = role === "ketua" || role === "sekretaris";
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
       <div>
         <h1 className="text-3xl font-bold bg-gradient-to-r from-rose-500 to-sky-500 bg-clip-text text-transparent">Our Life</h1>
-        <p className="text-gray-500 text-sm mt-1">Kehidupan sehari-hari, jadwal piket, dan inventaris posko</p>
+        <p className="text-gray-500 text-sm mt-1">Kehidupan sehari-hari, jadwal piket, inventaris, dan absensi</p>
       </div>
 
       <div className="flex gap-2 p-1 bg-white/40 backdrop-blur-sm rounded-2xl border border-white/40 w-fit flex-wrap">
@@ -537,6 +849,8 @@ export default function OurLifePage() {
         {activeTab === "masak" && <CookingTab isAdmin={isAdmin} />}
         {activeTab === "bersih" && <CleaningTab isAdmin={isAdmin} />}
         {activeTab === "inventaris" && <InventarisTab isAdmin={isAdmin} />}
+        {activeTab === "kondisi" && <KondisiTab memberName={memberName} isKetSek={isKetSek} />}
+        {activeTab === "absensi" && <AbsensiTab memberName={memberName} isKetSek={isKetSek} isLoggedIn={isLoggedIn} />}
       </div>
     </div>
   );
