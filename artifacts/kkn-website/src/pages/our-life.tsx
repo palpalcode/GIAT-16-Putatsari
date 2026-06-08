@@ -655,10 +655,14 @@ function MultiItemDialog({
 function BrgKelompokTab({ isAdmin, isKetSek }: { isAdmin?: boolean; isKetSek?: boolean }) {
   const qc = useQueryClient();
   const { toast } = useToast();
-  const { data: inventory, isLoading } = useGetInventory({ type: "kelompok" });
+  const { data: kelompokItems, isLoading: loadingKelompok } = useGetInventory({ type: "kelompok" });
+  const { data: pinjamanItems, isLoading: loadingPinjaman } = useGetInventory({ type: "pinjaman" });
   const create = useCreateInventoryItem();
   const update = useUpdateInventoryItem();
   const del = useDeleteInventoryItem();
+
+  const isLoading = loadingKelompok || loadingPinjaman;
+  const inventory = [...(kelompokItems ?? []), ...(pinjamanItems ?? [])];
 
   const [addOpen, setAddOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
@@ -696,7 +700,7 @@ function BrgKelompokTab({ isAdmin, isKetSek }: { isAdmin?: boolean; isKetSek?: b
     toast({ title: items.length > 1 ? `${items.length} barang berhasil disimpan` : "Barang ditambahkan" });
   }
 
-  const filtered = filterCat === "all" ? (inventory ?? []) : (inventory ?? []).filter(i => i.category === filterCat);
+  const filtered = filterCat === "all" ? inventory : inventory.filter(i => i.category === filterCat);
   const grouped = invCategories.reduce((acc, cat) => {
     const items = filtered.filter(i => i.category === cat.id);
     if (items.length > 0) acc[cat.id] = items;
@@ -706,7 +710,7 @@ function BrgKelompokTab({ isAdmin, isKetSek }: { isAdmin?: boolean; isKetSek?: b
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between flex-wrap gap-2">
-        <p className="text-sm text-gray-500">Barang yang dibeli bersama untuk keperluan posko</p>
+        <p className="text-sm text-gray-500">Barang milik bersama dan barang anggota yang dipinjamkan ke kelompok</p>
         {isAdmin && (
           <Button size="sm" onClick={() => setAddOpen(true)} className="bg-gradient-to-r from-emerald-400 to-teal-400 text-white border-0 rounded-full gap-1">
             <Plus className="w-4 h-4" />Tambah Barang
@@ -731,23 +735,31 @@ function BrgKelompokTab({ isAdmin, isKetSek }: { isAdmin?: boolean; isKetSek?: b
                 <span className="text-xs text-gray-400">{items.length} item</span>
               </div>
               <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-                {items.map(item => (
-                  <div key={item.id} className="glass-card p-3 group transition-all hover:-translate-y-0.5">
-                    <div className="flex justify-between items-start gap-2">
-                      <div className="min-w-0 flex-1">
-                        <p className="font-semibold text-sm text-gray-900 truncate">{item.name}</p>
-                        <p className="text-xs text-gray-500"><span className="text-xl font-bold text-gray-800">{item.quantity}</span> {item.unit}</p>
-                        {item.notes && <p className="text-xs text-gray-400 mt-1 truncate">{item.notes}</p>}
-                      </div>
-                      {isAdmin && (
-                        <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
-                          <Button variant="ghost" size="icon" className="h-6 w-6 rounded-full" onClick={() => openEdit(item)}><Pencil className="w-3 h-3 text-sky-500" /></Button>
-                          <Button variant="ghost" size="icon" className="h-6 w-6 rounded-full" onClick={() => del.mutate({ id: item.id }, { onSuccess: () => { invalidate(); toast({ title: "Barang dihapus" }); } })}><Trash2 className="w-3 h-3 text-rose-500" /></Button>
+                {items.map(item => {
+                  const isPinjaman = item.itemType === "pinjaman";
+                  return (
+                    <div key={item.id} className={cn("glass-card p-3 group transition-all hover:-translate-y-0.5", isPinjaman && "ring-1 ring-sky-200")}>
+                      <div className="flex justify-between items-start gap-2">
+                        <div className="min-w-0 flex-1">
+                          <p className="font-semibold text-sm text-gray-900 truncate">{item.name}</p>
+                          <p className="text-xs text-gray-500"><span className="text-xl font-bold text-gray-800">{item.quantity}</span> {item.unit}</p>
+                          {isPinjaman && (
+                            <span className="inline-flex items-center gap-1 mt-1.5 px-2 py-0.5 rounded-full text-[10px] font-medium bg-sky-50 text-sky-700 border border-sky-200">
+                              🤝 Pinjaman dari {item.ownerName}
+                            </span>
+                          )}
+                          {item.notes && <p className="text-xs text-gray-400 mt-1 truncate">{item.notes}</p>}
                         </div>
-                      )}
+                        {isAdmin && !isPinjaman && (
+                          <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+                            <Button variant="ghost" size="icon" className="h-6 w-6 rounded-full" onClick={() => openEdit(item)}><Pencil className="w-3 h-3 text-sky-500" /></Button>
+                            <Button variant="ghost" size="icon" className="h-6 w-6 rounded-full" onClick={() => del.mutate({ id: item.id }, { onSuccess: () => { invalidate(); toast({ title: "Barang dihapus" }); } })}><Trash2 className="w-3 h-3 text-rose-500" /></Button>
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           ))}
