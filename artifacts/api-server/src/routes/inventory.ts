@@ -233,6 +233,10 @@ router.patch("/inventory/:id", async (req, res) => {
       if (ownerName === sessionName || isKetSek(divisionRole)) updates.ownerName = ownerName;
     }
     if (itemType !== undefined && (itemType === "pribadi" || itemType === "pinjaman" || itemType === "kelompok")) {
+      if (itemType === "kelompok" && !isKetSek(divisionRole)) {
+        res.status(403).json({ error: "Hanya ketua/sekretaris yang dapat mengubah tipe barang ke kelompok" });
+        return;
+      }
       updates.itemType = itemType;
     }
 

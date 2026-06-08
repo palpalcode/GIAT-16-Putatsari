@@ -703,13 +703,13 @@ function PinjamBrgAnggotaDialog({ open, onOpenChange, onSuccess }: { open: boole
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2"><span>🤝</span> Pinjam dari Barang Anggota</DialogTitle>
           </DialogHeader>
-          <p className="text-xs text-gray-500 mt-1.5">Pilih barang pribadi anggota yang akan dipinjamkan ke kelompok.</p>
+          <p className="text-xs text-gray-500 mt-1.5">Pilih Murni Barang Pribadi anggota yang akan dipinjamkan ke kelompok.</p>
         </div>
         <div className="flex-1 overflow-y-auto px-6 py-3 space-y-1.5">
           {isLoading ? (
             <div className="animate-pulse space-y-2">{[1,2,3].map(i => <div key={i} className="h-12 bg-gray-100 rounded-xl" />)}</div>
           ) : pribadiItems.length === 0 ? (
-            <div className="text-center py-8 text-gray-400 text-sm">Belum ada barang pribadi anggota.</div>
+            <div className="text-center py-8 text-gray-400 text-sm">Belum ada Murni Barang Pribadi anggota.</div>
           ) : (
             pribadiItems.map(item => {
               const checked = selected.has(item.id);
@@ -1130,7 +1130,7 @@ function BrgPribadiTab({ selfName, isPrivileged, isKetSek, isLoggedIn }: { selfN
         <div className="animate-pulse space-y-3">{[1,2].map(i => <div key={i} className="glass-card h-20" />)}</div>
       ) : filtered.length === 0 ? (
         <div className="text-center py-10 text-gray-400 text-sm">
-          {selectedOwner ? `${selectedOwner} belum mencatat barang pribadi.` : "Belum ada barang pribadi."}
+          {selectedOwner ? `${selectedOwner} belum mencatat Murni Barang Pribadi.` : "Belum ada Murni Barang Pribadi."}
         </div>
       ) : (
         <div className="space-y-3">
