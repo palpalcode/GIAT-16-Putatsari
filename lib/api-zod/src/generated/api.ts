@@ -943,6 +943,7 @@ export const GetTransfersResponse = zod.array(GetTransfersResponseItem)
 export const TransferKasBody = zod.object({
   "fromFund": zod.enum(['umum', 'darurat', 'iuran_makan', 'proker']),
   "toFund": zod.enum(['umum', 'darurat', 'iuran_makan', 'proker']),
+  "toFundProkerId": zod.number().optional().describe('Required when toFund is \'proker\'. Links the incoming kas entry to the specific proker fund.'),
   "amount": zod.number(),
   "description": zod.string(),
   "date": zod.string(),

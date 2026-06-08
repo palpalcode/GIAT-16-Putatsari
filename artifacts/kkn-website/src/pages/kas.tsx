@@ -407,8 +407,9 @@ function UmumTab({ isAdmin, summary }: { isAdmin?: boolean; summary: any }) {
   const [filterType, setFilterType] = useState("all");
   const [kasFieldErrors, setKasFieldErrors] = useState<Record<string, string>>({});
   const [openTransferDana, setOpenTransferDana] = useState(false);
-  const [transferDanaInit, setTransferDanaInit] = useState<TransferDanaForm>({ fromFund: "umum", toFund: "darurat", amount: "", description: "", date: today(), notes: "" });
+  const [transferDanaInit, setTransferDanaInit] = useState<TransferDanaForm>({ fromFund: "umum", toFund: "darurat", toFundProkerId: null, amount: "", description: "", date: today(), notes: "" });
   const transferKas = useTransferKas();
+  const { data: prokerList } = useGetProkerFunds();
 
   function invalidate() {
     qc.invalidateQueries({ queryKey: getGetKasQueryKey({ fund: "umum" }) });
@@ -491,10 +492,12 @@ function UmumTab({ isAdmin, summary }: { isAdmin?: boolean; summary: any }) {
       <AddEditDialog open={open} onClose={() => { setOpen(false); setKasFieldErrors({}); }} editId={editId} initial={initForm} onSave={handleSave} isPending={create.isPending || update.isPending} serverFieldErrors={kasFieldErrors} />
 
       <TransferDanaDialog open={openTransferDana} onClose={() => setOpenTransferDana(false)} isPending={transferKas.isPending}
-        initial={transferDanaInit}
+        initial={transferDanaInit} prokers={prokerList ?? []}
         onSave={(form) => {
-          transferKas.mutate({ data: { fromFund: form.fromFund, toFund: form.toFund, amount: Number(form.amount), description: form.description, date: form.date, notes: form.notes || undefined } }, {
+          transferKas.mutate({ data: { fromFund: form.fromFund, toFund: form.toFund, toFundProkerId: form.toFundProkerId ?? undefined, amount: Number(form.amount), description: form.description, date: form.date, notes: form.notes || undefined } }, {
             onSuccess: () => {
+              qc.invalidateQueries({ queryKey: getGetProkerFundsQueryKey() });
+              qc.invalidateQueries({ queryKey: getGetKasQueryKey({ fund: "proker" }) });
               invalidate(); setOpenTransferDana(false);
               toast({ title: `Transfer ${formatRp(Number(form.amount))} berhasil` });
             },
@@ -580,10 +583,12 @@ function SimpleTxDialog({ open, onClose, title, headerColor, isPending, onSave, 
 
 // ─── TRANSFER DANA DIALOG ─────────────────────────────────────────────────────
 type TransferDanaForm = {
-  fromFund: KasFundType; toFund: KasFundType; amount: string; description: string; date: string; notes: string;
+  fromFund: KasFundType; toFund: KasFundType; toFundProkerId: number | null;
+  amount: string; description: string; date: string; notes: string;
 };
-function TransferDanaDialog({ open, onClose, onSave, isPending, initial }: {
-  open: boolean; onClose: () => void; onSave: (form: TransferDanaForm) => void; isPending: boolean; initial: TransferDanaForm;
+function TransferDanaDialog({ open, onClose, onSave, isPending, initial, prokers }: {
+  open: boolean; onClose: () => void; onSave: (form: TransferDanaForm) => void; isPending: boolean;
+  initial: TransferDanaForm; prokers?: { id: number; name: string }[];
 }) {
   const [form, setForm] = useState<TransferDanaForm>(initial);
   useEffect(() => { setForm(initial); }, [initial, open]);
@@ -595,6 +600,8 @@ function TransferDanaDialog({ open, onClose, onSave, isPending, initial }: {
     { id: "proker", label: "Dana Proker" },
   ];
   const validTargets = fundOptions.filter(o => o.id !== form.fromFund);
+  const isValid = !isPending && !!form.amount && !!form.description && !!form.fromFund && !!form.toFund && form.fromFund !== form.toFund
+    && (form.toFund !== "proker" || !!form.toFundProkerId);
   return (
     <Dialog open={open} onOpenChange={v => !v && onClose()}>
       <DialogContent className="form-dialog border-white/50 max-w-sm p-0 overflow-hidden">
@@ -613,13 +620,30 @@ function TransferDanaDialog({ open, onClose, onSave, isPending, initial }: {
           </div>
           <div>
             <label className="text-xs font-semibold text-sky-800 uppercase tracking-wide mb-1.5 block">Ke</label>
-            <Select value={form.toFund} onValueChange={v => set({ toFund: v as KasFundType })}>
+            <Select value={form.toFund} onValueChange={v => set({ toFund: v as KasFundType, toFundProkerId: null })}>
               <SelectTrigger className="bg-white/90"><SelectValue /></SelectTrigger>
               <SelectContent>
                 {validTargets.map(o => <SelectItem key={o.id} value={o.id}>{o.label}</SelectItem>)}
               </SelectContent>
             </Select>
           </div>
+          {form.toFund === "proker" && (
+            <div>
+              <label className="text-xs font-semibold text-sky-800 uppercase tracking-wide mb-1.5 block">Proker Tujuan</label>
+              <Select
+                value={form.toFundProkerId !== null ? String(form.toFundProkerId) : ""}
+                onValueChange={v => set({ toFundProkerId: Number(v) })}
+              >
+                <SelectTrigger className="bg-white/90"><SelectValue placeholder="Pilih proker..." /></SelectTrigger>
+                <SelectContent>
+                  {(prokers ?? []).map(p => <SelectItem key={p.id} value={String(p.id)}>{p.name}</SelectItem>)}
+                </SelectContent>
+              </Select>
+              {(prokers ?? []).length === 0 && (
+                <p className="text-xs text-amber-600 mt-1">Belum ada proker. Tambahkan proker terlebih dahulu.</p>
+              )}
+            </div>
+          )}
           <div>
             <label className="text-xs font-semibold text-sky-800 uppercase tracking-wide mb-1.5 block">Nominal (Rp)</label>
             <div className="relative">
@@ -641,7 +665,7 @@ function TransferDanaDialog({ open, onClose, onSave, isPending, initial }: {
           </div>
           <div className="flex gap-3 justify-end pt-1">
             <Button variant="outline" onClick={onClose} className="rounded-full">Batal</Button>
-            <Button onClick={() => onSave(form)} disabled={isPending || !form.amount || !form.description || !form.fromFund || !form.toFund || form.fromFund === form.toFund}
+            <Button onClick={() => onSave(form)} disabled={!isValid}
               className="rounded-full text-white border-0 bg-gradient-to-r from-sky-400 to-blue-500">Transfer</Button>
           </div>
         </div>
@@ -661,6 +685,7 @@ function IuranMakanTab({ isAdmin, summary }: { isAdmin?: boolean; summary: any }
   const updateConfig = useUpdateKasConfig();
   const transferSisa = useTransferSisaMakan();
 
+  const { data: prokers } = useGetProkerFunds();
   const { data: members } = useGetMembers();
   const [selectedWeek, setSelectedWeek] = useState(() => KKN_START_WEEK);
   const { data: weekPayments, isLoading: loadingWeekPayments } = useGetIuranPayments({ week: selectedWeek });
@@ -672,7 +697,7 @@ function IuranMakanTab({ isAdmin, summary }: { isAdmin?: boolean; summary: any }
   const [openConfig, setOpenConfig] = useState(false);
   const [openTransfer, setOpenTransfer] = useState(false);
   const [openTransferDana, setOpenTransferDana] = useState(false);
-  const [transferDanaInit, setTransferDanaInit] = useState<TransferDanaForm>({ fromFund: "iuran_makan" as KasFundType, toFund: "darurat" as KasFundType, amount: "", description: "", date: today(), notes: "" });
+  const [transferDanaInit, setTransferDanaInit] = useState<TransferDanaForm>({ fromFund: "iuran_makan" as KasFundType, toFund: "darurat" as KasFundType, toFundProkerId: null, amount: "", description: "", date: today(), notes: "" });
   const [activeSubTab, setActiveSubTab] = useState<"rekap" | "transaksi">("rekap");
   const [txState, setTxState] = useState<SimpleTxState>(defaultSimpleTx({ description: "Belanja makan" }));
   const [configForm, setConfigForm] = useState({ weeklyAmount: String(summary?.weeklyFoodAmount ?? 0) });
@@ -997,10 +1022,12 @@ function IuranMakanTab({ isAdmin, summary }: { isAdmin?: boolean; summary: any }
       </Dialog>
 
       <TransferDanaDialog open={openTransferDana} onClose={() => setOpenTransferDana(false)} isPending={transferKas.isPending}
-        initial={transferDanaInit}
+        initial={transferDanaInit} prokers={prokers ?? []}
         onSave={(form) => {
-          transferKas.mutate({ data: { fromFund: form.fromFund, toFund: form.toFund, amount: Number(form.amount), description: form.description, date: form.date, notes: form.notes || undefined } }, {
+          transferKas.mutate({ data: { fromFund: form.fromFund, toFund: form.toFund, toFundProkerId: form.toFundProkerId ?? undefined, amount: Number(form.amount), description: form.description, date: form.date, notes: form.notes || undefined } }, {
             onSuccess: () => {
+              qc.invalidateQueries({ queryKey: getGetProkerFundsQueryKey() });
+              qc.invalidateQueries({ queryKey: getGetKasQueryKey({ fund: "proker" }) });
               invalidate(); setOpenTransferDana(false);
               toast({ title: `Transfer ${formatRp(Number(form.amount))} berhasil` });
             },
@@ -1151,10 +1178,12 @@ function DanadaruratTab({ isAdmin, summary }: { isAdmin?: boolean; summary: any 
       </Dialog>
 
       <TransferDanaDialog open={openTransferDana} onClose={() => setOpenTransferDana(false)} isPending={transferKas.isPending}
-        initial={{ fromFund: "darurat", toFund: "umum", amount: "", description: "Transfer Dana Darurat → Umum", date: today(), notes: "" }}
+        initial={{ fromFund: "darurat", toFund: "umum", toFundProkerId: null, amount: "", description: "Transfer Dana Darurat → Umum", date: today(), notes: "" }}
         onSave={(form) => {
-          transferKas.mutate({ data: { fromFund: form.fromFund, toFund: form.toFund, amount: Number(form.amount), description: form.description, date: form.date, notes: form.notes || undefined } }, {
+          transferKas.mutate({ data: { fromFund: form.fromFund, toFund: form.toFund, toFundProkerId: form.toFundProkerId ?? undefined, amount: Number(form.amount), description: form.description, date: form.date, notes: form.notes || undefined } }, {
             onSuccess: () => {
+              qc.invalidateQueries({ queryKey: getGetProkerFundsQueryKey() });
+              qc.invalidateQueries({ queryKey: getGetKasQueryKey({ fund: "proker" }) });
               invalidate(); setOpenTransferDana(false);
               toast({ title: `Transfer ${formatRp(Number(form.amount))} berhasil` });
             },
@@ -1257,13 +1286,22 @@ function DanaProkerTab({ isAdmin }: { isAdmin?: boolean }) {
             {[
               { label: "Anggaran", value: selectedProkerData.budget, color: "text-sky-700" },
               { label: "Terpakai", value: selectedProkerData.pengeluaran, color: "text-rose-600" },
-              { label: "Sisa", value: selectedProkerData.sisa, color: selectedProkerData.sisa >= 0 ? "text-emerald-700" : "text-rose-700" },
+              { label: "Sisa Anggaran", value: selectedProkerData.budget - selectedProkerData.pengeluaran, color: (selectedProkerData.budget - selectedProkerData.pengeluaran) >= 0 ? "text-emerald-700" : "text-rose-700" },
             ].map(c => (
               <div key={c.label} className="text-center">
                 <p className="text-xs text-gray-500">{c.label}</p>
                 <p className={cn("font-bold text-sm", c.color)}>{formatRp(c.value)}</p>
               </div>
             ))}
+          </div>
+          <div className={cn("flex items-center justify-between rounded-xl px-4 py-2.5 mb-3", selectedProkerData.sisa >= 0 ? "bg-emerald-50 border border-emerald-200" : "bg-rose-50 border border-rose-200")}>
+            <div className="flex items-center gap-2">
+              <Wallet className={cn("w-4 h-4", selectedProkerData.sisa >= 0 ? "text-emerald-600" : "text-rose-600")} />
+              <span className="text-xs font-semibold text-gray-600">Saldo Tersedia</span>
+            </div>
+            <span className={cn("text-base font-bold", selectedProkerData.sisa >= 0 ? "text-emerald-700" : "text-rose-700")}>
+              {formatRp(selectedProkerData.sisa)}{selectedProkerData.sisa < 0 ? " (defisit)" : ""}
+            </span>
           </div>
           {selectedProkerData.budget > 0 && (
             <div>
@@ -1336,9 +1374,9 @@ function DanaProkerTab({ isAdmin }: { isAdmin?: boolean }) {
         </Dialog>
 
         <TransferDanaDialog open={openTransferDana} onClose={() => setOpenTransferDana(false)} isPending={transferKas.isPending}
-          initial={{ fromFund: "proker", toFund: "umum", amount: "", description: `Kembalikan Sisa Proker: ${selectedProkerData.name}`, date: today(), notes: "" }}
+          initial={{ fromFund: "proker", toFund: "umum", toFundProkerId: null, amount: "", description: `Kembalikan Sisa Proker: ${selectedProkerData.name}`, date: today(), notes: "" }}
           onSave={(form) => {
-            transferKas.mutate({ data: { fromFund: form.fromFund, toFund: form.toFund, amount: Number(form.amount), description: form.description, date: form.date, notes: form.notes || undefined } }, {
+            transferKas.mutate({ data: { fromFund: form.fromFund, toFund: form.toFund, toFundProkerId: form.toFundProkerId ?? undefined, amount: Number(form.amount), description: form.description, date: form.date, notes: form.notes || undefined } }, {
               onSuccess: () => {
                 invalidateAll(); setOpenTransferDana(false);
                 toast({ title: `Transfer ${formatRp(Number(form.amount))} berhasil` });

@@ -11,6 +11,8 @@ import type { TransferKasInputToFund } from './transferKasInputToFund';
 export interface TransferKasInput {
   fromFund: TransferKasInputFromFund;
   toFund: TransferKasInputToFund;
+  /** Required when toFund is 'proker'. Links the incoming kas entry to the specific proker fund. */
+  toFundProkerId?: number;
   amount: number;
   description: string;
   date: string;

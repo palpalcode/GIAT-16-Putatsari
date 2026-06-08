@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { db } from "@workspace/db";
-import { kasTable, kasItemsTable, kasConfigTable, iuranMakanPaymentsTable, transferKasTable } from "@workspace/db";
+import { kasTable, kasItemsTable, kasConfigTable, iuranMakanPaymentsTable, transferKasTable, prokerFundsTable } from "@workspace/db";
 import { and, eq, desc, inArray, sql, sum } from "drizzle-orm";
 import { requireEdit } from "../lib/auth";
 import {
@@ -64,10 +64,28 @@ router.post("/kas", requireEdit("kas"), async (req, res) => {
     const { type, amount, description, date, notes, fund, prokerId, items } = parsed.data;
     const targetFund = fund ?? "umum";
     if (type === "pengeluaran") {
-      const balance = await getFundBalance(targetFund);
-      if (amount > balance) {
-        res.status(400).json({ error: "Saldo tidak mencukupi", available: balance, requested: amount });
-        return;
+      if (targetFund === "proker" && prokerId) {
+        const [proker] = await db.select().from(prokerFundsTable).where(eq(prokerFundsTable.id, prokerId));
+        if (!proker) {
+          res.status(400).json({ error: "Proker tidak ditemukan" });
+          return;
+        }
+        const prokerTxs = await db.select().from(kasTable).where(
+          and(eq(kasTable.fund, "proker"), eq(kasTable.prokerId, prokerId))
+        );
+        const prokerPemasukan = prokerTxs.filter(t => t.type === "pemasukan").reduce((s, t) => s + t.amount, 0);
+        const prokerPengeluaran = prokerTxs.filter(t => t.type === "pengeluaran").reduce((s, t) => s + t.amount, 0);
+        const prokerBalance = proker.budget + prokerPemasukan - prokerPengeluaran;
+        if (amount > prokerBalance) {
+          res.status(400).json({ error: "Saldo dana proker tidak mencukupi", available: prokerBalance, requested: amount });
+          return;
+        }
+      } else {
+        const balance = await getFundBalance(targetFund);
+        if (amount > balance) {
+          res.status(400).json({ error: "Saldo tidak mencukupi", available: balance, requested: amount });
+          return;
+        }
       }
     }
     const { row, insertedItems } = await db.transaction(async (tx) => {
@@ -426,10 +444,14 @@ router.post("/kas/transfer", requireEdit("kas"), async (req, res) => {
       res.status(400).json({ error: "Data tidak valid", details: parsed.error.flatten() });
       return;
     }
-    const { fromFund, toFund, amount, description, date, notes } = parsed.data;
+    const { fromFund, toFund, toFundProkerId, amount, description, date, notes } = parsed.data;
 
     if (fromFund === toFund) {
       res.status(403).json({ error: "Tidak dapat transfer ke fund yang sama" }); return;
+    }
+
+    if (toFund === "proker" && !toFundProkerId) {
+      res.status(400).json({ error: "toFundProkerId wajib diisi saat transfer ke dana proker" }); return;
     }
 
     const sourceBalance = await getFundBalance(fromFund);
@@ -453,6 +475,7 @@ router.post("/kas/transfer", requireEdit("kas"), async (req, res) => {
         type: "pemasukan", amount,
         description: `Transfer dari ${fromFund === "darurat" ? "dana darurat" : fromFund === "umum" ? "kas umum" : fromFund === "iuran_makan" ? "iuran makan" : "dana proker"}: ${description}`,
         category: "lainnya", date, fund: toFund,
+        prokerId: toFundProkerId ?? null,
         transferId: tf.id,
       }).returning();
       await tx.update(transferKasTable).set({ kasOutId: out.id, kasInId: inp.id }).where(eq(transferKasTable.id, tf.id));

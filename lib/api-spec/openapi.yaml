@@ -2663,6 +2663,9 @@ components:
         toFund:
           type: string
           enum: [umum, darurat, iuran_makan, proker]
+        toFundProkerId:
+          type: integer
+          description: Required when toFund is 'proker'. Links the incoming kas entry to the specific proker fund.
         amount:
           type: integer
         description:
