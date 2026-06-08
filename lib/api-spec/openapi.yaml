@@ -1736,7 +1736,7 @@ components:
           type: string
         category:
           type: string
-          enum: [p3k, obat, alkes, umum]
+          enum: [alat_kebersihan, alat_masak, alat_makan, alat_tulis, alat_elektronik, pakaian, stock_makanan, device]
         quantity:
           type: integer
         unit:
@@ -1761,7 +1761,7 @@ components:
           type: string
         category:
           type: string
-          enum: [p3k, obat, alkes, umum]
+          enum: [alat_kebersihan, alat_masak, alat_makan, alat_tulis, alat_elektronik, pakaian, stock_makanan, device]
         quantity:
           type: integer
         unit:
@@ -1783,7 +1783,7 @@ components:
           type: string
         category:
           type: string
-          enum: [p3k, obat, alkes, umum]
+          enum: [alat_kebersihan, alat_masak, alat_makan, alat_tulis, alat_elektronik, pakaian, stock_makanan, device]
         quantity:
           type: integer
         unit:

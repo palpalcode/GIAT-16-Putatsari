@@ -355,10 +355,14 @@ function CleaningTab({ isAdmin }: { isAdmin?: boolean }) {
 
 // ─── INVENTARIS TAB ───────────────────────────────────────────────────────────
 const invCategories = [
-  { id: "p3k", label: "P3K", emoji: "🩹", color: "bg-rose-100 text-rose-700 border-rose-200" },
-  { id: "obat", label: "Obat", emoji: "💊", color: "bg-amber-100 text-amber-700 border-amber-200" },
-  { id: "alkes", label: "Alkes", emoji: "🩺", color: "bg-sky-100 text-sky-700 border-sky-200" },
-  { id: "umum", label: "Umum", emoji: "📦", color: "bg-emerald-100 text-emerald-700 border-emerald-200" },
+  { id: "alat_kebersihan", label: "Alat Kebersihan", emoji: "🧹", color: "bg-emerald-100 text-emerald-700 border-emerald-200" },
+  { id: "alat_masak", label: "Alat Masak", emoji: "🍳", color: "bg-amber-100 text-amber-700 border-amber-200" },
+  { id: "alat_makan", label: "Alat Makan", emoji: "🍽️", color: "bg-sky-100 text-sky-700 border-sky-200" },
+  { id: "alat_tulis", label: "Alat Tulis", emoji: "✏️", color: "bg-indigo-100 text-indigo-700 border-indigo-200" },
+  { id: "alat_elektronik", label: "Alat Elektronik", emoji: "🔌", color: "bg-cyan-100 text-cyan-700 border-cyan-200" },
+  { id: "pakaian", label: "Pakaian", emoji: "👕", color: "bg-pink-100 text-pink-700 border-pink-200" },
+  { id: "stock_makanan", label: "Stock Makanan", emoji: "🍚", color: "bg-lime-100 text-lime-700 border-lime-200" },
+  { id: "device", label: "Device", emoji: "📱", color: "bg-violet-100 text-violet-700 border-violet-200" },
 ];
 
 function getCatColor(cat: string) { return invCategories.find(c => c.id === cat)?.color ?? "bg-gray-100 text-gray-700 border-gray-200"; }
@@ -453,7 +457,7 @@ function InvItemForm({
 }
 
 type InvForm = { name: string; category: InventoryItemInputCategory; quantity: number; unit: string; notes: string; ownerType: "bersama" | "anggota"; ownerMember: string };
-const defaultInvForm = (): InvForm => ({ name: "", category: "umum", quantity: 1, unit: "", notes: "", ownerType: "bersama", ownerMember: "" });
+const defaultInvForm = (): InvForm => ({ name: "", category: "alat_kebersihan", quantity: 1, unit: "", notes: "", ownerType: "bersama", ownerMember: "" });
 
 // Barang Kelompok sub-tab
 function BrgKelompokTab({ isAdmin }: { isAdmin?: boolean }) {
@@ -718,11 +722,11 @@ function InventarisTab({ isAdmin, selfName, isPrivileged, isLoggedIn }: { isAdmi
 }
 
 // ─── KONDISI ANGGOTA TAB ──────────────────────────────────────────────────────
-const CONDITION_CONFIG: Record<ConditionType, { label: string; color: string; emoji: string }> = {
-  alergi: { label: "Alergi", color: "bg-rose-100 text-rose-700 border-rose-200", emoji: "🚫" },
-  kondisi: { label: "Kondisi", color: "bg-sky-100 text-sky-700 border-sky-200", emoji: "💙" },
-  fobia: { label: "Fobia", color: "bg-amber-100 text-amber-700 border-amber-200", emoji: "⚡" },
-  catatan: { label: "Catatan", color: "bg-emerald-100 text-emerald-700 border-emerald-200", emoji: "📝" },
+const CONDITION_CONFIG: Record<ConditionType, { label: string; color: string; emoji: string; placeholder: string }> = {
+  alergi: { label: "Alergi", color: "bg-rose-100 text-rose-700 border-rose-200", emoji: "🚫", placeholder: "udang" },
+  "sakit bawaan": { label: "Sakit Bawaan", color: "bg-red-100 text-red-700 border-red-200", emoji: "❤️", placeholder: "gerd" },
+  fobia: { label: "Fobia", color: "bg-amber-100 text-amber-700 border-amber-200", emoji: "😨", placeholder: "cabai" },
+  lainnya: { label: "Lainnya", color: "bg-emerald-100 text-emerald-700 border-emerald-200", emoji: "📝", placeholder: "" },
 };
 
 function KondisiTab({ memberName: selfName, isKetSek }: { memberName: string | null; isKetSek: boolean }) {
@@ -809,7 +813,7 @@ function KondisiTab({ memberName: selfName, isKetSek }: { memberName: string | n
                 ) : (
                   <div className="space-y-2">
                     {memberConds.map(c => {
-                      const cfg = CONDITION_CONFIG[c.type as ConditionType] ?? CONDITION_CONFIG.catatan;
+                      const cfg = CONDITION_CONFIG[c.type as ConditionType] ?? CONDITION_CONFIG.lainnya;
                       return (
                         <div key={c.id} className="group flex items-start gap-2">
                           <Badge className={cn("text-xs px-2 py-0.5 border flex items-center gap-1 shrink-0", cfg.color)}>
@@ -863,7 +867,7 @@ function KondisiTab({ memberName: selfName, isKetSek }: { memberName: string | n
             </div>
             <div>
               <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 block">Keterangan</label>
-              <Input placeholder="Contoh: Alergi udang, Fobia ketinggian..." value={form.description}
+              <Input placeholder={`Contoh: ${CONDITION_CONFIG[form.type].label} ${CONDITION_CONFIG[form.type].placeholder}...`} value={form.description}
                 onChange={e => setForm(f => ({ ...f, description: e.target.value }))} className="bg-white/60" />
             </div>
             <div className="flex gap-3 justify-end pt-1">

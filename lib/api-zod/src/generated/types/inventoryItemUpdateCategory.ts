@@ -10,8 +10,12 @@ export type InventoryItemUpdateCategory = typeof InventoryItemUpdateCategory[key
 
 
 export const InventoryItemUpdateCategory = {
-  p3k: 'p3k',
-  obat: 'obat',
-  alkes: 'alkes',
-  umum: 'umum',
+  alat_kebersihan: 'alat_kebersihan',
+  alat_masak: 'alat_masak',
+  alat_makan: 'alat_makan',
+  alat_tulis: 'alat_tulis',
+  alat_elektronik: 'alat_elektronik',
+  pakaian: 'pakaian',
+  stock_makanan: 'stock_makanan',
+  device: 'device',
 } as const;

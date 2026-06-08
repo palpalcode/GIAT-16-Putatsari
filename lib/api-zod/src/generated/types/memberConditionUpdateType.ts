@@ -11,7 +11,7 @@ export type MemberConditionUpdateType = typeof MemberConditionUpdateType[keyof t
 
 export const MemberConditionUpdateType = {
   alergi: 'alergi',
-  kondisi: 'kondisi',
+  sakit_bawaan: 'sakit bawaan',
   fobia: 'fobia',
-  catatan: 'catatan',
+  lainnya: 'lainnya',
 } as const;

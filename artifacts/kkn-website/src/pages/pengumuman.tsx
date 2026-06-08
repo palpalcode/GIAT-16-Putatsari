@@ -245,9 +245,7 @@ export default function PengumumanPage() {
     <div className="space-y-6 animate-in fade-in duration-500">
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-rose-500 to-sky-500 bg-clip-text text-transparent">
-            Pengumuman & Notulensi
-          </h1>
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-rose-500 to-sky-500 bg-clip-text text-transparent">Pengumuman</h1>
           <p className="text-gray-500 text-sm mt-1">Informasi dan catatan rapat Tim Putatsari Wellness</p>
         </div>
         {tab === "pengumuman" && canEditPengumuman && (
@@ -269,7 +267,6 @@ export default function PengumumanPage() {
           </Button>
         )}
       </div>
-
       {/* Tabs */}
       <div className="flex items-center gap-1 bg-white/50 rounded-full p-1 w-fit border border-white/60">
         <button
@@ -297,7 +294,6 @@ export default function PengumumanPage() {
           Notulensi
         </button>
       </div>
-
       {/* Pengumuman tab */}
       {tab === "pengumuman" && (
         <div className="animate-in fade-in duration-300">
@@ -351,7 +347,6 @@ export default function PengumumanPage() {
           )}
         </div>
       )}
-
       {/* Notulensi tab */}
       {tab === "notulensi" && (
         <div className="animate-in fade-in duration-300">
@@ -431,7 +426,6 @@ export default function PengumumanPage() {
           )}
         </div>
       )}
-
       {/* Pengumuman Dialog */}
       <Dialog open={openA} onOpenChange={setOpenA}>
         <DialogContent className="glass-panel border-white/50">
@@ -475,7 +469,6 @@ export default function PengumumanPage() {
           </div>
         </DialogContent>
       </Dialog>
-
       {/* Notulensi Dialog */}
       <Dialog open={openN} onOpenChange={setOpenN}>
         <DialogContent className="glass-panel border-white/50 max-w-2xl max-h-[90vh] overflow-y-auto">

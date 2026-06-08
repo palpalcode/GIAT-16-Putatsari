@@ -11,7 +11,7 @@ export type MemberConditionType = typeof MemberConditionType[keyof typeof Member
 
 export const MemberConditionType = {
   alergi: 'alergi',
-  kondisi: 'kondisi',
+  sakit_bawaan: 'sakit bawaan',
   fobia: 'fobia',
-  catatan: 'catatan',
+  lainnya: 'lainnya',
 } as const;

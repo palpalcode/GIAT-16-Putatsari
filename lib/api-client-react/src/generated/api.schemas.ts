@@ -249,10 +249,14 @@ export type InventoryItemCategory = typeof InventoryItemCategory[keyof typeof In
 
 
 export const InventoryItemCategory = {
-  p3k: 'p3k',
-  obat: 'obat',
-  alkes: 'alkes',
-  umum: 'umum',
+  alat_kebersihan: 'alat_kebersihan',
+  alat_masak: 'alat_masak',
+  alat_makan: 'alat_makan',
+  alat_tulis: 'alat_tulis',
+  alat_elektronik: 'alat_elektronik',
+  pakaian: 'pakaian',
+  stock_makanan: 'stock_makanan',
+  device: 'device',
 } as const;
 
 export type InventoryItemItemType = typeof InventoryItemItemType[keyof typeof InventoryItemItemType];
@@ -283,10 +287,14 @@ export type InventoryItemInputCategory = typeof InventoryItemInputCategory[keyof
 
 
 export const InventoryItemInputCategory = {
-  p3k: 'p3k',
-  obat: 'obat',
-  alkes: 'alkes',
-  umum: 'umum',
+  alat_kebersihan: 'alat_kebersihan',
+  alat_masak: 'alat_masak',
+  alat_makan: 'alat_makan',
+  alat_tulis: 'alat_tulis',
+  alat_elektronik: 'alat_elektronik',
+  pakaian: 'pakaian',
+  stock_makanan: 'stock_makanan',
+  device: 'device',
 } as const;
 
 export type InventoryItemInputItemType = typeof InventoryItemInputItemType[keyof typeof InventoryItemInputItemType];
@@ -312,10 +320,14 @@ export type InventoryItemUpdateCategory = typeof InventoryItemUpdateCategory[key
 
 
 export const InventoryItemUpdateCategory = {
-  p3k: 'p3k',
-  obat: 'obat',
-  alkes: 'alkes',
-  umum: 'umum',
+  alat_kebersihan: 'alat_kebersihan',
+  alat_masak: 'alat_masak',
+  alat_makan: 'alat_makan',
+  alat_tulis: 'alat_tulis',
+  alat_elektronik: 'alat_elektronik',
+  pakaian: 'pakaian',
+  stock_makanan: 'stock_makanan',
+  device: 'device',
 } as const;
 
 export interface InventoryItemUpdate {
@@ -857,9 +869,9 @@ export type MemberConditionType = typeof MemberConditionType[keyof typeof Member
 
 export const MemberConditionType = {
   alergi: 'alergi',
-  kondisi: 'kondisi',
+  sakit_bawaan: 'sakit bawaan',
   fobia: 'fobia',
-  catatan: 'catatan',
+  lainnya: 'lainnya',
 } as const;
 
 export interface MemberCondition {
@@ -875,9 +887,9 @@ export type MemberConditionInputType = typeof MemberConditionInputType[keyof typ
 
 export const MemberConditionInputType = {
   alergi: 'alergi',
-  kondisi: 'kondisi',
+  sakit_bawaan: 'sakit bawaan',
   fobia: 'fobia',
-  catatan: 'catatan',
+  lainnya: 'lainnya',
 } as const;
 
 export interface MemberConditionInput {
@@ -891,9 +903,9 @@ export type MemberConditionUpdateType = typeof MemberConditionUpdateType[keyof t
 
 export const MemberConditionUpdateType = {
   alergi: 'alergi',
-  kondisi: 'kondisi',
+  sakit_bawaan: 'sakit bawaan',
   fobia: 'fobia',
-  catatan: 'catatan',
+  lainnya: 'lainnya',
 } as const;
 
 export interface MemberConditionUpdate {

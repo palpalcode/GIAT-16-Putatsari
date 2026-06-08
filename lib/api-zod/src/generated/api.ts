@@ -322,7 +322,7 @@ export const GetInventoryQueryParams = zod.object({
 export const GetInventoryResponseItem = zod.object({
   "id": zod.number(),
   "name": zod.string(),
-  "category": zod.enum(['p3k', 'obat', 'alkes', 'umum']),
+  "category": zod.enum(['alat_kebersihan', 'alat_masak', 'alat_makan', 'alat_tulis', 'alat_elektronik', 'pakaian', 'stock_makanan', 'device']),
   "quantity": zod.number(),
   "unit": zod.string(),
   "notes": zod.string().nullish(),
@@ -339,7 +339,7 @@ export const GetInventoryResponse = zod.array(GetInventoryResponseItem)
  */
 export const CreateInventoryItemBody = zod.object({
   "name": zod.string(),
-  "category": zod.enum(['p3k', 'obat', 'alkes', 'umum']),
+  "category": zod.enum(['alat_kebersihan', 'alat_masak', 'alat_makan', 'alat_tulis', 'alat_elektronik', 'pakaian', 'stock_makanan', 'device']),
   "quantity": zod.number(),
   "unit": zod.string(),
   "notes": zod.string().optional(),
@@ -358,7 +358,7 @@ export const UpdateInventoryItemParams = zod.object({
 
 export const UpdateInventoryItemBody = zod.object({
   "name": zod.string().optional(),
-  "category": zod.enum(['p3k', 'obat', 'alkes', 'umum']).optional(),
+  "category": zod.enum(['alat_kebersihan', 'alat_masak', 'alat_makan', 'alat_tulis', 'alat_elektronik', 'pakaian', 'stock_makanan', 'device']).optional(),
   "quantity": zod.number().optional(),
   "unit": zod.string().optional(),
   "notes": zod.string().optional(),
@@ -369,7 +369,7 @@ export const UpdateInventoryItemBody = zod.object({
 export const UpdateInventoryItemResponse = zod.object({
   "id": zod.number(),
   "name": zod.string(),
-  "category": zod.enum(['p3k', 'obat', 'alkes', 'umum']),
+  "category": zod.enum(['alat_kebersihan', 'alat_masak', 'alat_makan', 'alat_tulis', 'alat_elektronik', 'pakaian', 'stock_makanan', 'device']),
   "quantity": zod.number(),
   "unit": zod.string(),
   "notes": zod.string().nullish(),
@@ -1050,7 +1050,7 @@ export const GetStorageObjectParams = zod.object({
 export const GetConditionsResponseItem = zod.object({
   "id": zod.number(),
   "memberName": zod.string(),
-  "type": zod.enum(['alergi', 'kondisi', 'fobia', 'catatan']),
+  "type": zod.enum(['alergi', 'sakit bawaan', 'fobia', 'lainnya']),
   "description": zod.string(),
   "createdAt": zod.string()
 })
@@ -1062,7 +1062,7 @@ export const GetConditionsResponse = zod.array(GetConditionsResponseItem)
  */
 export const CreateConditionBody = zod.object({
   "memberName": zod.string(),
-  "type": zod.enum(['alergi', 'kondisi', 'fobia', 'catatan']),
+  "type": zod.enum(['alergi', 'sakit bawaan', 'fobia', 'lainnya']),
   "description": zod.string()
 })
 
@@ -1075,14 +1075,14 @@ export const UpdateConditionParams = zod.object({
 })
 
 export const UpdateConditionBody = zod.object({
-  "type": zod.enum(['alergi', 'kondisi', 'fobia', 'catatan']).optional(),
+  "type": zod.enum(['alergi', 'sakit bawaan', 'fobia', 'lainnya']).optional(),
   "description": zod.string().optional()
 })
 
 export const UpdateConditionResponse = zod.object({
   "id": zod.number(),
   "memberName": zod.string(),
-  "type": zod.enum(['alergi', 'kondisi', 'fobia', 'catatan']),
+  "type": zod.enum(['alergi', 'sakit bawaan', 'fobia', 'lainnya']),
   "description": zod.string(),
   "createdAt": zod.string()
 })
