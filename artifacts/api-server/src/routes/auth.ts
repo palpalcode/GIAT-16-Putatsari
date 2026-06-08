@@ -1,7 +1,8 @@
 import { Router } from "express";
-import { getRole, getMemberId, getMemberName, permissionsForRole, ensureSeeded, ensureMembersSeeded, verifyMemberLogin } from "../lib/auth";
+import { getRole, getMemberId, getMemberName, permissionsForRole, ensureSeeded, ensureMembersSeeded, verifyMemberLogin, requireLogin, requireManage } from "../lib/auth";
 import { db, membersTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
+import bcrypt from "bcryptjs";
 
 const router = Router();
 
@@ -43,6 +44,56 @@ router.post("/auth/logout", (req, res) => {
   req.session.destroy(() => {
     res.json({ message: "Logout berhasil" });
   });
+});
+
+router.post("/auth/change-password", requireLogin, async (req, res) => {
+  const memberId = getMemberId(req);
+  const { currentPassword, newPassword } = req.body;
+
+  if (!currentPassword || !newPassword) {
+    res.status(400).json({ error: "Password lama dan password baru wajib diisi" });
+    return;
+  }
+  if (typeof newPassword !== "string" || newPassword.length < 6) {
+    res.status(400).json({ error: "Password baru minimal 6 karakter" });
+    return;
+  }
+
+  const rows = await db.select().from(membersTable).where(eq(membersTable.id, memberId!));
+  if (!rows.length) {
+    res.status(404).json({ error: "Anggota tidak ditemukan" });
+    return;
+  }
+
+  const valid = bcrypt.compareSync(currentPassword, rows[0].passwordHash);
+  if (!valid) {
+    res.status(401).json({ error: "Password lama tidak sesuai" });
+    return;
+  }
+
+  const newHash = bcrypt.hashSync(newPassword, 10);
+  await db.update(membersTable).set({ passwordHash: newHash }).where(eq(membersTable.id, memberId!));
+  res.json({ message: "Password berhasil diubah" });
+});
+
+router.post("/auth/change-password/:id", requireLogin, requireManage, async (req, res) => {
+  const targetId = parseInt(req.params.id, 10);
+  const { newPassword } = req.body;
+
+  if (!newPassword || typeof newPassword !== "string" || newPassword.length < 6) {
+    res.status(400).json({ error: "Password baru minimal 6 karakter" });
+    return;
+  }
+
+  const rows = await db.select().from(membersTable).where(eq(membersTable.id, targetId));
+  if (!rows.length) {
+    res.status(404).json({ error: "Anggota tidak ditemukan" });
+    return;
+  }
+
+  const newHash = bcrypt.hashSync(newPassword, 10);
+  await db.update(membersTable).set({ passwordHash: newHash }).where(eq(membersTable.id, targetId));
+  res.json({ message: `Password ${rows[0].name} berhasil diubah` });
 });
 
 router.get("/auth/me", async (req, res) => {

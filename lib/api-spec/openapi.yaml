@@ -97,6 +97,60 @@ paths:
               schema:
                 $ref: "#/components/schemas/AuthStatus"
 
+  /auth/change-password:
+    post:
+      operationId: changeOwnPassword
+      tags: [auth]
+      summary: Change own password (requires login)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ChangePasswordInput"
+      responses:
+        "200":
+          description: Password changed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+        "400":
+          description: Validation error
+        "401":
+          description: Not logged in or current password wrong
+
+  /auth/change-password/{id}:
+    post:
+      operationId: changeUserPassword
+      tags: [auth]
+      summary: Change another member's password (ketua only)
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ChangeUserPasswordInput"
+      responses:
+        "200":
+          description: Password changed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+        "400":
+          description: Validation error
+        "403":
+          description: Forbidden (ketua only)
+        "404":
+          description: Member not found
+
   /permissions:
     get:
       operationId: getPermissions
@@ -1393,6 +1447,29 @@ components:
           type: string
       required:
         - status
+
+    MessageResponse:
+      type: object
+      required: [message]
+      properties:
+        message:
+          type: string
+
+    ChangePasswordInput:
+      type: object
+      required: [currentPassword, newPassword]
+      properties:
+        currentPassword:
+          type: string
+        newPassword:
+          type: string
+
+    ChangeUserPasswordInput:
+      type: object
+      required: [newPassword]
+      properties:
+        newPassword:
+          type: string
 
     LoginInput:
       type: object

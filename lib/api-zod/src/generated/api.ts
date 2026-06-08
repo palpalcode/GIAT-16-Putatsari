@@ -53,6 +53,35 @@ export const GetAuthMeResponse = zod.object({
 
 
 /**
+ * @summary Change own password (requires login)
+ */
+export const ChangeOwnPasswordBody = zod.object({
+  "currentPassword": zod.string(),
+  "newPassword": zod.string()
+})
+
+export const ChangeOwnPasswordResponse = zod.object({
+  "message": zod.string()
+})
+
+
+/**
+ * @summary Change another member's password (ketua only)
+ */
+export const ChangeUserPasswordParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const ChangeUserPasswordBody = zod.object({
+  "newPassword": zod.string()
+})
+
+export const ChangeUserPasswordResponse = zod.object({
+  "message": zod.string()
+})
+
+
+/**
  * @summary Get all managed role permissions (ketua only)
  */
 export const GetPermissionsResponseItem = zod.object({

@@ -29,6 +29,8 @@ import type {
   AuthResult,
   AuthStatus,
   AvatarUpdateInput,
+  ChangePasswordInput,
+  ChangeUserPasswordInput,
   CleaningSchedule,
   CleaningScheduleInput,
   CleaningScheduleUpdate,
@@ -64,6 +66,7 @@ import type {
   MemberConditionInput,
   MemberConditionUpdate,
   MemberProfile,
+  MessageResponse,
   Notulensi,
   NotulensiInput,
   NotulensiUpdate,
@@ -391,6 +394,149 @@ export function useGetAuthMe<TData = Awaited<ReturnType<typeof getAuthMe>>, TErr
 
 
 
+
+export const getChangeOwnPasswordUrl = () => {
+
+
+
+
+  return `/api/auth/change-password`
+}
+
+/**
+ * @summary Change own password (requires login)
+ */
+export const changeOwnPassword = async (changePasswordInput: ChangePasswordInput, options?: RequestInit): Promise<MessageResponse> => {
+
+  return customFetch<MessageResponse>(getChangeOwnPasswordUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      changePasswordInput,)
+  }
+);}
+
+
+
+
+export const getChangeOwnPasswordMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof changeOwnPassword>>, TError,{data: BodyType<ChangePasswordInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof changeOwnPassword>>, TError,{data: BodyType<ChangePasswordInput>}, TContext> => {
+
+const mutationKey = ['changeOwnPassword'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof changeOwnPassword>>, {data: BodyType<ChangePasswordInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  changeOwnPassword(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ChangeOwnPasswordMutationResult = NonNullable<Awaited<ReturnType<typeof changeOwnPassword>>>
+    export type ChangeOwnPasswordMutationBody = BodyType<ChangePasswordInput>
+    export type ChangeOwnPasswordMutationError = ErrorType<void>
+
+    /**
+ * @summary Change own password (requires login)
+ */
+export const useChangeOwnPassword = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof changeOwnPassword>>, TError,{data: BodyType<ChangePasswordInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof changeOwnPassword>>,
+        TError,
+        {data: BodyType<ChangePasswordInput>},
+        TContext
+      > => {
+      return useMutation(getChangeOwnPasswordMutationOptions(options));
+    }
+
+export const getChangeUserPasswordUrl = (id: number,) => {
+
+
+
+
+  return `/api/auth/change-password/${id}`
+}
+
+/**
+ * @summary Change another member's password (ketua only)
+ */
+export const changeUserPassword = async (id: number,
+    changeUserPasswordInput: ChangeUserPasswordInput, options?: RequestInit): Promise<MessageResponse> => {
+
+  return customFetch<MessageResponse>(getChangeUserPasswordUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      changeUserPasswordInput,)
+  }
+);}
+
+
+
+
+export const getChangeUserPasswordMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof changeUserPassword>>, TError,{id: number;data: BodyType<ChangeUserPasswordInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof changeUserPassword>>, TError,{id: number;data: BodyType<ChangeUserPasswordInput>}, TContext> => {
+
+const mutationKey = ['changeUserPassword'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof changeUserPassword>>, {id: number;data: BodyType<ChangeUserPasswordInput>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  changeUserPassword(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ChangeUserPasswordMutationResult = NonNullable<Awaited<ReturnType<typeof changeUserPassword>>>
+    export type ChangeUserPasswordMutationBody = BodyType<ChangeUserPasswordInput>
+    export type ChangeUserPasswordMutationError = ErrorType<void>
+
+    /**
+ * @summary Change another member's password (ketua only)
+ */
+export const useChangeUserPassword = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof changeUserPassword>>, TError,{id: number;data: BodyType<ChangeUserPasswordInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof changeUserPassword>>,
+        TError,
+        {id: number;data: BodyType<ChangeUserPasswordInput>},
+        TContext
+      > => {
+      return useMutation(getChangeUserPasswordMutationOptions(options));
+    }
 
 export const getGetPermissionsUrl = () => {
 

@@ -9,6 +9,19 @@ export interface HealthStatus {
   status: string;
 }
 
+export interface MessageResponse {
+  message: string;
+}
+
+export interface ChangePasswordInput {
+  currentPassword: string;
+  newPassword: string;
+}
+
+export interface ChangeUserPasswordInput {
+  newPassword: string;
+}
+
 export interface LoginInput {
   name: string;
   password: string;
