@@ -321,7 +321,7 @@ export default function OurWorkDetailPage() {
           </button>
 
           <div className="flex items-center gap-2">
-            {(isKetSek || canEdit) && (
+            {isLoggedIn && (isKetSek || canEdit) && (
               <Button
                 variant="outline"
                 size="sm"
@@ -331,13 +331,15 @@ export default function OurWorkDetailPage() {
                 <BookOpen className="w-3.5 h-3.5" />Edit Logbook
               </Button>
             )}
-            <Button
-              size="sm"
-              onClick={handlePrint}
-              className="bg-gradient-to-r from-rose-400 to-sky-400 text-white border-0 rounded-full gap-1.5 text-xs h-8 px-3"
-            >
-              <Printer className="w-3.5 h-3.5" />Cetak
-            </Button>
+            {isLoggedIn && (
+              <Button
+                size="sm"
+                onClick={handlePrint}
+                className="bg-gradient-to-r from-rose-400 to-sky-400 text-white border-0 rounded-full gap-1.5 text-xs h-8 px-3"
+              >
+                <Printer className="w-3.5 h-3.5" />Cetak
+              </Button>
+            )}
           </div>
         </div>
 
@@ -426,7 +428,7 @@ export default function OurWorkDetailPage() {
                 <span className="text-2xl">📋</span>
               </div>
               <p className="text-gray-400 text-sm text-center">Belum ada entri logbook.</p>
-              {(isKetSek || canEdit) && (
+              {isLoggedIn && (isKetSek || canEdit) && (
                 <Button
                   onClick={() => setDrawerOpen(true)}
                   size="sm"

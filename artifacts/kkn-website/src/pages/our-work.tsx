@@ -456,13 +456,15 @@ export default function OurWorkPage() {
                               <Eye className="w-3.5 h-3.5 text-sky-500" />
                               Lihat &amp; Cetak
                             </DropdownMenuItem>
-                            <DropdownMenuItem
-                              onClick={() => setLogbookProgram({ id: s.id, programName: s.programName, leader: s.leader })}
-                              className="gap-2 text-xs cursor-pointer"
-                            >
-                              <BookOpen className="w-3.5 h-3.5 text-emerald-500" />
-                              Edit Logbook
-                            </DropdownMenuItem>
+                            {isLoggedIn && (isKetSek || isAdmin) && (
+                              <DropdownMenuItem
+                                onClick={() => setLogbookProgram({ id: s.id, programName: s.programName, leader: s.leader })}
+                                className="gap-2 text-xs cursor-pointer"
+                              >
+                                <BookOpen className="w-3.5 h-3.5 text-emerald-500" />
+                                Edit Logbook
+                              </DropdownMenuItem>
+                            )}
                           </DropdownMenuContent>
                         </DropdownMenu>
                         {isAdmin && (

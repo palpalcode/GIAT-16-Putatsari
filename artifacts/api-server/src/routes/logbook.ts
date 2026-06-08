@@ -92,7 +92,7 @@ function safeDateRangeLabel(dateFrom?: string, dateTo?: string): string {
 }
 
 // GET /logbook?programId=
-router.get("/logbook", requireLogin, async (req, res) => {
+router.get("/logbook", async (req, res) => {
   try {
     const programId = Number(req.query["programId"]);
     if (!programId) {
