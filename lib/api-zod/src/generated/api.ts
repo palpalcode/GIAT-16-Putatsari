@@ -1324,3 +1324,128 @@ export const DeleteAttendanceParams = zod.object({
 })
 
 
+/**
+ * @summary List logbook entries for a program
+ */
+export const GetLogbookEntriesQueryParams = zod.object({
+  "programId": zod.coerce.number()
+})
+
+export const GetLogbookEntriesResponseItem = zod.object({
+  "id": zod.number(),
+  "programId": zod.number(),
+  "tanggal": zod.string(),
+  "kegiatan": zod.string(),
+  "lokasi": zod.string(),
+  "peserta": zod.array(zod.string()),
+  "sasaran": zod.string(),
+  "hasilKegiatan": zod.string(),
+  "kendala": zod.string().nullish(),
+  "tindakLanjut": zod.string().nullish(),
+  "penanggungjawab": zod.string(),
+  "createdAt": zod.string(),
+  "photos": zod.array(zod.object({
+  "id": zod.number(),
+  "logbookEntryId": zod.number(),
+  "storageKey": zod.string(),
+  "url": zod.string().describe('Relative URL path to serve this photo via the storage endpoint'),
+  "fileName": zod.string(),
+  "createdAt": zod.string()
+}))
+})
+export const GetLogbookEntriesResponse = zod.array(GetLogbookEntriesResponseItem)
+
+
+/**
+ * @summary Create a logbook entry (our-work edit access required)
+ */
+export const CreateLogbookEntryBody = zod.object({
+  "programId": zod.number(),
+  "tanggal": zod.string(),
+  "kegiatan": zod.string(),
+  "lokasi": zod.string(),
+  "peserta": zod.array(zod.string()),
+  "sasaran": zod.string(),
+  "hasilKegiatan": zod.string(),
+  "kendala": zod.string().optional(),
+  "tindakLanjut": zod.string().optional(),
+  "penanggungjawab": zod.string()
+})
+
+
+/**
+ * @summary Update a logbook entry (our-work edit access required)
+ */
+export const UpdateLogbookEntryParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const UpdateLogbookEntryBody = zod.object({
+  "tanggal": zod.string().optional(),
+  "kegiatan": zod.string().optional(),
+  "lokasi": zod.string().optional(),
+  "peserta": zod.array(zod.string()).optional(),
+  "sasaran": zod.string().optional(),
+  "hasilKegiatan": zod.string().optional(),
+  "kendala": zod.string().optional(),
+  "tindakLanjut": zod.string().optional(),
+  "penanggungjawab": zod.string().optional()
+})
+
+export const UpdateLogbookEntryResponse = zod.object({
+  "id": zod.number(),
+  "programId": zod.number(),
+  "tanggal": zod.string(),
+  "kegiatan": zod.string(),
+  "lokasi": zod.string(),
+  "peserta": zod.array(zod.string()),
+  "sasaran": zod.string(),
+  "hasilKegiatan": zod.string(),
+  "kendala": zod.string().nullish(),
+  "tindakLanjut": zod.string().nullish(),
+  "penanggungjawab": zod.string(),
+  "createdAt": zod.string(),
+  "photos": zod.array(zod.object({
+  "id": zod.number(),
+  "logbookEntryId": zod.number(),
+  "storageKey": zod.string(),
+  "url": zod.string().describe('Relative URL path to serve this photo via the storage endpoint'),
+  "fileName": zod.string(),
+  "createdAt": zod.string()
+}))
+})
+
+
+/**
+ * @summary Delete a logbook entry and its photos (our-work edit access required)
+ */
+export const DeleteLogbookEntryParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+
+/**
+ * @summary Upload a documentation photo for a logbook entry (our-work edit access required)
+ */
+export const AddLogbookPhotoBody = zod.object({
+  "logbookEntryId": zod.number(),
+  "file": zod.instanceof(File)
+})
+
+
+/**
+ * @summary Delete a logbook photo (our-work edit access required)
+ */
+export const DeleteLogbookPhotoParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+
+/**
+ * @summary Export logbook entries for a program as a Word document
+ */
+export const ExportLogbookWordQueryParams = zod.object({
+  "programId": zod.coerce.number()
+})
+
+

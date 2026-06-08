@@ -17,6 +17,7 @@ import membersRouter from "./members";
 import storageRouter from "./storage";
 import conditionsRouter from "./conditions";
 import attendanceRouter from "./attendance";
+import logbookRouter from "./logbook";
 
 const router: IRouter = Router();
 
@@ -38,5 +39,6 @@ router.use(membersRouter);
 router.use(storageRouter);
 router.use(conditionsRouter);
 router.use(attendanceRouter);
+router.use(logbookRouter);
 
 export default router;

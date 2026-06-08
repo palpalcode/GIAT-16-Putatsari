@@ -47,11 +47,13 @@ import type {
   DeadlineInput,
   DeadlineUpdate,
   ErrorEnvelope,
+  ExportLogbookWordParams,
   GetAttendanceParams,
   GetInventoryParams,
   GetItemCatalogParams,
   GetIuranPaymentsParams,
   GetKasParams,
+  GetLogbookEntriesParams,
   HealthStatus,
   InventoryItem,
   InventoryItemInput,
@@ -68,6 +70,11 @@ import type {
   KasInput,
   KasSummary,
   KasUpdate,
+  LogbookEntry,
+  LogbookEntryInput,
+  LogbookEntryUpdate,
+  LogbookPhoto,
+  LogbookPhotoUploadBody,
   LoginInput,
   MemberCondition,
   MemberConditionInput,
@@ -6424,4 +6431,529 @@ export const useDeleteAttendance = <TError = ErrorType<void>,
       > => {
       return useMutation(getDeleteAttendanceMutationOptions(options));
     }
+
+export const getGetLogbookEntriesUrl = (params: GetLogbookEntriesParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/logbook?${stringifiedParams}` : `/api/logbook`
+}
+
+/**
+ * @summary List logbook entries for a program
+ */
+export const getLogbookEntries = async (params: GetLogbookEntriesParams, options?: RequestInit): Promise<LogbookEntry[]> => {
+
+  return customFetch<LogbookEntry[]>(getGetLogbookEntriesUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetLogbookEntriesQueryKey = (params?: GetLogbookEntriesParams,) => {
+    return [
+    `/api/logbook`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetLogbookEntriesQueryOptions = <TData = Awaited<ReturnType<typeof getLogbookEntries>>, TError = ErrorType<unknown>>(params: GetLogbookEntriesParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getLogbookEntries>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetLogbookEntriesQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getLogbookEntries>>> = ({ signal }) => getLogbookEntries(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getLogbookEntries>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetLogbookEntriesQueryResult = NonNullable<Awaited<ReturnType<typeof getLogbookEntries>>>
+export type GetLogbookEntriesQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary List logbook entries for a program
+ */
+
+export function useGetLogbookEntries<TData = Awaited<ReturnType<typeof getLogbookEntries>>, TError = ErrorType<unknown>>(
+ params: GetLogbookEntriesParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getLogbookEntries>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetLogbookEntriesQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getCreateLogbookEntryUrl = () => {
+
+
+
+
+  return `/api/logbook`
+}
+
+/**
+ * @summary Create a logbook entry (our-work edit access required)
+ */
+export const createLogbookEntry = async (logbookEntryInput: LogbookEntryInput, options?: RequestInit): Promise<LogbookEntry> => {
+
+  return customFetch<LogbookEntry>(getCreateLogbookEntryUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      logbookEntryInput,)
+  }
+);}
+
+
+
+
+export const getCreateLogbookEntryMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createLogbookEntry>>, TError,{data: BodyType<LogbookEntryInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createLogbookEntry>>, TError,{data: BodyType<LogbookEntryInput>}, TContext> => {
+
+const mutationKey = ['createLogbookEntry'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createLogbookEntry>>, {data: BodyType<LogbookEntryInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  createLogbookEntry(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateLogbookEntryMutationResult = NonNullable<Awaited<ReturnType<typeof createLogbookEntry>>>
+    export type CreateLogbookEntryMutationBody = BodyType<LogbookEntryInput>
+    export type CreateLogbookEntryMutationError = ErrorType<void>
+
+    /**
+ * @summary Create a logbook entry (our-work edit access required)
+ */
+export const useCreateLogbookEntry = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createLogbookEntry>>, TError,{data: BodyType<LogbookEntryInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createLogbookEntry>>,
+        TError,
+        {data: BodyType<LogbookEntryInput>},
+        TContext
+      > => {
+      return useMutation(getCreateLogbookEntryMutationOptions(options));
+    }
+
+export const getUpdateLogbookEntryUrl = (id: number,) => {
+
+
+
+
+  return `/api/logbook/${id}`
+}
+
+/**
+ * @summary Update a logbook entry (our-work edit access required)
+ */
+export const updateLogbookEntry = async (id: number,
+    logbookEntryUpdate: LogbookEntryUpdate, options?: RequestInit): Promise<LogbookEntry> => {
+
+  return customFetch<LogbookEntry>(getUpdateLogbookEntryUrl(id),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      logbookEntryUpdate,)
+  }
+);}
+
+
+
+
+export const getUpdateLogbookEntryMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateLogbookEntry>>, TError,{id: number;data: BodyType<LogbookEntryUpdate>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateLogbookEntry>>, TError,{id: number;data: BodyType<LogbookEntryUpdate>}, TContext> => {
+
+const mutationKey = ['updateLogbookEntry'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateLogbookEntry>>, {id: number;data: BodyType<LogbookEntryUpdate>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  updateLogbookEntry(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateLogbookEntryMutationResult = NonNullable<Awaited<ReturnType<typeof updateLogbookEntry>>>
+    export type UpdateLogbookEntryMutationBody = BodyType<LogbookEntryUpdate>
+    export type UpdateLogbookEntryMutationError = ErrorType<void>
+
+    /**
+ * @summary Update a logbook entry (our-work edit access required)
+ */
+export const useUpdateLogbookEntry = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateLogbookEntry>>, TError,{id: number;data: BodyType<LogbookEntryUpdate>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateLogbookEntry>>,
+        TError,
+        {id: number;data: BodyType<LogbookEntryUpdate>},
+        TContext
+      > => {
+      return useMutation(getUpdateLogbookEntryMutationOptions(options));
+    }
+
+export const getDeleteLogbookEntryUrl = (id: number,) => {
+
+
+
+
+  return `/api/logbook/${id}`
+}
+
+/**
+ * @summary Delete a logbook entry and its photos (our-work edit access required)
+ */
+export const deleteLogbookEntry = async (id: number, options?: RequestInit): Promise<void> => {
+
+  return customFetch<void>(getDeleteLogbookEntryUrl(id),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+export const getDeleteLogbookEntryMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteLogbookEntry>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteLogbookEntry>>, TError,{id: number}, TContext> => {
+
+const mutationKey = ['deleteLogbookEntry'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteLogbookEntry>>, {id: number}> = (props) => {
+          const {id} = props ?? {};
+
+          return  deleteLogbookEntry(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteLogbookEntryMutationResult = NonNullable<Awaited<ReturnType<typeof deleteLogbookEntry>>>
+
+    export type DeleteLogbookEntryMutationError = ErrorType<void>
+
+    /**
+ * @summary Delete a logbook entry and its photos (our-work edit access required)
+ */
+export const useDeleteLogbookEntry = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteLogbookEntry>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof deleteLogbookEntry>>,
+        TError,
+        {id: number},
+        TContext
+      > => {
+      return useMutation(getDeleteLogbookEntryMutationOptions(options));
+    }
+
+export const getAddLogbookPhotoUrl = () => {
+
+
+
+
+  return `/api/logbook/photos`
+}
+
+/**
+ * @summary Upload a documentation photo for a logbook entry (our-work edit access required)
+ */
+export const addLogbookPhoto = async (logbookPhotoUploadBody: LogbookPhotoUploadBody, options?: RequestInit): Promise<LogbookPhoto> => {
+    const formData = new FormData();
+formData.append(`logbookEntryId`, logbookPhotoUploadBody.logbookEntryId.toString())
+formData.append(`file`, logbookPhotoUploadBody.file);
+
+  return customFetch<LogbookPhoto>(getAddLogbookPhotoUrl(),
+  {
+    ...options,
+    method: 'POST'
+    ,
+    body:
+      formData,
+  }
+);}
+
+
+
+
+export const getAddLogbookPhotoMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof addLogbookPhoto>>, TError,{data: BodyType<LogbookPhotoUploadBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof addLogbookPhoto>>, TError,{data: BodyType<LogbookPhotoUploadBody>}, TContext> => {
+
+const mutationKey = ['addLogbookPhoto'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof addLogbookPhoto>>, {data: BodyType<LogbookPhotoUploadBody>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  addLogbookPhoto(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type AddLogbookPhotoMutationResult = NonNullable<Awaited<ReturnType<typeof addLogbookPhoto>>>
+    export type AddLogbookPhotoMutationBody = BodyType<LogbookPhotoUploadBody>
+    export type AddLogbookPhotoMutationError = ErrorType<void>
+
+    /**
+ * @summary Upload a documentation photo for a logbook entry (our-work edit access required)
+ */
+export const useAddLogbookPhoto = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof addLogbookPhoto>>, TError,{data: BodyType<LogbookPhotoUploadBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof addLogbookPhoto>>,
+        TError,
+        {data: BodyType<LogbookPhotoUploadBody>},
+        TContext
+      > => {
+      return useMutation(getAddLogbookPhotoMutationOptions(options));
+    }
+
+export const getDeleteLogbookPhotoUrl = (id: number,) => {
+
+
+
+
+  return `/api/logbook/photos/${id}`
+}
+
+/**
+ * @summary Delete a logbook photo (our-work edit access required)
+ */
+export const deleteLogbookPhoto = async (id: number, options?: RequestInit): Promise<void> => {
+
+  return customFetch<void>(getDeleteLogbookPhotoUrl(id),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+export const getDeleteLogbookPhotoMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteLogbookPhoto>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteLogbookPhoto>>, TError,{id: number}, TContext> => {
+
+const mutationKey = ['deleteLogbookPhoto'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteLogbookPhoto>>, {id: number}> = (props) => {
+          const {id} = props ?? {};
+
+          return  deleteLogbookPhoto(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteLogbookPhotoMutationResult = NonNullable<Awaited<ReturnType<typeof deleteLogbookPhoto>>>
+
+    export type DeleteLogbookPhotoMutationError = ErrorType<void>
+
+    /**
+ * @summary Delete a logbook photo (our-work edit access required)
+ */
+export const useDeleteLogbookPhoto = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteLogbookPhoto>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof deleteLogbookPhoto>>,
+        TError,
+        {id: number},
+        TContext
+      > => {
+      return useMutation(getDeleteLogbookPhotoMutationOptions(options));
+    }
+
+export const getExportLogbookWordUrl = (params: ExportLogbookWordParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/logbook/export/word?${stringifiedParams}` : `/api/logbook/export/word`
+}
+
+/**
+ * @summary Export logbook entries for a program as a Word document
+ */
+export const exportLogbookWord = async (params: ExportLogbookWordParams, options?: RequestInit): Promise<Blob> => {
+
+  return customFetch<Blob>(getExportLogbookWordUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getExportLogbookWordQueryKey = (params?: ExportLogbookWordParams,) => {
+    return [
+    `/api/logbook/export/word`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getExportLogbookWordQueryOptions = <TData = Awaited<ReturnType<typeof exportLogbookWord>>, TError = ErrorType<unknown>>(params: ExportLogbookWordParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof exportLogbookWord>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getExportLogbookWordQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof exportLogbookWord>>> = ({ signal }) => exportLogbookWord(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof exportLogbookWord>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ExportLogbookWordQueryResult = NonNullable<Awaited<ReturnType<typeof exportLogbookWord>>>
+export type ExportLogbookWordQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Export logbook entries for a program as a Word document
+ */
+
+export function useExportLogbookWord<TData = Awaited<ReturnType<typeof exportLogbookWord>>, TError = ErrorType<unknown>>(
+ params: ExportLogbookWordParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof exportLogbookWord>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getExportLogbookWordQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
 

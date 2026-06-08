@@ -160,3 +160,12 @@ export function requireLogin(req: Request, res: Response, next: NextFunction) {
   }
   next();
 }
+
+export function requireKetSek(req: Request, res: Response, next: NextFunction) {
+  const role = getRole(req);
+  if (role !== "ketua" && role !== "sekretaris") {
+    res.status(403).json({ error: "Hanya ketua atau sekretaris yang dapat mengelola logbook" });
+    return;
+  }
+  next();
+}

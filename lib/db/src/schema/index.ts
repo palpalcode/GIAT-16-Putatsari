@@ -298,3 +298,34 @@ export const itemCatalogTable = pgTable(
 export const insertItemCatalogSchema = createInsertSchema(itemCatalogTable).omit({ id: true, createdAt: true });
 export type InsertItemCatalog = z.infer<typeof insertItemCatalogSchema>;
 export type ItemCatalog = typeof itemCatalogTable.$inferSelect;
+
+export const logbookEntriesTable = pgTable("logbook_entries", {
+  id: serial("id").primaryKey(),
+  programId: integer("program_id").notNull().references(() => programSchedulesTable.id, { onDelete: "cascade" }),
+  tanggal: text("tanggal").notNull(),
+  kegiatan: text("kegiatan").notNull(),
+  lokasi: text("lokasi").notNull(),
+  peserta: jsonb("peserta").notNull().$type<string[]>(),
+  sasaran: text("sasaran").notNull(),
+  hasilKegiatan: text("hasil_kegiatan").notNull(),
+  kendala: text("kendala"),
+  tindakLanjut: text("tindak_lanjut"),
+  penanggungjawab: text("penanggungjawab").notNull(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const insertLogbookEntrySchema = createInsertSchema(logbookEntriesTable).omit({ id: true, createdAt: true });
+export type InsertLogbookEntry = z.infer<typeof insertLogbookEntrySchema>;
+export type LogbookEntry = typeof logbookEntriesTable.$inferSelect;
+
+export const logbookPhotosTable = pgTable("logbook_photos", {
+  id: serial("id").primaryKey(),
+  logbookEntryId: integer("logbook_entry_id").notNull().references(() => logbookEntriesTable.id, { onDelete: "cascade" }),
+  storageKey: text("storage_key").notNull(),
+  fileName: text("file_name").notNull(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const insertLogbookPhotoSchema = createInsertSchema(logbookPhotosTable).omit({ id: true, createdAt: true });
+export type InsertLogbookPhoto = z.infer<typeof insertLogbookPhotoSchema>;
+export type LogbookPhoto = typeof logbookPhotosTable.$inferSelect;

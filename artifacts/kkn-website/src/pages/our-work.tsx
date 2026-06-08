@@ -18,6 +18,7 @@ import {
 } from "@workspace/api-client-react";
 import { useAuth } from "@/hooks/use-auth";
 import { AttendanceWidget } from "@/components/AttendanceWidget";
+import { LogbookDrawer } from "@/components/LogbookDrawer";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -29,7 +30,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Plus, Pencil, Trash2, CalendarDays, CheckCircle2, Clock, Loader2, User, CalendarClock } from "lucide-react";
+import { Plus, Pencil, Trash2, CalendarDays, CheckCircle2, Clock, Loader2, User, CalendarClock, BookOpen } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { cn, TEAM_MEMBERS, getMemberColor } from "@/lib/utils";
 import { getApiErrorDesc, extractApiFieldErrors } from "@/lib/api-error";
@@ -213,6 +214,7 @@ export default function OurWorkPage() {
   const [open, setOpen] = useState(false);
   const [editId, setEditId] = useState<number | null>(null);
   const [filterStatus, setFilterStatus] = useState<string | null>(null);
+  const [logbookProgram, setLogbookProgram] = useState<{ id: number; programName: string; leader: string } | null>(null);
   const defaultForm: ProgramForm = { programName: "", date: today(), leader: "", members: [], status: "planned", notes: "" };
   const [initForm, setInitForm] = useState<ProgramForm>(defaultForm);
   const [progFieldErrors, setProgFieldErrors] = useState<Record<string, string>>({});
@@ -427,15 +429,25 @@ export default function OurWorkPage() {
                         )}
                         {s.notes && <p className="text-xs text-gray-400 mt-1.5">{s.notes}</p>}
                       </div>
-                      {isAdmin && (
-                        <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
-                          <Button variant="ghost" size="icon" className="h-7 w-7 rounded-full" onClick={() => openEdit(s)}><Pencil className="w-3 h-3 text-sky-500" /></Button>
-                          <Button variant="ghost" size="icon" className="h-7 w-7 rounded-full"
-                            onClick={() => del.mutate({ id: s.id }, { onSuccess: () => { invalidateSched(); toast({ title: "Program dihapus" }); } })}>
-                            <Trash2 className="w-3 h-3 text-rose-500" />
-                          </Button>
-                        </div>
-                      )}
+                      <div className="flex gap-1 shrink-0">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-7 rounded-full text-[10px] gap-1 px-2 text-emerald-600 hover:bg-emerald-50"
+                          onClick={() => setLogbookProgram({ id: s.id, programName: s.programName, leader: s.leader })}
+                        >
+                          <BookOpen className="w-3 h-3" />Logbook
+                        </Button>
+                        {isAdmin && (
+                          <>
+                            <Button variant="ghost" size="icon" className="h-7 w-7 rounded-full opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => openEdit(s)}><Pencil className="w-3 h-3 text-sky-500" /></Button>
+                            <Button variant="ghost" size="icon" className="h-7 w-7 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                              onClick={() => del.mutate({ id: s.id }, { onSuccess: () => { invalidateSched(); toast({ title: "Program dihapus" }); } })}>
+                              <Trash2 className="w-3 h-3 text-rose-500" />
+                            </Button>
+                          </>
+                        )}
+                      </div>
                     </div>
                   </div>
                 );
@@ -559,6 +571,14 @@ export default function OurWorkPage() {
 
       {/* ── Dialogs ── */}
       <ProgramDialog open={open} onClose={() => setOpen(false)} editId={editId} initial={initForm} onSave={handleSave} isPending={create.isPending || update.isPending} fieldErrors={progFieldErrors} />
+
+      <LogbookDrawer
+        open={!!logbookProgram}
+        onClose={() => setLogbookProgram(null)}
+        program={logbookProgram}
+        isKetSek={isKetSek}
+        canEdit={isKetSek}
+      />
 
       <Dialog open={dlOpen} onOpenChange={setDlOpen}>
         <DialogContent className="form-dialog border-white/50 max-h-[90vh] overflow-y-auto">

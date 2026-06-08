@@ -39,6 +39,8 @@ tags:
     description: Kondisi pribadi anggota (alergi, sakit bawaan, fobia, lainnya)
   - name: attendance
     description: Absensi harian anggota
+  - name: logbook
+    description: Logbook kegiatan per proker
 
 paths:
   /healthz:
@@ -1634,6 +1636,150 @@ paths:
         "403":
           description: Forbidden
 
+  /logbook:
+    get:
+      operationId: getLogbookEntries
+      tags: [logbook]
+      summary: List logbook entries for a program
+      parameters:
+        - name: programId
+          in: query
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Logbook entries
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/LogbookEntry"
+    post:
+      operationId: createLogbookEntry
+      tags: [logbook]
+      summary: Create a logbook entry (our-work edit access required)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LogbookEntryInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LogbookEntry"
+        "403":
+          description: Forbidden
+
+  /logbook/{id}:
+    patch:
+      operationId: updateLogbookEntry
+      tags: [logbook]
+      summary: Update a logbook entry (our-work edit access required)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LogbookEntryUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LogbookEntry"
+        "403":
+          description: Forbidden
+        "404":
+          description: Not found
+    delete:
+      operationId: deleteLogbookEntry
+      tags: [logbook]
+      summary: Delete a logbook entry and its photos (our-work edit access required)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+        "403":
+          description: Forbidden
+
+  /logbook/photos:
+    post:
+      operationId: addLogbookPhoto
+      tags: [logbook]
+      summary: Upload a documentation photo for a logbook entry (our-work edit access required)
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: "#/components/schemas/LogbookPhotoUploadBody"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LogbookPhoto"
+        "400":
+          description: Invalid file type or size
+        "403":
+          description: Forbidden
+
+  /logbook/photos/{id}:
+    delete:
+      operationId: deleteLogbookPhoto
+      tags: [logbook]
+      summary: Delete a logbook photo (our-work edit access required)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+        "403":
+          description: Forbidden
+
+  /logbook/export/word:
+    get:
+      operationId: exportLogbookWord
+      tags: [logbook]
+      summary: Export logbook entries for a program as a Word document
+      parameters:
+        - name: programId
+          in: query
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Word document
+          content:
+            application/vnd.openxmlformats-officedocument.wordprocessingml.document:
+              schema:
+                type: string
+                format: binary
+
 components:
   schemas:
     HealthStatus:
@@ -2810,4 +2956,118 @@ components:
           type: string
           enum: [alat_kebersihan, alat_masak, alat_makan, alat_tulis, alat_elektronik, pakaian, stock_makanan, device, darurat, tempat_tidur]
         unit:
+          type: string
+
+    LogbookPhotoUploadBody:
+      type: object
+      required: [logbookEntryId, file]
+      properties:
+        logbookEntryId:
+          type: integer
+        file:
+          type: string
+          format: binary
+
+    LogbookPhoto:
+      type: object
+      required: [id, logbookEntryId, storageKey, url, fileName, createdAt]
+      properties:
+        id:
+          type: integer
+        logbookEntryId:
+          type: integer
+        storageKey:
+          type: string
+        url:
+          type: string
+          description: Relative URL path to serve this photo via the storage endpoint
+        fileName:
+          type: string
+        createdAt:
+          type: string
+
+    LogbookEntry:
+      type: object
+      required: [id, programId, tanggal, kegiatan, lokasi, peserta, sasaran, hasilKegiatan, penanggungjawab, createdAt, photos]
+      properties:
+        id:
+          type: integer
+        programId:
+          type: integer
+        tanggal:
+          type: string
+        kegiatan:
+          type: string
+        lokasi:
+          type: string
+        peserta:
+          type: array
+          items:
+            type: string
+        sasaran:
+          type: string
+        hasilKegiatan:
+          type: string
+        kendala:
+          type: ["string", "null"]
+        tindakLanjut:
+          type: ["string", "null"]
+        penanggungjawab:
+          type: string
+        createdAt:
+          type: string
+        photos:
+          type: array
+          items:
+            $ref: "#/components/schemas/LogbookPhoto"
+
+    LogbookEntryInput:
+      type: object
+      required: [programId, tanggal, kegiatan, lokasi, peserta, sasaran, hasilKegiatan, penanggungjawab]
+      properties:
+        programId:
+          type: integer
+        tanggal:
+          type: string
+        kegiatan:
+          type: string
+        lokasi:
+          type: string
+        peserta:
+          type: array
+          items:
+            type: string
+        sasaran:
+          type: string
+        hasilKegiatan:
+          type: string
+        kendala:
+          type: string
+        tindakLanjut:
+          type: string
+        penanggungjawab:
+          type: string
+
+    LogbookEntryUpdate:
+      type: object
+      properties:
+        tanggal:
+          type: string
+        kegiatan:
+          type: string
+        lokasi:
+          type: string
+        peserta:
+          type: array
+          items:
+            type: string
+        sasaran:
+          type: string
+        hasilKegiatan:
+          type: string
+        kendala:
+          type: string
+        tindakLanjut:
+          type: string
+        penanggungjawab:
           type: string

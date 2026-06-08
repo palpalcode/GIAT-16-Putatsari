@@ -1100,6 +1100,64 @@ export interface CatalogItemInput {
   unit: string;
 }
 
+export interface LogbookPhotoUploadBody {
+  logbookEntryId: number;
+  file: Blob;
+}
+
+export interface LogbookPhoto {
+  id: number;
+  logbookEntryId: number;
+  storageKey: string;
+  /** Relative URL path to serve this photo via the storage endpoint */
+  url: string;
+  fileName: string;
+  createdAt: string;
+}
+
+export interface LogbookEntry {
+  id: number;
+  programId: number;
+  tanggal: string;
+  kegiatan: string;
+  lokasi: string;
+  peserta: string[];
+  sasaran: string;
+  hasilKegiatan: string;
+  /** @nullable */
+  kendala?: string | null;
+  /** @nullable */
+  tindakLanjut?: string | null;
+  penanggungjawab: string;
+  createdAt: string;
+  photos: LogbookPhoto[];
+}
+
+export interface LogbookEntryInput {
+  programId: number;
+  tanggal: string;
+  kegiatan: string;
+  lokasi: string;
+  peserta: string[];
+  sasaran: string;
+  hasilKegiatan: string;
+  kendala?: string;
+  tindakLanjut?: string;
+  penanggungjawab: string;
+}
+
+export interface LogbookEntryUpdate {
+  tanggal?: string;
+  kegiatan?: string;
+  lokasi?: string;
+  peserta?: string[];
+  sasaran?: string;
+  hasilKegiatan?: string;
+  kendala?: string;
+  tindakLanjut?: string;
+  penanggungjawab?: string;
+}
+
 export type GetInventoryParams = {
 /**
  * Filter by item type
@@ -1172,5 +1230,13 @@ export type GetAttendanceParams = {
  * Filter by date (YYYY-MM-DD)
  */
 date?: string;
+};
+
+export type GetLogbookEntriesParams = {
+programId: number;
+};
+
+export type ExportLogbookWordParams = {
+programId: number;
 };
 
