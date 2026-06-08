@@ -11,6 +11,8 @@
 type ApiErrorShape = {
   details?: { fieldErrors?: Record<string, string[]>; formErrors?: string[] };
   error?: string;
+  available?: number;
+  requested?: number;
 };
 
 function parseErrorData(err: unknown): ApiErrorShape | null {
@@ -58,4 +60,23 @@ export function extractApiFieldErrors(err: unknown): Record<string, string> {
     if (Array.isArray(msgs) && msgs.length > 0) out[key] = msgs[0];
   }
   return out;
+}
+
+/**
+ * Detects a balance/overdraw error from the server.
+ * Returns { available, requested } when the server responds with those fields,
+ * or null if the error is a different kind.
+ *
+ * Usage:
+ *   const balance = extractBalanceError(err);
+ *   if (balance) {
+ *     // show "Saldo tidak cukup — tersedia Rp X, diminta Rp Y"
+ *   }
+ */
+export function extractBalanceError(err: unknown): { available: number; requested: number } | null {
+  const d = parseErrorData(err);
+  if (d && typeof d.available === "number" && typeof d.requested === "number") {
+    return { available: d.available, requested: d.requested };
+  }
+  return null;
 }

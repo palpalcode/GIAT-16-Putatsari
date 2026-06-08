@@ -42,10 +42,19 @@ import {
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
-import { getApiErrorDesc, extractApiFieldErrors } from "@/lib/api-error";
+import { getApiErrorDesc, extractApiFieldErrors, extractBalanceError } from "@/lib/api-error";
 
 function today() { return new Date().toLocaleDateString("sv-SE", { timeZone: "Asia/Jakarta" }); }
 function formatRp(n: number) { return "Rp " + Math.abs(n).toLocaleString("id-ID"); }
+
+function buildFormErrors(err: unknown): Record<string, string> {
+  const fieldErrors = extractApiFieldErrors(err);
+  const balance = extractBalanceError(err);
+  if (balance) {
+    fieldErrors.amount = `Saldo tidak cukup — tersedia ${formatRp(balance.available)}, diminta ${formatRp(balance.requested)}`;
+  }
+  return fieldErrors;
+}
 function formatDate(d: string) {
   return new Date(d).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" });
 }
@@ -438,12 +447,12 @@ function UmumTab({ isAdmin, summary }: { isAdmin?: boolean; summary: any }) {
     if (editId !== null) {
       update.mutate({ id: editId, data: payload }, {
         onSuccess: () => { invalidate(); setOpen(false); toast({ title: "Transaksi diperbarui" }); },
-        onError: (err) => { setKasFieldErrors(extractApiFieldErrors(err)); toast({ title: "Gagal menyimpan", description: getApiErrorDesc(err), variant: "destructive" }); },
+        onError: (err) => { setKasFieldErrors(buildFormErrors(err)); toast({ title: "Gagal menyimpan", description: getApiErrorDesc(err), variant: "destructive" }); },
       });
     } else {
       create.mutate({ data: payload }, {
         onSuccess: () => { invalidate(); setOpen(false); setInitForm(defaultForm(KasInputFund.umum)); toast({ title: "Transaksi dicatat" }); },
-        onError: (err) => { setKasFieldErrors(extractApiFieldErrors(err)); toast({ title: "Gagal menyimpan", description: getApiErrorDesc(err), variant: "destructive" }); },
+        onError: (err) => { setKasFieldErrors(buildFormErrors(err)); toast({ title: "Gagal menyimpan", description: getApiErrorDesc(err), variant: "destructive" }); },
       });
     }
   }
