@@ -2,6 +2,7 @@ import { Router } from "express";
 import { db, memberConditionsTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
 import { getMemberName, getRole, requireLogin } from "../lib/auth";
+import { CreateConditionBody, UpdateConditionBody } from "@workspace/api-zod";
 
 const router = Router();
 
@@ -24,16 +25,12 @@ router.get("/conditions", requireLogin, async (req, res) => {
 
 // POST /conditions — add a condition entry (self or ketua/sekretaris)
 router.post("/conditions", requireLogin, async (req, res) => {
-  const { memberName, type, description } = req.body;
-  if (!memberName || !type || !description) {
-    res.status(400).json({ error: "memberName, type, dan description wajib diisi" });
+  const parsed = CreateConditionBody.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: "Data tidak valid", details: parsed.error.flatten() });
     return;
   }
-  const validTypes = ["alergi", "sakit bawaan", "fobia", "lainnya"];
-  if (!validTypes.includes(type)) {
-    res.status(400).json({ error: `type harus salah satu dari: ${validTypes.join(", ")}` });
-    return;
-  }
+  const { memberName, type, description } = parsed.data;
   if (!canManageCondition(req, memberName)) {
     res.status(403).json({ error: "Hanya diri sendiri, ketua, atau sekretaris yang dapat menambah kondisi" });
     return;
@@ -58,11 +55,12 @@ router.patch("/conditions/:id", requireLogin, async (req, res) => {
     res.status(403).json({ error: "Akses ditolak" }); return;
   }
 
-  const { type, description } = req.body;
-  const validTypes = ["alergi", "sakit bawaan", "fobia", "lainnya"];
-  if (type && !validTypes.includes(type)) {
-    res.status(400).json({ error: `type harus salah satu dari: ${validTypes.join(", ")}` }); return;
+  const parsedPatch = UpdateConditionBody.safeParse(req.body);
+  if (!parsedPatch.success) {
+    res.status(400).json({ error: "Data tidak valid", details: parsedPatch.error.flatten() });
+    return;
   }
+  const { type, description } = parsedPatch.data;
 
   try {
     const update: Record<string, string> = {};

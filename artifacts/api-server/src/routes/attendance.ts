@@ -3,6 +3,7 @@ import { db, attendanceTable } from "@workspace/db";
 import { and, eq } from "drizzle-orm";
 import { getMemberName, getRole, requireLogin } from "../lib/auth";
 import ExcelJS from "exceljs";
+import { CreateAttendanceBody, UpdateAttendanceBody } from "@workspace/api-zod";
 
 const router = Router();
 
@@ -266,15 +267,14 @@ router.get("/attendance", async (req, res) => {
 
 // POST /attendance \u2014 create or upsert attendance record
 router.post("/attendance", requireLogin, async (req, res) => {
-  const { memberName, date, status, notes } = req.body;
-  if (!memberName || !date || !status) {
-    res.status(400).json({ error: "memberName, date, dan status wajib diisi" }); return;
+  const parsed = CreateAttendanceBody.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: "Data tidak valid", details: parsed.error.flatten() });
+    return;
   }
+  const { memberName, date, status, notes } = parsed.data;
   if (isFutureDate(date)) {
     res.status(400).json({ error: "Tidak dapat mengisi presensi untuk tanggal di masa depan" }); return;
-  }
-  if (!VALID_STATUSES.includes(status)) {
-    res.status(400).json({ error: `status harus salah satu dari: ${VALID_STATUSES.join(", ")}` }); return;
   }
   const self = getMemberName(req);
   if (self !== memberName && !isKetSek(req)) {
@@ -311,10 +311,12 @@ router.patch("/attendance/:id", requireLogin, async (req, res) => {
     res.status(403).json({ error: "Akses ditolak" }); return;
   }
 
-  const { status, notes } = req.body;
-  if (status && !VALID_STATUSES.includes(status)) {
-    res.status(400).json({ error: `status harus salah satu dari: ${VALID_STATUSES.join(", ")}` }); return;
+  const parsedPatch = UpdateAttendanceBody.safeParse(req.body);
+  if (!parsedPatch.success) {
+    res.status(400).json({ error: "Data tidak valid", details: parsedPatch.error.flatten() });
+    return;
   }
+  const { status, notes } = parsedPatch.data;
 
   try {
     const upd: Record<string, any> = {};
