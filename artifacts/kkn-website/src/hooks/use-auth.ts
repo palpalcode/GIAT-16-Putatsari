@@ -13,10 +13,12 @@ export const RESOURCE_LABELS: Record<string, string> = {
 export const RESOURCES = ["pengumuman", "deadline", "our-life", "our-work", "masalah", "kas", "notulensi"];
 
 export const ROLE_LABELS: Record<string, string> = {
-  ketua: "Ketua",
-  sekretaris: "Sekretaris",
-  bendahara: "Bendahara",
-  anggota: "Anggota",
+  Kormades: "Kormades",
+  Sekretaris: "Sekretaris",
+  Bendahara: "Bendahara",
+  Acara: "Acara",
+  Humas: "Humas",
+  PDD: "PDD",
 };
 
 export function useAuth() {

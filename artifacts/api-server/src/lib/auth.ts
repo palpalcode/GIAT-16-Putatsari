@@ -4,6 +4,7 @@ import { and, eq } from "drizzle-orm";
 import bcrypt from "bcryptjs";
 
 export type Role = "ketua" | "sekretaris" | "bendahara" | "anggota";
+export type DivisionRole = "Kormades" | "Sekretaris" | "Bendahara" | "Acara" | "Humas" | "PDD";
 
 export const RESOURCES = [
   "pengumuman",
@@ -26,15 +27,20 @@ export const RESOURCE_LABELS: Record<Resource, string> = {
   notulensi: "Notulensi",
 };
 
-export const ROLE_LABELS: Record<Role, string> = {
+export const ROLE_LABELS: Record<string, string> = {
   ketua: "Ketua",
   sekretaris: "Sekretaris",
   bendahara: "Bendahara",
   anggota: "Anggota",
+  Kormades: "Kormades",
+  Sekretaris: "Sekretaris",
+  Bendahara: "Bendahara",
+  Acara: "Acara",
+  Humas: "Humas",
+  PDD: "PDD",
 };
 
-// Roles whose edit access is controlled by the ketua.
-export const MANAGED_ROLES: Array<"sekretaris" | "bendahara"> = ["bendahara", "sekretaris"];
+export const MANAGED_ROLES: Array<DivisionRole> = ["Kormades", "Sekretaris", "Bendahara", "Acara", "Humas", "PDD"];
 
 export function getRole(req: Request): Role | null {
   return ((req.session as any).role as Role) || null;
@@ -48,35 +54,38 @@ export function getMemberName(req: Request): string | null {
   return ((req.session as any).memberName as string) || null;
 }
 
+export function getDivisionRole(req: Request): string | null {
+  return ((req.session as any).divisionRole as string) || null;
+}
+
 export function isResource(value: string): value is Resource {
   return (RESOURCES as readonly string[]).includes(value);
 }
 
 export function isManagedRole(value: string): boolean {
-  return MANAGED_ROLES.includes(value as "sekretaris" | "bendahara");
+  return (MANAGED_ROLES as readonly string[]).includes(value);
 }
 
-// Ketua always has full access; sekretaris & bendahara are per-DB; anggota has no edit access.
-export async function canEdit(role: Role | null, resource: Resource): Promise<boolean> {
-  if (!role) return false;
-  if (role === "ketua") return true;
-  if (role === "anggota") return false;
+// Kormades always has full access; others are per-DB managed by the ketua.
+export async function canEdit(divisionRole: string | null, resource: Resource): Promise<boolean> {
+  if (!divisionRole) return false;
+  if (divisionRole === "Kormades") return true;
   const rows = await db
     .select()
     .from(permissionsTable)
-    .where(and(eq(permissionsTable.role, role), eq(permissionsTable.resource, resource)));
+    .where(and(eq(permissionsTable.role, divisionRole), eq(permissionsTable.resource, resource)));
   return rows.length > 0 ? rows[0].canEdit : false;
 }
 
-export async function permissionsForRole(role: Role): Promise<Resource[]> {
-  if (role === "ketua") return [...RESOURCES];
-  if (role === "anggota") return [];
-  const rows = await db.select().from(permissionsTable).where(eq(permissionsTable.role, role));
+export async function permissionsForDivisionRole(divisionRole: string | null): Promise<Resource[]> {
+  if (!divisionRole) return [];
+  if (divisionRole === "Kormades") return [...RESOURCES];
+  const rows = await db.select().from(permissionsTable).where(eq(permissionsTable.role, divisionRole));
   const granted = new Map(rows.map((r) => [r.resource, r.canEdit]));
   return RESOURCES.filter((r) => granted.get(r) === true);
 }
 
-// Make sure every managed role has a row per resource so the management grid is complete.
+// Make sure every managed division role has a row per resource so the management grid is complete.
 export async function ensureSeeded(): Promise<void> {
   for (const role of MANAGED_ROLES) {
     const existing = await db.select().from(permissionsTable).where(eq(permissionsTable.role, role));
@@ -127,8 +136,8 @@ export async function verifyMemberLogin(name: string, password: string): Promise
 
 export function requireEdit(resource: Resource) {
   return async (req: Request, res: Response, next: NextFunction) => {
-    const role = getRole(req);
-    if (!(await canEdit(role, resource))) {
+    const divisionRole = getDivisionRole(req);
+    if (!(await canEdit(divisionRole, resource))) {
       res.status(403).json({ error: "Akses ditolak" });
       return;
     }

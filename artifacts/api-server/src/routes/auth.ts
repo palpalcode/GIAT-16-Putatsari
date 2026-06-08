@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { getRole, getMemberId, getMemberName, permissionsForRole, ensureSeeded, ensureMembersSeeded, verifyMemberLogin, requireLogin, requireManage } from "../lib/auth";
+import { getRole, getMemberId, getMemberName, getDivisionRole, permissionsForDivisionRole, ensureSeeded, ensureMembersSeeded, verifyMemberLogin, requireLogin, requireManage } from "../lib/auth";
 import { db, membersTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
 import bcrypt from "bcryptjs";
@@ -25,8 +25,9 @@ router.post("/auth/login", async (req, res) => {
   (req.session as any).memberId = member.id;
   (req.session as any).memberName = member.name;
   (req.session as any).role = member.systemRole;
+  (req.session as any).divisionRole = member.divisionRole;
 
-  const permissions = await permissionsForRole(member.systemRole as any);
+  const permissions = await permissionsForDivisionRole(member.divisionRole);
   res.json({
     authenticated: true,
     memberId: member.id,
@@ -100,9 +101,10 @@ router.get("/auth/me", async (req, res) => {
   const role = getRole(req);
   const memberId = getMemberId(req);
   const memberName = getMemberName(req);
+  const divisionRole = getDivisionRole(req);
 
-  if (!role || !memberId) {
-    res.json({ authenticated: false, role: null, memberId: null, memberName: null, avatarUrl: null, canManage: false, permissions: [] });
+  if (!role || !memberId || !divisionRole) {
+    res.json({ authenticated: false, role: null, memberId: null, memberName: null, divisionRole: null, avatarUrl: null, canManage: false, permissions: [] });
     return;
   }
 
@@ -110,7 +112,7 @@ router.get("/auth/me", async (req, res) => {
 
   const rows = await db.select().from(membersTable).where(eq(membersTable.id, memberId));
   const member = rows[0];
-  const permissions = await permissionsForRole(role as any);
+  const permissions = await permissionsForDivisionRole(divisionRole);
 
   res.json({
     authenticated: true,

@@ -11,7 +11,7 @@ import { Switch } from "@/components/ui/switch";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { ShieldCheck, Lock, Loader2 } from "lucide-react";
 
-const MANAGED_ROLES = ["bendahara", "sekretaris"];
+const MANAGED_ROLES = ["Kormades", "Sekretaris", "Bendahara", "Acara", "Humas", "PDD"];
 
 export default function KelolaAksesPage() {
   const [, setLocation] = useLocation();
@@ -66,12 +66,12 @@ export default function KelolaAksesPage() {
       <Card className="glass-card border-white/50">
         <CardHeader>
           <CardTitle className="text-lg text-gray-800">Akses Penuh</CardTitle>
-          <CardDescription>Peran berikut selalu memiliki akses ke semua bagian.</CardDescription>
+          <CardDescription>Jabatan berikut selalu memiliki akses ke semua bagian tanpa perlu diatur.</CardDescription>
         </CardHeader>
         <CardContent className="flex flex-wrap gap-2">
           <span className="flex items-center gap-1.5 text-sm font-medium text-emerald-700 bg-emerald-50 border border-emerald-100 px-3 py-1.5 rounded-full">
             <Lock className="w-3.5 h-3.5" />
-            {ROLE_LABELS["ketua"]}
+            {ROLE_LABELS["Kormades"]}
           </span>
         </CardContent>
       </Card>
