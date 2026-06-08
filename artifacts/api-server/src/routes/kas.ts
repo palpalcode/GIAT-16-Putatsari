@@ -389,6 +389,26 @@ router.post("/kas/transfer-sisa-makan", requireEdit("kas"), async (req, res) => 
   }
 });
 
+router.delete("/kas/transfer/:id", requireEdit("kas"), async (req, res) => {
+  try {
+    const id = Number(req.params.id as string);
+    const [transfer] = await db.select().from(transferKasTable).where(eq(transferKasTable.id, id));
+    if (!transfer) { res.status(404).json({ error: "Transfer tidak ditemukan" }); return; }
+    await db.transaction(async (tx) => {
+      const kasIds = [transfer.kasOutId, transfer.kasInId].filter((v): v is number => v !== null);
+      // Delete transfer first (FK: transfer_kas.kasOutId/kasInId -> kas.id)
+      await tx.delete(transferKasTable).where(eq(transferKasTable.id, id));
+      if (kasIds.length > 0) {
+        await tx.delete(kasTable).where(inArray(kasTable.id, kasIds));
+      }
+    });
+    res.json({ message: "Transfer dibatalkan" });
+  } catch (err) {
+    req.log.error(err);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
 router.get("/kas/transfer", async (req, res) => {
   try {
     const rows = await db.select().from(transferKasTable).orderBy(desc(transferKasTable.createdAt));

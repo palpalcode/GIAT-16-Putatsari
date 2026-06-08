@@ -1134,6 +1134,27 @@ paths:
         "400":
           description: Tidak ada sisa
 
+  /kas/transfer/{id}:
+    delete:
+      operationId: deleteKasTransfer
+      tags: [kas]
+      summary: Batalkan transfer antar kas (hapus transfer + kedua kas entry)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Transfer dibatalkan
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+        "404":
+          description: Transfer tidak ditemukan
+
   /kas/transfer:
     get:
       operationId: getTransfers

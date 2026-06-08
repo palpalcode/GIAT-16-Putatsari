@@ -908,6 +908,18 @@ export const TransferSisaMakanBody = zod.object({
 
 
 /**
+ * @summary Batalkan transfer antar kas (hapus transfer + kedua kas entry)
+ */
+export const DeleteKasTransferParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const DeleteKasTransferResponse = zod.object({
+  "message": zod.string()
+})
+
+
+/**
  * @summary Get list transfer kas antar-fund
  */
 export const GetTransfersResponseItem = zod.object({

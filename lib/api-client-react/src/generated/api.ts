@@ -4512,6 +4512,76 @@ export const useTransferSisaMakan = <TError = ErrorType<void>,
       return useMutation(getTransferSisaMakanMutationOptions(options));
     }
 
+export const getDeleteKasTransferUrl = (id: number,) => {
+
+
+
+
+  return `/api/kas/transfer/${id}`
+}
+
+/**
+ * @summary Batalkan transfer antar kas (hapus transfer + kedua kas entry)
+ */
+export const deleteKasTransfer = async (id: number, options?: RequestInit): Promise<MessageResponse> => {
+
+  return customFetch<MessageResponse>(getDeleteKasTransferUrl(id),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+export const getDeleteKasTransferMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteKasTransfer>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteKasTransfer>>, TError,{id: number}, TContext> => {
+
+const mutationKey = ['deleteKasTransfer'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteKasTransfer>>, {id: number}> = (props) => {
+          const {id} = props ?? {};
+
+          return  deleteKasTransfer(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteKasTransferMutationResult = NonNullable<Awaited<ReturnType<typeof deleteKasTransfer>>>
+
+    export type DeleteKasTransferMutationError = ErrorType<void>
+
+    /**
+ * @summary Batalkan transfer antar kas (hapus transfer + kedua kas entry)
+ */
+export const useDeleteKasTransfer = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteKasTransfer>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof deleteKasTransfer>>,
+        TError,
+        {id: number},
+        TContext
+      > => {
+      return useMutation(getDeleteKasTransferMutationOptions(options));
+    }
+
 export const getGetTransfersUrl = () => {
 
 

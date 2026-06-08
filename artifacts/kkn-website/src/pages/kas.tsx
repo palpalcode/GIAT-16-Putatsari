@@ -8,6 +8,7 @@ import {
   useCreateKas,
   useUpdateKas,
   useDeleteKas,
+  useDeleteKasTransfer,
   useUpdateKasConfig,
   useGetKasSummary,
   useTransferSisaMakan,
@@ -37,7 +38,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import {
   Plus, Pencil, Trash2, TrendingUp, TrendingDown, Wallet,
   ArrowUpCircle, ArrowDownCircle, ShieldCheck, Utensils,
-  Folder, ChevronLeft, ChevronRight, ChevronDown, Settings, ArrowRightLeft, ArrowRight, Check, X,
+  Folder, ChevronLeft, ChevronRight, ChevronDown, Settings, ArrowRightLeft, ArrowRight, Check, X, Undo2,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
@@ -183,11 +184,12 @@ function ItemsEditor({ items, onChange }: {
 }
 
 // ─── TRANSACTION LIST ─────────────────────────────────────────────────────────
-function TxList({ items, isAdmin, onEdit, onDelete }: {
+function TxList({ items, isAdmin, onEdit, onDelete, onCancelTransfer }: {
   items: any[];
   isAdmin?: boolean;
   onEdit?: (item: any) => void;
   onDelete?: (id: number) => void;
+  onCancelTransfer?: (transferId: number) => void;
 }) {
   const [expanded, setExpanded] = useState<Record<number, boolean>>({});
   const toggle = (id: number) => setExpanded(prev => ({ ...prev, [id]: !prev[id] }));
@@ -259,6 +261,11 @@ function TxList({ items, isAdmin, onEdit, onDelete }: {
                           <button onClick={() => toggle(item.id)} className="text-gray-400 hover:text-gray-600 transition-colors ml-0.5">
                             <ChevronDown className={cn("w-3.5 h-3.5 transition-transform", isOpen && "rotate-180")} />
                           </button>
+                        )}
+                        {isAdmin && item.transferId && onCancelTransfer && (
+                          <div className="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity ml-0.5">
+                            <Button variant="ghost" size="icon" className="h-6 w-6 rounded-full" title="Batalkan transfer" onClick={() => { if (window.confirm("Batalkan transfer ini? Kedua catatan kas terkait akan dihapus.")) onCancelTransfer(item.transferId); }}><Undo2 className="w-3 h-3 text-rose-500" /></Button>
+                          </div>
                         )}
                         {isAdmin && (onEdit || onDelete) && !item.transferId && (
                           <div className="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity ml-0.5">
@@ -384,6 +391,7 @@ function UmumTab({ isAdmin, summary }: { isAdmin?: boolean; summary: any }) {
   const create = useCreateKas();
   const update = useUpdateKas();
   const del = useDeleteKas();
+  const cancelTransfer = useDeleteKasTransfer();
   const [open, setOpen] = useState(false);
   const [editId, setEditId] = useState<number | null>(null);
   const [initForm, setInitForm] = useState<KasForm>(defaultForm(KasInputFund.umum));
@@ -467,7 +475,8 @@ function UmumTab({ isAdmin, summary }: { isAdmin?: boolean; summary: any }) {
 
       {isLoading ? <div className="animate-pulse space-y-3">{[1,2,3].map(i => <div key={i} className="glass-card h-16" />)}</div> : (
         <TxList items={filtered} isAdmin={isAdmin} onEdit={openEdit}
-          onDelete={id => del.mutate({ id }, { onSuccess: () => { invalidate(); toast({ title: "Transaksi dihapus" }); } })} />
+          onDelete={id => del.mutate({ id }, { onSuccess: () => { invalidate(); toast({ title: "Transaksi dihapus" }); } })}
+          onCancelTransfer={id => cancelTransfer.mutate({ id }, { onSuccess: () => { invalidate(); toast({ title: "Transfer dibatalkan" }); } })} />
       )}
 
       <AddEditDialog open={open} onClose={() => { setOpen(false); setKasFieldErrors({}); }} editId={editId} initial={initForm} onSave={handleSave} isPending={create.isPending || update.isPending} serverFieldErrors={kasFieldErrors} />
@@ -639,6 +648,7 @@ function IuranMakanTab({ isAdmin, summary }: { isAdmin?: boolean; summary: any }
   const { data: kas, isLoading } = useGetKas({ fund: "iuran_makan" });
   const create = useCreateKas();
   const del = useDeleteKas();
+  const cancelTransfer = useDeleteKasTransfer();
   const updateConfig = useUpdateKasConfig();
   const transferSisa = useTransferSisaMakan();
 
@@ -898,7 +908,8 @@ function IuranMakanTab({ isAdmin, summary }: { isAdmin?: boolean; summary: any }
 
           {isLoading ? <div className="animate-pulse space-y-2">{[1,2].map(i => <div key={i} className="glass-card h-14" />)}</div> : (
             <TxList items={all} isAdmin={isAdmin}
-              onDelete={id => del.mutate({ id }, { onSuccess: () => { invalidate(); toast({ title: "Transaksi dihapus" }); } })} />
+              onDelete={id => del.mutate({ id }, { onSuccess: () => { invalidate(); toast({ title: "Transaksi dihapus" }); } })}
+              onCancelTransfer={id => cancelTransfer.mutate({ id }, { onSuccess: () => { invalidate(); toast({ title: "Transfer dibatalkan" }); } })} />
           )}
         </div>
       )}
@@ -998,6 +1009,7 @@ function DanadaruratTab({ isAdmin, summary }: { isAdmin?: boolean; summary: any 
   const { data: kas, isLoading } = useGetKas({ fund: "darurat" });
   const create = useCreateKas();
   const del = useDeleteKas();
+  const cancelTransfer = useDeleteKasTransfer();
   const updateConfig = useUpdateKasConfig();
   const transferKas = useTransferKas();
 
@@ -1100,7 +1112,8 @@ function DanadaruratTab({ isAdmin, summary }: { isAdmin?: boolean; summary: any 
 
       {isLoading ? <div className="animate-pulse space-y-2">{[1,2].map(i => <div key={i} className="glass-card h-14" />)}</div> : (
         <TxList items={kas ?? []} isAdmin={isAdmin}
-          onDelete={id => del.mutate({ id }, { onSuccess: () => { invalidate(); toast({ title: "Transaksi dihapus" }); } })} />
+          onDelete={id => del.mutate({ id }, { onSuccess: () => { invalidate(); toast({ title: "Transaksi dihapus" }); } })}
+          onCancelTransfer={id => cancelTransfer.mutate({ id }, { onSuccess: () => { invalidate(); toast({ title: "Transfer dibatalkan" }); } })} />
       )}
 
       <SimpleTxDialog open={openTx} onClose={() => setOpenTx(false)} title="Transaksi Dana Darurat"
@@ -1153,6 +1166,7 @@ function DanaProkerTab({ isAdmin }: { isAdmin?: boolean }) {
   const delProker = useDeleteProkerFund();
   const create = useCreateKas();
   const del = useDeleteKas();
+  const cancelTransfer = useDeleteKasTransfer();
   const transferKas = useTransferKas();
 
   const [selectedProker, setSelectedProker] = useState<number | null>(null);
@@ -1273,7 +1287,8 @@ function DanaProkerTab({ isAdmin }: { isAdmin?: boolean }) {
 
         {loadingKas ? <div className="animate-pulse space-y-2">{[1,2].map(i => <div key={i} className="glass-card h-14" />)}</div> : (
           <TxList items={prokerTxs} isAdmin={isAdmin}
-            onDelete={id => del.mutate({ id }, { onSuccess: () => { invalidateAll(); toast({ title: "Transaksi dihapus" }); } })} />
+            onDelete={id => del.mutate({ id }, { onSuccess: () => { invalidateAll(); toast({ title: "Transaksi dihapus" }); } })}
+            onCancelTransfer={id => cancelTransfer.mutate({ id }, { onSuccess: () => { invalidateAll(); toast({ title: "Transfer dibatalkan" }); } })} />
         )}
 
         <SimpleTxDialog open={openAddTx} onClose={() => setOpenAddTx(false)}
