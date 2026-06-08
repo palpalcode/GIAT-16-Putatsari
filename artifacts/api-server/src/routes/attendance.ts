@@ -10,7 +10,7 @@ const router = Router();
 const VALID_STATUSES = ["hadir", "izin", "sakit", "alfa"] as const;
 
 function today() {
-  return new Date().toISOString().split("T")[0];
+  return new Date().toLocaleDateString("sv-SE", { timeZone: "Asia/Jakarta" });
 }
 
 function isFutureDate(date: string): boolean {

@@ -17,7 +17,7 @@ const router = Router();
 
 router.get("/dashboard/summary", async (req, res) => {
   try {
-    const today = new Date().toISOString().split("T")[0];
+    const today = new Date().toLocaleDateString("sv-SE", { timeZone: "Asia/Jakarta" });
 
     const [announcements, deadlines, issues, complaints, cooking, cleaning, programs, inventory, todayAttendance] =
       await Promise.all([

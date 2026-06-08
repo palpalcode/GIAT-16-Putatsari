@@ -35,25 +35,9 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Plus, Pencil, Trash2, ChefHat, SprayCan, Package, User, Heart, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { cn } from "@/lib/utils";
+import { cn, TEAM_MEMBERS, getMemberColor } from "@/lib/utils";
 import { getApiErrorDesc, extractApiFieldErrors } from "@/lib/api-error";
-
-const MEMBERS = [
-  "Muhamad Naufal", "Fadhilah Apta Nur Safitri", "Lutfia Tri Rahmacahyani",
-  "Navida Fitria", "Miftakhul Jannah", "Vrizcka Aullia Asmara",
-  "Quro'atul A'ini", "Dewi Anita Sari", "Tiara Nuril Safitri",
-];
-
-const MEMBER_COLORS = [
-  "from-rose-400 to-pink-400", "from-sky-400 to-blue-400", "from-violet-400 to-purple-400",
-  "from-amber-400 to-orange-400", "from-emerald-400 to-teal-400", "from-fuchsia-400 to-pink-400",
-  "from-cyan-400 to-sky-400", "from-lime-400 to-green-400", "from-indigo-400 to-violet-400",
-];
-
-function getMemberColor(name: string) {
-  const idx = MEMBERS.indexOf(name);
-  return MEMBER_COLORS[idx >= 0 ? idx : 0];
-}
+const MEMBERS = TEAM_MEMBERS;
 
 const tabs = [
   { id: "masak", label: "Jadwal Masak", icon: ChefHat },
@@ -62,7 +46,7 @@ const tabs = [
   { id: "kondisi", label: "Kondisi Anggota", icon: Heart },
 ];
 
-function today() { return new Date().toISOString().split("T")[0]; }
+function today() { return new Date().toLocaleDateString("sv-SE", { timeZone: "Asia/Jakarta" }); }
 function formatDate(d: string) {
   return new Date(d).toLocaleDateString("id-ID", { weekday: "long", day: "numeric", month: "long" });
 }
@@ -93,7 +77,7 @@ function MemberPicker({ selected, onChange }: { selected: string[]; onChange: (v
 }
 
 // ─── COOKING TAB ──────────────────────────────────────────────────────────────
-function CookingTab({ isLoggedIn }: { isLoggedIn?: boolean }) {
+function CookingTab({ isAdmin }: { isAdmin?: boolean }) {
   const qc = useQueryClient();
   const { toast } = useToast();
   const { data: schedules, isLoading } = useGetCookingSchedules();
@@ -135,7 +119,7 @@ function CookingTab({ isLoggedIn }: { isLoggedIn?: boolean }) {
     <div className="space-y-4">
       <div className="flex justify-between items-center">
         <h2 className="text-lg font-semibold text-gray-700">Jadwal Masak</h2>
-        {isLoggedIn && (
+        {isAdmin && (
           <Button size="sm" onClick={openAdd} className="bg-gradient-to-r from-violet-400 to-rose-400 text-white border-0 rounded-full gap-1">
             <Plus className="w-4 h-4" />Tambah
           </Button>
@@ -171,7 +155,7 @@ function CookingTab({ isLoggedIn }: { isLoggedIn?: boolean }) {
                   {s.menu && <p className="text-sm text-gray-600 mt-1">🍽️ <span className="font-medium">{s.menu}</span></p>}
                   {s.notes && <p className="text-xs text-gray-400 mt-1">{s.notes}</p>}
                 </div>
-                {isLoggedIn && (
+                {isAdmin && (
                   <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
                     <Button variant="ghost" size="icon" className="h-7 w-7 rounded-full" onClick={() => openEdit(s)}><Pencil className="w-3.5 h-3.5 text-sky-500" /></Button>
                     <Button variant="ghost" size="icon" className="h-7 w-7 rounded-full"
@@ -541,6 +525,7 @@ function MultiItemDialog({
     const ownerName = (form.itemType === "pribadi" || form.itemType === "pinjaman")
       ? (form.ownerName || selfName || undefined)
       : undefined;
+    if ((form.itemType === "pribadi" || form.itemType === "pinjaman") && !ownerName) return;
     const item: DraftItem = {
       id: crypto.randomUUID(),
       name: form.name.trim(),
@@ -1168,7 +1153,7 @@ export default function OurLifePage() {
       </div>
 
       <div className="glass-card p-6">
-        {activeTab === "masak" && <CookingTab isLoggedIn={isLoggedIn} />}
+        {activeTab === "masak" && <CookingTab isAdmin={isAdmin} />}
         {activeTab === "bersih" && <CleaningTab isAdmin={isAdmin} />}
         {activeTab === "inventaris" && <InventarisTab isAdmin={isAdmin} selfName={memberName} isPrivileged={isPrivileged} isLoggedIn={isLoggedIn} />}
         {activeTab === "kondisi" && <KondisiTab memberName={memberName} isKetSek={isKetSek} />}

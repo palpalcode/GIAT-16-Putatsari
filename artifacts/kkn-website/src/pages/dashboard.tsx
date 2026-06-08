@@ -3,17 +3,14 @@ import { useAuth } from "@/hooks/use-auth";
 import { Badge } from "@/components/ui/badge";
 import { Megaphone, Calendar, AlertTriangle, CheckCircle2, ChefHat, SprayCan, Package, Wallet, ShieldCheck, Utensils } from "lucide-react";
 import { Link } from "wouter";
-import { cn } from "@/lib/utils";
-import { getMemberColor } from "@/components/ui/member-picker";
+import { cn, getMemberColor } from "@/lib/utils";
 import { AttendanceWidget } from "@/components/AttendanceWidget";
 
 function formatRp(n: number) { return "Rp " + Math.abs(n).toLocaleString("id-ID"); }
 
 function daysLeft(dueDate: string): number {
-  const now = new Date();
-  now.setHours(0, 0, 0, 0);
+  const now = new Date(new Date().toLocaleDateString("sv-SE", { timeZone: "Asia/Jakarta" }));
   const due = new Date(dueDate);
-  due.setHours(0, 0, 0, 0);
   return Math.round((due.getTime() - now.getTime()) / 86400000);
 }
 

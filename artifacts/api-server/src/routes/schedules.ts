@@ -26,7 +26,7 @@ router.get("/schedules/cooking", async (req, res) => {
   }
 });
 
-router.post("/schedules/cooking", requireLogin, async (req, res) => {
+router.post("/schedules/cooking", requireEdit("our-life"), async (req, res) => {
   try {
     const parsed = CreateCookingScheduleBody.safeParse(req.body);
     if (!parsed.success) {
@@ -42,7 +42,7 @@ router.post("/schedules/cooking", requireLogin, async (req, res) => {
   }
 });
 
-router.patch("/schedules/cooking/:id", requireLogin, async (req, res) => {
+router.patch("/schedules/cooking/:id", requireEdit("our-life"), async (req, res) => {
   try {
     const id = Number(req.params.id as string);
     const parsed = UpdateCookingScheduleBody.safeParse(req.body);
@@ -65,7 +65,7 @@ router.patch("/schedules/cooking/:id", requireLogin, async (req, res) => {
   }
 });
 
-router.delete("/schedules/cooking/:id", requireLogin, async (req, res) => {
+router.delete("/schedules/cooking/:id", requireEdit("our-life"), async (req, res) => {
   try {
     await db.delete(cookingSchedulesTable).where(eq(cookingSchedulesTable.id, Number(req.params.id as string)));
     res.status(204).send();

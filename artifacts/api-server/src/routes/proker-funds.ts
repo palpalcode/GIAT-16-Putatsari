@@ -72,7 +72,9 @@ router.patch("/proker-funds/:id", requireEdit("kas"), async (req, res) => {
 
 router.delete("/proker-funds/:id", requireEdit("kas"), async (req, res) => {
   try {
-    await db.delete(prokerFundsTable).where(eq(prokerFundsTable.id, Number(req.params.id as string)));
+    const id = Number(req.params.id as string);
+    await db.delete(kasTable).where(eq(kasTable.prokerId, id));
+    await db.delete(prokerFundsTable).where(eq(prokerFundsTable.id, id));
     res.status(204).send();
   } catch (err) {
     req.log.error(err);

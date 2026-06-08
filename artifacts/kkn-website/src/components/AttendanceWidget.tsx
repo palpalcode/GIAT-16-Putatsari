@@ -9,25 +9,9 @@ import {
   getGetDashboardSummaryQueryKey,
 } from "@workspace/api-client-react";
 import { useToast } from "@/hooks/use-toast";
-import { cn } from "@/lib/utils";
+import { cn, TEAM_MEMBERS, getMemberColor } from "@/lib/utils";
 import { Download } from "lucide-react";
-
-const MEMBERS = [
-  "Muhamad Naufal", "Fadhilah Apta Nur Safitri", "Lutfia Tri Rahmacahyani",
-  "Navida Fitria", "Miftakhul Jannah", "Vrizcka Aullia Asmara",
-  "Quro'atul A'ini", "Dewi Anita Sari", "Tiara Nuril Safitri",
-];
-
-const MEMBER_COLORS = [
-  "from-rose-400 to-pink-400", "from-sky-400 to-blue-400", "from-violet-400 to-purple-400",
-  "from-amber-400 to-orange-400", "from-emerald-400 to-teal-400", "from-fuchsia-400 to-pink-400",
-  "from-cyan-400 to-sky-400", "from-lime-400 to-green-400", "from-indigo-400 to-violet-400",
-];
-
-function getMemberColor(name: string) {
-  const idx = MEMBERS.indexOf(name);
-  return MEMBER_COLORS[idx >= 0 ? idx : 0];
-}
+const MEMBERS = TEAM_MEMBERS;
 
 const ATTENDANCE_CONFIG: Record<AttendanceStatus, { label: string; color: string; bg: string; emoji: string }> = {
   hadir: { label: "Hadir", color: "text-emerald-700", bg: "bg-emerald-100 border-emerald-300", emoji: "✅" },
@@ -36,7 +20,7 @@ const ATTENDANCE_CONFIG: Record<AttendanceStatus, { label: string; color: string
   alfa: { label: "Alfa", color: "text-gray-600", bg: "bg-gray-100 border-gray-300", emoji: "❓" },
 };
 
-function today() { return new Date().toISOString().split("T")[0]; }
+function today() { return new Date().toLocaleDateString("sv-SE", { timeZone: "Asia/Jakarta" }); }
 
 export function AttendanceWidget({
   memberName,
@@ -177,16 +161,18 @@ export function AttendanceWidget({
                     (Object.keys(ATTENDANCE_CONFIG) as AttendanceStatus[]).map(s => {
                       const cfg = ATTENDANCE_CONFIG[s];
                       const isActive = currentStatus === s;
+                      const isSaving = submitAttendance.isPending && currentStatus === s;
                       return (
                         <button key={s} type="button"
                           onClick={() => handleStatus(member, s)}
                           disabled={submitAttendance.isPending}
                           title={cfg.label}
                           className={cn("flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium border-2 transition-all",
-                            isActive ? cn("border-current", cfg.bg, cfg.color, "shadow-sm") : "border-gray-200 bg-white/40 text-gray-400 hover:bg-white/70"
+                            isActive ? cn("border-current", cfg.bg, cfg.color, "shadow-sm") : "border-gray-200 bg-white/40 text-gray-400 hover:bg-white/70",
+                            isSaving && "opacity-75"
                           )}>
-                          <span>{cfg.emoji}</span>
-                          <span className="hidden sm:inline">{cfg.label}</span>
+                          <span>{isSaving ? "⏳" : cfg.emoji}</span>
+                          <span className="hidden sm:inline">{isSaving ? "Menyimpan..." : cfg.label}</span>
                         </button>
                       );
                     })

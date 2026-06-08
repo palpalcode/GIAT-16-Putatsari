@@ -11,8 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, Camera, UserCircle, ShieldCheck, KeyRound, Eye, EyeOff } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { getMemberColor } from "@/components/ui/member-picker";
+import { cn, getMemberColor } from "@/lib/utils";
 import { Link } from "wouter";
 
 function PasswordInput({

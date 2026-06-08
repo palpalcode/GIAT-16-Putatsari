@@ -31,27 +31,11 @@ import {
 } from "@/components/ui/select";
 import { Plus, Pencil, Trash2, CalendarDays, CheckCircle2, Clock, Loader2, User, CalendarClock } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { cn } from "@/lib/utils";
+import { cn, TEAM_MEMBERS, getMemberColor } from "@/lib/utils";
 import { getApiErrorDesc, extractApiFieldErrors } from "@/lib/api-error";
+const MEMBERS = TEAM_MEMBERS;
 
-const MEMBERS = [
-  "Muhamad Naufal", "Fadhilah Apta Nur Safitri", "Lutfia Tri Rahmacahyani",
-  "Navida Fitria", "Miftakhul Jannah", "Vrizcka Aullia Asmara",
-  "Quro'atul A'ini", "Dewi Anita Sari", "Tiara Nuril Safitri",
-];
-
-const MEMBER_COLORS = [
-  "from-rose-400 to-pink-400", "from-sky-400 to-blue-400", "from-violet-400 to-purple-400",
-  "from-amber-400 to-orange-400", "from-emerald-400 to-teal-400", "from-fuchsia-400 to-pink-400",
-  "from-cyan-400 to-sky-400", "from-lime-400 to-green-400", "from-indigo-400 to-violet-400",
-];
-
-function getMemberColor(name: string) {
-  const idx = MEMBERS.indexOf(name);
-  return MEMBER_COLORS[idx >= 0 ? idx : 0];
-}
-
-function today() { return new Date().toISOString().split("T")[0]; }
+function today() { return new Date().toLocaleDateString("sv-SE", { timeZone: "Asia/Jakarta" }); }
 function formatDate(d: string) {
   return new Date(d).toLocaleDateString("id-ID", { weekday: "long", day: "numeric", month: "long" });
 }
@@ -177,10 +161,8 @@ function ProgramDialog({ open, onClose, editId, initial, onSave, isPending, fiel
 }
 
 function daysLeft(dueDate: string): number {
-  const now = new Date();
-  now.setHours(0, 0, 0, 0);
+  const now = new Date(new Date().toLocaleDateString("sv-SE", { timeZone: "Asia/Jakarta" }));
   const due = new Date(dueDate);
-  due.setHours(0, 0, 0, 0);
   return Math.round((due.getTime() - now.getTime()) / 86400000);
 }
 
@@ -404,7 +386,7 @@ export default function OurWorkPage() {
                             <Icon className="w-3 h-3" />{st.label}
                           </Badge>
                           <span className="text-xs text-gray-400">{formatDate(s.date)}</span>
-                          {isKetSek && (
+                          {(isKetSek || isAdmin) && (
                             <div className="flex gap-1 ml-0.5">
                               {STATUS_OPTIONS.map(opt => {
                                 const OptIcon = opt.icon;

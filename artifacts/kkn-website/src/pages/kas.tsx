@@ -42,7 +42,7 @@ import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { getApiErrorDesc, extractApiFieldErrors } from "@/lib/api-error";
 
-function today() { return new Date().toISOString().split("T")[0]; }
+function today() { return new Date().toLocaleDateString("sv-SE", { timeZone: "Asia/Jakarta" }); }
 function formatRp(n: number) { return "Rp " + Math.abs(n).toLocaleString("id-ID"); }
 function formatDate(d: string) {
   return new Date(d).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" });

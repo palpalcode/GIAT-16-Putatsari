@@ -14,6 +14,17 @@ function mapRow(row: any, items: any[] = []) {
   return { ...row, createdAt: row.createdAt.toISOString(), items };
 }
 
+function todayWIB() {
+  return new Date().toLocaleDateString("sv-SE", { timeZone: "Asia/Jakarta" });
+}
+
+async function getFundBalance(fund: string): Promise<number> {
+  const rows = await db.select().from(kasTable).where(eq(kasTable.fund, fund));
+  const pemasukan = rows.filter(t => t.type === "pemasukan").reduce((s, t) => s + t.amount, 0);
+  const pengeluaran = rows.filter(t => t.type === "pengeluaran").reduce((s, t) => s + t.amount, 0);
+  return pemasukan - pengeluaran;
+}
+
 async function fetchItemsForIds(ids: number[]): Promise<Record<number, any[]>> {
   if (ids.length === 0) return {};
   const rows = await db.select().from(kasItemsTable).where(inArray(kasItemsTable.kasId, ids));
@@ -51,10 +62,18 @@ router.post("/kas", requireEdit("kas"), async (req, res) => {
       return;
     }
     const { type, amount, description, category, date, notes, fund, prokerId, items } = parsed.data;
+    const targetFund = fund ?? "umum";
+    if (type === "pengeluaran") {
+      const balance = await getFundBalance(targetFund);
+      if (amount > balance) {
+        res.status(400).json({ error: "Saldo tidak mencukupi", available: balance, requested: amount });
+        return;
+      }
+    }
     const { row, insertedItems } = await db.transaction(async (tx) => {
       const [row] = await tx.insert(kasTable).values({
         type, amount, description, category, date, notes,
-        fund: fund ?? "umum",
+        fund: targetFund,
         prokerId: prokerId ?? null,
       }).returning();
       let insertedItems: any[] = [];
@@ -304,6 +323,19 @@ router.post("/kas/transfer-sisa-makan", requireEdit("kas"), async (req, res) => 
 
     if (sisa <= 0) {
       res.status(400).json({ error: "Tidak ada sisa untuk ditransfer" }); return;
+    }
+
+    const iuranBalance = await getFundBalance("iuran_makan");
+    if (sisa > iuranBalance) {
+      res.status(400).json({ error: "Saldo iuran makan tidak mencukupi", available: iuranBalance, requested: sisa });
+      return;
+    }
+
+    const existing = await db.select().from(kasTable).where(
+      and(eq(kasTable.fund, "iuran_makan"), eq(kasTable.type, "pengeluaran"), eq(kasTable.description, `Transfer sisa makan ${date} ke dana darurat`))
+    );
+    if (existing.length > 0) {
+      res.status(409).json({ error: "Transfer sisa untuk tanggal ini sudah dilakukan" }); return;
     }
 
     const [txOut, txIn] = await db.transaction(async (tx) => {
