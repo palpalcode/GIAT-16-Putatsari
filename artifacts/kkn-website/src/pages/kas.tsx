@@ -504,6 +504,7 @@ function UmumTab({ isAdmin, summary }: { isAdmin?: boolean; summary: any }) {
       <TransferDanaDialog open={openTransferDana} onClose={() => { setOpenTransferDana(false); setTransferBalanceError(""); }} isPending={transferKas.isPending}
         initial={transferDanaInit} prokers={prokerList ?? []}
         balanceError={transferBalanceError} onClearBalanceError={() => setTransferBalanceError("")}
+        fundBalances={{ umum: summary?.saldoUmum, darurat: summary?.saldoDarurat, iuran_makan: summary?.saldoIuranMakan }}
         onSave={(form) => {
           transferKas.mutate({ data: { fromFund: form.fromFund, toFund: form.toFund, toFundProkerId: form.toFundProkerId ?? undefined, amount: Number(form.amount), description: form.description, date: form.date, notes: form.notes || undefined } }, {
             onSuccess: () => {
@@ -608,10 +609,11 @@ type TransferDanaForm = {
   fromFund: KasFundType; toFund: KasFundType; toFundProkerId: number | null;
   amount: string; description: string; date: string; notes: string;
 };
-function TransferDanaDialog({ open, onClose, onSave, isPending, initial, prokers, balanceError, onClearBalanceError }: {
+function TransferDanaDialog({ open, onClose, onSave, isPending, initial, prokers, balanceError, onClearBalanceError, fundBalances }: {
   open: boolean; onClose: () => void; onSave: (form: TransferDanaForm) => void; isPending: boolean;
   initial: TransferDanaForm; prokers?: { id: number; name: string }[];
   balanceError?: string; onClearBalanceError?: () => void;
+  fundBalances?: Partial<Record<string, number>>;
 }) {
   const [form, setForm] = useState<TransferDanaForm>(initial);
   useEffect(() => { setForm(initial); }, [initial, open]);
@@ -640,6 +642,9 @@ function TransferDanaDialog({ open, onClose, onSave, isPending, initial, prokers
                 {fundOptions.map(o => <SelectItem key={o.id} value={o.id}>{o.label}</SelectItem>)}
               </SelectContent>
             </Select>
+            {fundBalances && fundBalances[form.fromFund] !== undefined && (
+              <p className="text-xs text-sky-600 mt-1 font-medium">Tersedia: {formatRp(fundBalances[form.fromFund]!)}</p>
+            )}
           </div>
           <div>
             <label className="text-xs font-semibold text-sky-800 uppercase tracking-wide mb-1.5 block">Ke</label>
@@ -1054,6 +1059,7 @@ function IuranMakanTab({ isAdmin, summary }: { isAdmin?: boolean; summary: any }
       <TransferDanaDialog open={openTransferDana} onClose={() => { setOpenTransferDana(false); setTransferBalanceError(""); }} isPending={transferKas.isPending}
         initial={transferDanaInit} prokers={prokers ?? []}
         balanceError={transferBalanceError} onClearBalanceError={() => setTransferBalanceError("")}
+        fundBalances={{ umum: summary?.saldoUmum, darurat: summary?.saldoDarurat, iuran_makan: summary?.saldoIuranMakan }}
         onSave={(form) => {
           transferKas.mutate({ data: { fromFund: form.fromFund, toFund: form.toFund, toFundProkerId: form.toFundProkerId ?? undefined, amount: Number(form.amount), description: form.description, date: form.date, notes: form.notes || undefined } }, {
             onSuccess: () => {
@@ -1219,6 +1225,7 @@ function DanadaruratTab({ isAdmin, summary }: { isAdmin?: boolean; summary: any 
       <TransferDanaDialog open={openTransferDana} onClose={() => { setOpenTransferDana(false); setTransferBalanceError(""); }} isPending={transferKas.isPending}
         initial={{ fromFund: "darurat", toFund: "umum", toFundProkerId: null, amount: "", description: "Transfer Dana Darurat → Umum", date: today(), notes: "" }}
         balanceError={transferBalanceError} onClearBalanceError={() => setTransferBalanceError("")}
+        fundBalances={{ umum: summary?.saldoUmum, darurat: summary?.saldoDarurat, iuran_makan: summary?.saldoIuranMakan }}
         onSave={(form) => {
           transferKas.mutate({ data: { fromFund: form.fromFund, toFund: form.toFund, toFundProkerId: form.toFundProkerId ?? undefined, amount: Number(form.amount), description: form.description, date: form.date, notes: form.notes || undefined } }, {
             onSuccess: () => {
@@ -1480,6 +1487,7 @@ function DanaProkerTab({ isAdmin }: { isAdmin?: boolean }) {
         <TransferDanaDialog open={openTransferDana} onClose={() => { setOpenTransferDana(false); setTransferBalanceError(""); }} isPending={transferKas.isPending}
           initial={{ fromFund: "proker", toFund: "umum", toFundProkerId: null, amount: "", description: `Kembalikan Sisa Proker: ${selectedProkerData.name}`, date: today(), notes: "" }}
           balanceError={transferBalanceError} onClearBalanceError={() => setTransferBalanceError("")}
+          fundBalances={{ proker: selectedProkerData.sisa >= 0 ? selectedProkerData.sisa : 0 }}
           onSave={(form) => {
             transferKas.mutate({ data: { fromFund: form.fromFund, toFund: form.toFund, toFundProkerId: form.toFundProkerId ?? undefined, amount: Number(form.amount), description: form.description, date: form.date, notes: form.notes || undefined } }, {
               onSuccess: () => {
