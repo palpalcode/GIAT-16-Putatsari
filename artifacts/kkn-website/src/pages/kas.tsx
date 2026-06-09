@@ -193,12 +193,14 @@ function ItemsEditor({ items, onChange }: {
 }
 
 // ─── TRANSACTION LIST ─────────────────────────────────────────────────────────
-function TxList({ items, isAdmin, onEdit, onDelete, onCancelTransfer }: {
+function TxList({ items, isAdmin, onEdit, onDelete, onCancelTransfer, isPending, isCancelPending }: {
   items: any[];
   isAdmin?: boolean;
   onEdit?: (item: any) => void;
   onDelete?: (id: number) => void;
   onCancelTransfer?: (transferId: number) => void;
+  isPending?: boolean;
+  isCancelPending?: boolean;
 }) {
   const [expanded, setExpanded] = useState<Record<number, boolean>>({});
   const toggle = (id: number) => setExpanded(prev => ({ ...prev, [id]: !prev[id] }));
@@ -277,7 +279,7 @@ function TxList({ items, isAdmin, onEdit, onDelete, onCancelTransfer }: {
                           if (isAdmin && isTransfer && item.transferId && onCancelTransfer) {
                             return (
                               <div className="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity ml-0.5">
-                                <Button variant="ghost" size="icon" className="h-6 w-6 rounded-full" title="Batalkan transfer" onClick={() => { if (window.confirm("Batalkan transfer ini? Kedua catatan kas terkait akan dihapus.")) onCancelTransfer(item.transferId); }}><Undo2 className="w-3 h-3 text-rose-500" /></Button>
+                                <Button variant="ghost" size="icon" className="h-6 w-6 rounded-full" title="Batalkan transfer" disabled={isCancelPending} onClick={() => { if (window.confirm("Batalkan transfer ini? Kedua catatan kas terkait akan dihapus.")) onCancelTransfer(item.transferId); }}><Undo2 className="w-3 h-3 text-rose-500" /></Button>
                               </div>
                             );
                           }
@@ -285,7 +287,7 @@ function TxList({ items, isAdmin, onEdit, onDelete, onCancelTransfer }: {
                             return (
                               <div className="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity ml-0.5">
                                 {onEdit && <Button variant="ghost" size="icon" className="h-6 w-6 rounded-full" onClick={() => onEdit(item)}><Pencil className="w-3 h-3 text-sky-500" /></Button>}
-                                {onDelete && <Button variant="ghost" size="icon" className="h-6 w-6 rounded-full" onClick={() => onDelete(item.id)}><Trash2 className="w-3 h-3 text-rose-500" /></Button>}
+                                {onDelete && <Button variant="ghost" size="icon" className="h-6 w-6 rounded-full" disabled={isPending} onClick={() => onDelete(item.id)}><Trash2 className="w-3 h-3 text-rose-500" /></Button>}
                               </div>
                             );
                           }
@@ -496,7 +498,8 @@ function UmumTab({ isAdmin, summary }: { isAdmin?: boolean; summary: any }) {
       {isLoading ? <div className="animate-pulse space-y-3">{[1,2,3].map(i => <div key={i} className="glass-card h-16" />)}</div> : (
         <TxList items={filtered} isAdmin={isAdmin} onEdit={openEdit}
           onDelete={id => del.mutate({ id }, { onSuccess: () => { invalidate(); toast({ title: "Transaksi dihapus" }); } })}
-          onCancelTransfer={id => cancelTransfer.mutate({ id }, { onSuccess: () => { invalidate(); toast({ title: "Transfer dibatalkan" }); } })} />
+          onCancelTransfer={id => cancelTransfer.mutate({ id }, { onSuccess: () => { invalidate(); toast({ title: "Transfer dibatalkan" }); } })}
+          isPending={del.isPending} isCancelPending={cancelTransfer.isPending} />
       )}
 
       <AddEditDialog open={open} onClose={() => { setOpen(false); setKasFieldErrors({}); }} editId={editId} initial={initForm} onSave={handleSave} isPending={create.isPending || update.isPending} serverFieldErrors={kasFieldErrors} />
@@ -982,7 +985,8 @@ function IuranMakanTab({ isAdmin, summary }: { isAdmin?: boolean; summary: any }
           {isLoading ? <div className="animate-pulse space-y-2">{[1,2].map(i => <div key={i} className="glass-card h-14" />)}</div> : (
             <TxList items={all} isAdmin={isAdmin}
               onDelete={id => del.mutate({ id }, { onSuccess: () => { invalidate(); toast({ title: "Transaksi dihapus" }); } })}
-              onCancelTransfer={id => cancelTransfer.mutate({ id }, { onSuccess: () => { invalidate(); toast({ title: "Transfer dibatalkan" }); } })} />
+              onCancelTransfer={id => cancelTransfer.mutate({ id }, { onSuccess: () => { invalidate(); toast({ title: "Transfer dibatalkan" }); } })}
+              isPending={del.isPending} isCancelPending={cancelTransfer.isPending} />
           )}
         </div>
       )}
@@ -1198,7 +1202,8 @@ function DanadaruratTab({ isAdmin, summary }: { isAdmin?: boolean; summary: any 
       {isLoading ? <div className="animate-pulse space-y-2">{[1,2].map(i => <div key={i} className="glass-card h-14" />)}</div> : (
         <TxList items={kas ?? []} isAdmin={isAdmin}
           onDelete={id => del.mutate({ id }, { onSuccess: () => { invalidate(); toast({ title: "Transaksi dihapus" }); } })}
-          onCancelTransfer={id => cancelTransfer.mutate({ id }, { onSuccess: () => { invalidate(); toast({ title: "Transfer dibatalkan" }); } })} />
+          onCancelTransfer={id => cancelTransfer.mutate({ id }, { onSuccess: () => { invalidate(); toast({ title: "Transfer dibatalkan" }); } })}
+          isPending={del.isPending} isCancelPending={cancelTransfer.isPending} />
       )}
 
       <SimpleTxDialog open={openTx} onClose={() => { setOpenTx(false); setTxFieldErrors({}); }} title="Transaksi Dana Darurat"
@@ -1419,7 +1424,7 @@ function DanaProkerTab({ isAdmin }: { isAdmin?: boolean }) {
                           <span className="font-bold text-sm text-emerald-600">+{formatRp(item.amount)}</span>
                           {isAdmin && (
                             <div className="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity ml-0.5">
-                              <Button variant="ghost" size="icon" className="h-6 w-6 rounded-full" title="Batalkan transfer"
+                              <Button variant="ghost" size="icon" className="h-6 w-6 rounded-full" title="Batalkan transfer" disabled={cancelTransfer.isPending}
                                 onClick={() => { if (window.confirm("Batalkan transfer ini? Kedua catatan kas terkait akan dihapus.")) cancelTransfer.mutate({ id: item.transferId }, { onSuccess: () => { invalidateAll(); toast({ title: "Transfer dibatalkan" }); } }); }}>
                                 <Undo2 className="w-3 h-3 text-rose-500" />
                               </Button>
@@ -1441,7 +1446,8 @@ function DanaProkerTab({ isAdmin }: { isAdmin?: boolean }) {
                 )}
                 <TxList items={regularProkerTxs} isAdmin={isAdmin}
                   onDelete={id => del.mutate({ id }, { onSuccess: () => { invalidateAll(); toast({ title: "Transaksi dihapus" }); } })}
-                  onCancelTransfer={id => cancelTransfer.mutate({ id }, { onSuccess: () => { invalidateAll(); toast({ title: "Transfer dibatalkan" }); } })} />
+                  onCancelTransfer={id => cancelTransfer.mutate({ id }, { onSuccess: () => { invalidateAll(); toast({ title: "Transfer dibatalkan" }); } })}
+                  isPending={del.isPending} isCancelPending={cancelTransfer.isPending} />
               </div>
             )}
             {transferMasukTxs.length === 0 && regularProkerTxs.length === 0 && (
@@ -1566,7 +1572,7 @@ function DanaProkerTab({ isAdmin }: { isAdmin?: boolean }) {
                       <p className={cn("text-sm font-bold", p.sisa >= 0 ? "text-emerald-700" : "text-rose-700")}>{formatRp(p.sisa)}</p>
                     </div>
                     {isAdmin && (
-                      <Button variant="ghost" size="icon" className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity rounded-full"
+                      <Button variant="ghost" size="icon" className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity rounded-full" disabled={delProker.isPending}
                         onClick={e => { e.stopPropagation(); delProker.mutate({ id: p.id }, { onSuccess: () => { invalidateAll(); toast({ title: "Proker dihapus" }); } }); }}>
                         <Trash2 className="w-3.5 h-3.5 text-rose-500" />
                       </Button>

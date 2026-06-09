@@ -856,7 +856,7 @@ export function LogbookDrawer({ open, onClose, program, isKetSek, canEdit }: Pro
                         <Button variant="ghost" size="icon" className="h-7 w-7 rounded-full" onClick={() => openEdit(entry)}>
                           <Pencil className="w-3 h-3 text-sky-500" />
                         </Button>
-                        <Button variant="ghost" size="icon" className="h-7 w-7 rounded-full" onClick={() => handleDelete(entry)}>
+                        <Button variant="ghost" size="icon" className="h-7 w-7 rounded-full" disabled={delEntry.isPending} onClick={() => handleDelete(entry)}>
                           <Trash2 className="w-3 h-3 text-rose-500" />
                         </Button>
                       </div>

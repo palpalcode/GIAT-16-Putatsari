@@ -342,7 +342,7 @@ export default function PengumumanPage() {
                         <Button variant="ghost" size="icon" className="rounded-full h-8 w-8" onClick={() => openEditA(a)}>
                           <Pencil className="w-4 h-4 text-sky-500" />
                         </Button>
-                        <Button variant="ghost" size="icon" className="rounded-full h-8 w-8" onClick={() => handleDeleteA(a.id)}>
+                        <Button variant="ghost" size="icon" className="rounded-full h-8 w-8" disabled={deleteA.isPending} onClick={() => handleDeleteA(a.id)}>
                           <Trash2 className="w-4 h-4 text-rose-500" />
                         </Button>
                       </div>
@@ -420,7 +420,7 @@ export default function PengumumanPage() {
                           variant="ghost"
                           size="icon"
                           className="rounded-full h-8 w-8"
-                          onClick={(e) => { e.stopPropagation(); handleDeleteN(n.id); }}
+                          disabled={deleteN.isPending} onClick={(e) => { e.stopPropagation(); handleDeleteN(n.id); }}
                         >
                           <Trash2 className="w-4 h-4 text-rose-500" />
                         </Button>

@@ -470,7 +470,7 @@ export default function OurWorkPage() {
                         {isAdmin && (
                           <>
                             <Button variant="ghost" size="icon" className="h-7 w-7 rounded-full opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => openEdit(s)}><Pencil className="w-3 h-3 text-sky-500" /></Button>
-                            <Button variant="ghost" size="icon" className="h-7 w-7 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                            <Button variant="ghost" size="icon" className="h-7 w-7 rounded-full opacity-0 group-hover:opacity-100 transition-opacity" disabled={del.isPending}
                               onClick={() => del.mutate({ id: s.id }, { onSuccess: () => { invalidateSched(); toast({ title: "Program dihapus" }); } })}>
                               <Trash2 className="w-3 h-3 text-rose-500" />
                             </Button>
@@ -577,6 +577,7 @@ export default function OurWorkPage() {
                           <Button
                             variant="ghost" size="sm"
                             className="text-emerald-600 hover:bg-emerald-50 rounded-full text-xs h-7 px-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                            disabled={dlUpdate.isPending}
                             onClick={() => dlUpdate.mutate({ id: d.id, data: { status: "done" } }, { onSuccess: () => { invalidateDl(); toast({ title: "Deadline ditandai selesai" }); } })}
                           >
                             <CheckCircle2 className="w-3.5 h-3.5 mr-1" />Selesai
@@ -585,7 +586,7 @@ export default function OurWorkPage() {
                         {isDeadlineAdmin && (
                           <>
                             <Button variant="ghost" size="icon" className="h-7 w-7 rounded-full opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => dlOpenEdit(d)}><Pencil className="w-3 h-3 text-sky-500" /></Button>
-                            <Button variant="ghost" size="icon" className="h-7 w-7 rounded-full opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => dlDel.mutate({ id: d.id }, { onSuccess: () => { invalidateDl(); toast({ title: "Deadline dihapus" }); } })}><Trash2 className="w-3 h-3 text-rose-500" /></Button>
+                            <Button variant="ghost" size="icon" className="h-7 w-7 rounded-full opacity-0 group-hover:opacity-100 transition-opacity" disabled={dlDel.isPending} onClick={() => dlDel.mutate({ id: d.id }, { onSuccess: () => { invalidateDl(); toast({ title: "Deadline dihapus" }); } })}><Trash2 className="w-3 h-3 text-rose-500" /></Button>
                           </>
                         )}
                       </div>

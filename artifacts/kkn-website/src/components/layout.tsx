@@ -115,6 +115,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                   variant="ghost"
                   size="sm"
                   onClick={handleLogout}
+                  disabled={logout.isPending}
                   className="text-rose-600 hover:text-rose-700 hover:bg-rose-50 rounded-full text-xs"
                 >
                   <LogOut className="w-3.5 h-3.5 mr-1.5" />
@@ -197,6 +198,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                     <Button
                       variant="outline"
                       className="w-full justify-start rounded-xl text-rose-600"
+                      disabled={logout.isPending}
                       onClick={() => { handleLogout(); setIsOpen(false); }}
                     >
                       <LogOut className="w-4 h-4 mr-2" />

@@ -136,7 +136,7 @@ function LifeTab({ isAdmin, isLoggedIn, memberName }: { isAdmin?: boolean; isLog
                       <Button variant="ghost" size="icon" className="h-7 w-7 rounded-full" onClick={() => openEdit(c)}>
                         <Pencil className="w-3.5 h-3.5 text-sky-500" />
                       </Button>
-                      <Button variant="ghost" size="icon" className="h-7 w-7 rounded-full"
+                      <Button variant="ghost" size="icon" className="h-7 w-7 rounded-full" disabled={del.isPending}
                         onClick={() => del.mutate({ id: c.id }, { onSuccess: () => { invalidate(); toast({ title: "Keluhan dihapus" }); } })}>
                         <Trash2 className="w-3.5 h-3.5 text-rose-500" />
                       </Button>
@@ -338,7 +338,7 @@ function WorkTab({ isAdmin, isLoggedIn }: { isAdmin?: boolean; isLoggedIn?: bool
                         <Button variant="ghost" size="icon" className="h-7 w-7 rounded-full" onClick={() => openEdit(issue)}>
                           <Pencil className="w-3.5 h-3.5 text-sky-500" />
                         </Button>
-                        <Button variant="ghost" size="icon" className="h-7 w-7 rounded-full"
+                        <Button variant="ghost" size="icon" className="h-7 w-7 rounded-full" disabled={del.isPending}
                           onClick={() => del.mutate({ id: issue.id }, { onSuccess: () => { invalidate(); toast({ title: "Masalah dihapus" }); } })}>
                           <Trash2 className="w-3.5 h-3.5 text-rose-500" />
                         </Button>

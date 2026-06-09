@@ -354,9 +354,10 @@ export default function NotulensiPage() {
             <AlertDialogCancel>Batal</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDelete}
+              disabled={deleteMutation.isPending}
               className="bg-rose-500 hover:bg-rose-600 text-white"
             >
-              Hapus
+              {deleteMutation.isPending ? "Menghapus..." : "Hapus"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

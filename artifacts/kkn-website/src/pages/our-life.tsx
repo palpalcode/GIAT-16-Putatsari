@@ -985,7 +985,7 @@ function BrgKelompokTab({ isAdmin, isKetSek }: { isAdmin?: boolean; isKetSek?: b
                         {isAdmin && !isPinjaman && (
                           <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
                             <Button variant="ghost" size="icon" className="h-6 w-6 rounded-full" onClick={() => openEdit(item)}><Pencil className="w-3 h-3 text-sky-500" /></Button>
-                            <Button variant="ghost" size="icon" className="h-6 w-6 rounded-full" onClick={() => del.mutate({ id: item.id }, { onSuccess: () => { invalidate(); toast({ title: "Barang dihapus" }); } })}><Trash2 className="w-3 h-3 text-rose-500" /></Button>
+                            <Button variant="ghost" size="icon" className="h-6 w-6 rounded-full" disabled={del.isPending} onClick={() => del.mutate({ id: item.id }, { onSuccess: () => { invalidate(); toast({ title: "Barang dihapus" }); } })}><Trash2 className="w-3 h-3 text-rose-500" /></Button>
                           </div>
                         )}
                       </div>
@@ -1164,7 +1164,7 @@ function BrgPribadiTab({ selfName, isPrivileged, isKetSek, isLoggedIn }: { selfN
                 {editable && (
                   <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
                     <Button variant="ghost" size="icon" className="h-6 w-6 rounded-full" onClick={() => openEdit(item)}><Pencil className="w-3 h-3 text-sky-500" /></Button>
-                    <Button variant="ghost" size="icon" className="h-6 w-6 rounded-full" onClick={() => del.mutate({ id: item.id }, { onSuccess: () => { invalidate(); toast({ title: "Barang dihapus" }); } })}><Trash2 className="w-3 h-3 text-rose-500" /></Button>
+                    <Button variant="ghost" size="icon" className="h-6 w-6 rounded-full" disabled={del.isPending} onClick={() => del.mutate({ id: item.id }, { onSuccess: () => { invalidate(); toast({ title: "Barang dihapus" }); } })}><Trash2 className="w-3 h-3 text-rose-500" /></Button>
                   </div>
                 )}
               </div>
@@ -1585,7 +1585,7 @@ function KondisiTab({ memberName: selfName, isKetSek }: { memberName: string | n
                               <Button variant="ghost" size="icon" className="h-5 w-5 rounded-full" onClick={() => openEdit(c)}>
                                 <Pencil className="w-2.5 h-2.5 text-sky-500" />
                               </Button>
-                              <Button variant="ghost" size="icon" className="h-5 w-5 rounded-full" onClick={() =>
+                              <Button variant="ghost" size="icon" className="h-5 w-5 rounded-full" disabled={deleteCond.isPending} onClick={() =>
                                 deleteCond.mutate({ id: c.id }, { onSuccess: () => { invalidate(); toast({ title: "Kondisi dihapus" }); } })}>
                                 <Trash2 className="w-2.5 h-2.5 text-rose-500" />
                               </Button>
