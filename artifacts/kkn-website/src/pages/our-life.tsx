@@ -1216,7 +1216,7 @@ function BrgPribadiTab({ selfName, isPrivileged, isKetSek, isLoggedIn }: { selfN
   );
 }
 
-// ─── Katalog Tab (admin only) ─────────────────────────────────────────────────
+// ─── Katalog Tab (semua orang) ──────────────────────────────────────────────
 function CatalogTab() {
   const qc = useQueryClient();
   const { toast } = useToast();
@@ -1461,17 +1461,15 @@ function InventarisTab({ isAdmin, isKetSek, selfName, isPrivileged, isLoggedIn }
             invTab === "pribadi" ? "bg-gradient-to-r from-violet-400 to-sky-400 text-white shadow-sm" : "text-violet-700 hover:text-violet-900")}>
             👤 Barang Pribadi
           </button>
-          {isKetSek && (
-            <button onClick={() => setInvTab("katalog")} className={cn("px-3 py-1.5 rounded-lg text-xs font-medium transition-all flex items-center gap-1.5",
-              invTab === "katalog" ? "bg-gradient-to-r from-violet-400 to-emerald-400 text-white shadow-sm" : "text-violet-700 hover:text-violet-900")}>
-              📚 Katalog Barang
-            </button>
-          )}
+          <button onClick={() => setInvTab("katalog")} className={cn("px-3 py-1.5 rounded-lg text-xs font-medium transition-all flex items-center gap-1.5",
+            invTab === "katalog" ? "bg-gradient-to-r from-violet-400 to-emerald-400 text-white shadow-sm" : "text-violet-700 hover:text-violet-900")}>
+            📚 Katalog Barang
+          </button>
         </div>
       </div>
       {invTab === "kelompok" && <BrgKelompokTab isAdmin={isAdmin} isKetSek={isKetSek} />}
       {invTab === "pribadi" && <BrgPribadiTab selfName={selfName} isPrivileged={isPrivileged} isKetSek={isKetSek} isLoggedIn={isLoggedIn} />}
-      {invTab === "katalog" && isKetSek && <CatalogTab />}
+      {invTab === "katalog" && <CatalogTab />}
     </div>
   );
 }
