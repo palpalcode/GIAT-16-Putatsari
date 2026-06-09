@@ -71,11 +71,6 @@ router.post("/inventory/catalog", async (req, res) => {
 
 router.put("/inventory/catalog/:id", async (req, res) => {
   try {
-    const divisionRole = getDivisionRole(req);
-    if (!isKetSek(divisionRole)) {
-      res.status(403).json({ error: "Hanya ketua/sekretaris yang dapat mengelola katalog" });
-      return;
-    }
     const id = Number(req.params.id as string);
     const { name, category, unit } = req.body;
     if (!name?.trim() || !category || !unit?.trim()) {
@@ -109,11 +104,6 @@ router.put("/inventory/catalog/:id", async (req, res) => {
 
 router.delete("/inventory/catalog/:id", async (req, res) => {
   try {
-    const divisionRole = getDivisionRole(req);
-    if (!isKetSek(divisionRole)) {
-      res.status(403).json({ error: "Hanya ketua/sekretaris yang dapat mengelola katalog" });
-      return;
-    }
     const id = Number(req.params.id as string);
     const [row] = await db.select().from(itemCatalogTable).where(eq(itemCatalogTable.id, id));
     if (!row) { res.status(404).json({ error: "Tidak ditemukan" }); return; }
