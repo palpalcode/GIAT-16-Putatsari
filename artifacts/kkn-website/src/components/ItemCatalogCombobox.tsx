@@ -120,7 +120,7 @@ export function ItemCatalogCombobox({ name, unit, onChangeName, onChangeUnit, on
     );
   }
 
-  const showAddOption = isLoggedIn && query.trim().length > 0 && !exactMatch;
+  const showAddOption = query.trim().length > 0 && !exactMatch;
 
   return (
     <div ref={containerRef} className={cn("relative", className)}>
@@ -157,9 +157,9 @@ export function ItemCatalogCombobox({ name, unit, onChangeName, onChangeUnit, on
             </div>
           )}
 
-          {filtered.length === 0 && query.trim().length > 0 && !isLoggedIn && (
+          {filtered.length === 0 && query.trim().length > 0 && (
             <div className="px-3 py-3 text-sm text-gray-400 text-center italic">
-              Login untuk menambahkan nama baru ke katalog.
+              Ketik nama baru untuk menambahkan ke katalog.
             </div>
           )}
 

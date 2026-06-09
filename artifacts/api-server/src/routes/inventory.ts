@@ -44,11 +44,6 @@ router.get("/inventory/catalog", async (req, res) => {
 
 router.post("/inventory/catalog", async (req, res) => {
   try {
-    const memberName = getMemberName(req);
-    if (!memberName) {
-      res.status(401).json({ error: "Login terlebih dahulu" });
-      return;
-    }
     const { name, category, unit } = req.body;
     if (!name?.trim() || !category || !unit?.trim()) {
       res.status(400).json({ error: "name, category, dan unit wajib diisi" });
