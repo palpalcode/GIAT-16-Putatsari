@@ -852,7 +852,7 @@ function CatalogQuickAddDialog({ open, onOpenChange, selfName, isPrivileged, onS
                         {isActive && (
                           <button type="button" onClick={() => toggleType(item.id)}
                             className={cn("shrink-0 text-[10px] px-2 py-0.5 rounded-full border font-medium transition-all", isPinjaman ? INV_TYPE_CONFIG.pinjaman.color : INV_TYPE_CONFIG.pribadi.color)}>
-                            {isPinjaman ? "🤝 Pinjaman" : "👤 Pribadi"}
+                            {isPinjaman ? "🤝 Pinjamkan" : "👤 Pribadi"}
                           </button>
                         )}
                       </div>
@@ -977,7 +977,7 @@ function BrgKelompokTab({ isAdmin, isKetSek }: { isAdmin?: boolean; isKetSek?: b
                           <p className="text-xs text-gray-500"><span className="text-xl font-bold text-gray-800">{item.quantity}</span> {item.unit}</p>
                           {isPinjaman && (
                             <span className="inline-flex items-center gap-1 mt-1.5 px-2 py-0.5 rounded-full text-[10px] font-medium bg-sky-50 text-sky-700 border border-sky-200">
-                              🤝 Pinjaman dari {item.ownerName}
+                              🤝 Pinjamkan dari {item.ownerName}
                             </span>
                           )}
                           {item.notes && <p className="text-xs text-gray-400 mt-1 truncate">{item.notes}</p>}
