@@ -35,8 +35,22 @@ export function ItemCatalogCombobox({ name, unit, onChangeName, onChangeUnit, on
 
   const [addMode, setAddMode] = useState(false);
   const [newUnit, setNewUnit] = useState("");
+  const [newCategory, setNewCategory] = useState("alat_kebersihan");
   const createCatalog = useCreateCatalogItem();
   const containerRef = useRef<HTMLDivElement>(null);
+
+  const CATALOG_CATEGORIES = [
+    { id: "alat_kebersihan", label: "Kebersihan", emoji: "🧹" },
+    { id: "alat_masak", label: "Masak", emoji: "🍳" },
+    { id: "alat_makan", label: "Makan", emoji: "🍽️" },
+    { id: "alat_tulis", label: "Tulis", emoji: "✏️" },
+    { id: "alat_elektronik", label: "Elektronik", emoji: "🔌" },
+    { id: "pakaian", label: "Pakaian", emoji: "👕" },
+    { id: "stock_makanan", label: "Stock", emoji: "🍚" },
+    { id: "device", label: "Device", emoji: "📱" },
+    { id: "darurat", label: "Darurat", emoji: "🚨" },
+    { id: "tempat_tidur", label: "Tidur", emoji: "🛏️" },
+  ] as const;
 
   useEffect(() => {
     setQuery(name);
@@ -78,7 +92,8 @@ export function ItemCatalogCombobox({ name, unit, onChangeName, onChangeUnit, on
     setSelectedFromCatalog(false);
     setOpen(true);
     setAddMode(false);
-    onChangeCategory?.("");
+    setNewCategory(category || "alat_kebersihan");
+    onChangeCategory?.(category || "alat_kebersihan");
   }
 
   function handleFocus() {
@@ -88,13 +103,14 @@ export function ItemCatalogCombobox({ name, unit, onChangeName, onChangeUnit, on
   function handleAddToCatalog() {
     if (!query.trim() || !newUnit.trim()) return;
     createCatalog.mutate(
-      { data: { name: query.trim(), category: category as any, unit: newUnit.trim() } },
+      { data: { name: query.trim(), category: newCategory as any, unit: newUnit.trim() } },
       {
         onSuccess: (item) => {
           qc.invalidateQueries({ queryKey: getGetItemCatalogQueryKey() });
           selectItem(item);
           setAddMode(false);
           setNewUnit("");
+          setNewCategory("alat_kebersihan");
           toast({ title: `"${item.name}" ditambahkan ke katalog` });
         },
         onError: () => {
@@ -152,7 +168,7 @@ export function ItemCatalogCombobox({ name, unit, onChangeName, onChangeUnit, on
               {filtered.length > 0 && <div className="border-t border-gray-100 mx-2" />}
               <button
                 type="button"
-                onMouseDown={e => { e.preventDefault(); setAddMode(true); }}
+                onMouseDown={e => { e.preventDefault(); setAddMode(true); setNewCategory(category || "alat_kebersihan"); }}
                 className="w-full flex items-center gap-2 px-3 py-2.5 text-sm text-emerald-600 hover:bg-emerald-50 transition-colors font-medium"
               >
                 <Plus className="w-4 h-4 shrink-0" />
@@ -162,26 +178,51 @@ export function ItemCatalogCombobox({ name, unit, onChangeName, onChangeUnit, on
           )}
 
           {addMode && (
-            <div className="px-3 py-3 space-y-2 border-t border-gray-100">
-              <p className="text-xs font-semibold text-violet-800">Satuan baku untuk "{query}"</p>
-              <div className="flex gap-2">
-                <Input
-                  placeholder="pcs, botol, kg..."
-                  value={newUnit}
-                  onChange={e => setNewUnit(e.target.value)}
-                  className="bg-white text-sm h-8"
-                  onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); handleAddToCatalog(); } }}
-                  autoFocus
-                />
-                <Button
-                  type="button"
-                  size="sm"
-                  disabled={!newUnit.trim() || createCatalog.isPending}
-                  onMouseDown={e => { e.preventDefault(); handleAddToCatalog(); }}
-                  className="bg-emerald-500 text-white border-0 shrink-0 text-xs h-8"
-                >
-                  {createCatalog.isPending ? "..." : "Simpan"}
-                </Button>
+            <div className="px-3 py-3 space-y-2.5 border-t border-gray-100">
+              <p className="text-xs font-semibold text-violet-800">Data barang baru "{query}"</p>
+              <div className="space-y-2">
+                <div className="space-y-1">
+                  <p className="text-[10px] font-medium text-gray-500">Kategori</p>
+                  <div className="flex flex-wrap gap-1">
+                    {CATALOG_CATEGORIES.map(cat => (
+                      <button
+                        key={cat.id}
+                        type="button"
+                        onMouseDown={e => { e.preventDefault(); setNewCategory(cat.id); }}
+                        className={cn(
+                          "text-[10px] px-2 py-0.5 rounded-full border transition-all",
+                          newCategory === cat.id
+                            ? "bg-violet-100 border-violet-300 text-violet-700 font-semibold"
+                            : "bg-white border-gray-200 text-gray-500 hover:border-gray-300"
+                        )}
+                      >
+                        <span className="mr-0.5">{cat.emoji}</span>{cat.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-[10px] font-medium text-gray-500">Satuan baku</p>
+                  <div className="flex gap-2">
+                    <Input
+                      placeholder="pcs, botol, kg..."
+                      value={newUnit}
+                      onChange={e => setNewUnit(e.target.value)}
+                      className="bg-white text-sm h-8"
+                      onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); handleAddToCatalog(); } }}
+                      autoFocus
+                    />
+                    <Button
+                      type="button"
+                      size="sm"
+                      disabled={!newUnit.trim() || createCatalog.isPending}
+                      onMouseDown={e => { e.preventDefault(); handleAddToCatalog(); }}
+                      className="bg-emerald-500 text-white border-0 shrink-0 text-xs h-8"
+                    >
+                      {createCatalog.isPending ? "..." : "Simpan"}
+                    </Button>
+                  </div>
+                </div>
               </div>
             </div>
           )}
