@@ -398,7 +398,7 @@ function InvCategoryFilter({ value, onChange }: { value: string; onChange: (v: s
 
 // ─── 3-tipe kepemilikan ───────────────────────────────────────────────────────
 const INV_TYPE_CONFIG = {
-  pribadi:  { label: "Murni Barang Pribadi",     emoji: "👤", color: "border-violet-400 bg-violet-50 text-violet-700" },
+  pribadi:  { label: "Barang Pribadi",          emoji: "👤", color: "border-violet-400 bg-violet-50 text-violet-700" },
   pinjaman: { label: "Dipinjamkan ke Kelompok", emoji: "🤝", color: "border-sky-400 bg-sky-50 text-sky-700" },
   kelompok: { label: "Milik Kelompok",          emoji: "🏠", color: "border-emerald-400 bg-emerald-50 text-emerald-700" },
 } as const;
@@ -703,13 +703,13 @@ function PinjamBrgAnggotaDialog({ open, onOpenChange, onSuccess }: { open: boole
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2"><span>🤝</span> Pinjam dari Barang Anggota</DialogTitle>
           </DialogHeader>
-          <p className="text-xs text-gray-500 mt-1.5">Pilih Murni Barang Pribadi anggota yang akan dipinjamkan ke kelompok.</p>
+          <p className="text-xs text-gray-500 mt-1.5">Pilih Barang Pribadi anggota yang akan dipinjamkan ke kelompok.</p>
         </div>
         <div className="flex-1 overflow-y-auto px-6 py-3 space-y-1.5">
           {isLoading ? (
             <div className="animate-pulse space-y-2">{[1,2,3].map(i => <div key={i} className="h-12 bg-gray-100 rounded-xl" />)}</div>
           ) : pribadiItems.length === 0 ? (
-            <div className="text-center py-8 text-gray-400 text-sm">Belum ada Murni Barang Pribadi anggota.</div>
+            <div className="text-center py-8 text-gray-400 text-sm">Belum ada Barang Pribadi anggota.</div>
           ) : (
             pribadiItems.map(item => {
               const checked = selected.has(item.id);
@@ -1130,7 +1130,7 @@ function BrgPribadiTab({ selfName, isPrivileged, isKetSek, isLoggedIn }: { selfN
         <div className="animate-pulse space-y-3">{[1,2].map(i => <div key={i} className="glass-card h-20" />)}</div>
       ) : filtered.length === 0 ? (
         <div className="text-center py-10 text-gray-400 text-sm">
-          {selectedOwner ? `${selectedOwner} belum mencatat Murni Barang Pribadi.` : "Belum ada Murni Barang Pribadi."}
+          {selectedOwner ? `${selectedOwner} belum mencatat Barang Pribadi.` : "Belum ada Barang Pribadi."}
         </div>
       ) : (
         <div className="space-y-3">
@@ -1193,7 +1193,7 @@ function BrgPribadiTab({ selfName, isPrivileged, isKetSek, isLoggedIn }: { selfN
         selfName={selfName}
         isLoggedIn={isLoggedIn}
         onSubmitAll={handleSubmitAll}
-        title="Tambah Murni Barang Pribadi"
+        title="Tambah Barang Pribadi"
         headerGradient="bg-gradient-to-r from-violet-400/20 to-sky-400/20"
       />
 
@@ -1201,7 +1201,7 @@ function BrgPribadiTab({ selfName, isPrivileged, isKetSek, isLoggedIn }: { selfN
       <Dialog open={editOpen} onOpenChange={setEditOpen}>
         <DialogContent className="form-dialog border-white/50 max-w-md p-0 overflow-hidden max-h-[90vh] overflow-y-auto">
           <div className="px-6 pt-6 pb-4 bg-gradient-to-r from-violet-400/20 to-sky-400/20">
-            <DialogHeader><DialogTitle className="flex items-center gap-2"><User className="w-5 h-5 text-violet-500" />Edit Murni Barang Pribadi</DialogTitle></DialogHeader>
+            <DialogHeader><DialogTitle className="flex items-center gap-2"><User className="w-5 h-5 text-violet-500" />Edit Barang Pribadi</DialogTitle></DialogHeader>
           </div>
           <div className="px-6 pb-6 pt-4">
             <SingleItemFields form={editForm} setForm={setEditForm} allowedTypes={editAllowedTypes} isPrivileged={isPrivileged} isKetSek={isKetSek} selfName={selfName} isLoggedIn={true} />
@@ -1459,7 +1459,7 @@ function InventarisTab({ isAdmin, isKetSek, selfName, isPrivileged, isLoggedIn }
           </button>
           <button onClick={() => setInvTab("pribadi")} className={cn("px-3 py-1.5 rounded-lg text-xs font-medium transition-all flex items-center gap-1.5",
             invTab === "pribadi" ? "bg-gradient-to-r from-violet-400 to-sky-400 text-white shadow-sm" : "text-violet-700 hover:text-violet-900")}>
-            👤 Murni Barang Pribadi
+            👤 Barang Pribadi
           </button>
           {isKetSek && (
             <button onClick={() => setInvTab("katalog")} className={cn("px-3 py-1.5 rounded-lg text-xs font-medium transition-all flex items-center gap-1.5",
