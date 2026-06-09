@@ -625,8 +625,10 @@ function TransferDanaDialog({ open, onClose, onSave, isPending, initial, prokers
     { id: "proker", label: "Dana Proker" },
   ];
   const validTargets = fundOptions.filter(o => o.id !== form.fromFund);
+  const availableBalance = fundBalances && form.fromFund ? fundBalances[form.fromFund] : undefined;
+  const isOverdrawing = availableBalance !== undefined && !!form.amount && Number(form.amount) > availableBalance;
   const isValid = !isPending && !!form.amount && !!form.description && !!form.fromFund && !!form.toFund && form.fromFund !== form.toFund
-    && (form.toFund !== "proker" || !!form.toFundProkerId);
+    && (form.toFund !== "proker" || !!form.toFundProkerId) && !isOverdrawing;
   return (
     <Dialog open={open} onOpenChange={v => !v && onClose()}>
       <DialogContent className="form-dialog border-white/50 max-w-sm p-0 overflow-hidden">
@@ -678,8 +680,11 @@ function TransferDanaDialog({ open, onClose, onSave, isPending, initial, prokers
               <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-medium text-sky-600">Rp</span>
               <Input type="number" min={0} value={form.amount}
                 onChange={e => { set({ amount: e.target.value }); onClearBalanceError?.(); }}
-                className={cn("bg-white/90 pl-10 font-bold", balanceError && "border-rose-400 focus-visible:ring-rose-300")} />
+                className={cn("bg-white/90 pl-10 font-bold", (balanceError || isOverdrawing) && "border-amber-400 focus-visible:ring-amber-300", balanceError && "border-rose-400 focus-visible:ring-rose-300")} />
             </div>
+            {isOverdrawing && !balanceError && (
+              <p className="text-xs text-amber-600 mt-1">⚠ Nominal melebihi saldo tersedia ({formatRp(availableBalance!)})</p>
+            )}
             {balanceError && <p className="text-xs text-rose-500 mt-1">{balanceError}</p>}
           </div>
           <div>
