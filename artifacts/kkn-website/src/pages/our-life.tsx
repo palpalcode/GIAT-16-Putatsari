@@ -1040,7 +1040,16 @@ function BrgPribadiTab({ selfName, isPrivileged, isKetSek, isLoggedIn }: { selfN
   const qc = useQueryClient();
   const { toast } = useToast();
   const [selectedOwner, setSelectedOwner] = useState<string>(selfName ?? "");
-  const { data: rawInventory, isLoading } = useGetInventory({ owner: selectedOwner || undefined });
+  const { data: rawInventory, isLoading } = useGetInventory(
+    { owner: isLoggedIn ? (isPrivileged ? (selectedOwner || undefined) : selfName) : undefined },
+    { query: { enabled: isLoggedIn && !!selfName } }
+  );
+
+  useEffect(() => {
+    if (!isPrivileged && selfName) {
+      setSelectedOwner(selfName);
+    }
+  }, [selfName, isPrivileged]);
   const create = useCreateInventoryItem();
   const update = useUpdateInventoryItem();
   const del = useDeleteInventoryItem();
