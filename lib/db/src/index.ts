@@ -12,7 +12,16 @@ if (!databaseUrl) {
   );
 }
 
-export const pool = new Pool({ connectionString: databaseUrl });
+const poolMax =
+  Number(process.env.PGPOOL_MAX ?? (process.env.VERCEL ? "1" : "10")) || 1;
+
+export const pool = new Pool({
+  connectionString: databaseUrl,
+  max: poolMax,
+  connectionTimeoutMillis: 10_000,
+  idleTimeoutMillis: 5_000,
+  allowExitOnIdle: true,
+});
 export const db = drizzle(pool, { schema });
 
 export * from "./schema";
