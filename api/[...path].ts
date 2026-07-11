@@ -19,5 +19,8 @@ function bootstrap() {
 
 export default async function handler(req: IncomingMessage, res: ServerResponse) {
   await bootstrap();
-  return app.handle(req, res);
+  return (app as unknown as (req: IncomingMessage, res: ServerResponse) => void)(
+    req,
+    res,
+  );
 }
