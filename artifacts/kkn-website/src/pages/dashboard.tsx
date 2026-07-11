@@ -18,27 +18,19 @@ function SkeletonBlock({ className }: { className?: string }) {
   return <div className={cn("animate-pulse bg-gray-100 rounded-xl", className)} />;
 }
 
-function MemberCard({ member }: { member: { id: number; name: string; divisionRole: string; avatarUrl?: string | null } }) {
+function MemberCard({ member }: { member: { id: number; name: string; divisionRole: string } }) {
   const firstLetter = member.name.charAt(0);
   return (
     <Link href="/profil">
       <div className="glass-card p-4 text-center hover:-translate-y-1 transition-all group cursor-pointer">
-        {member.avatarUrl ? (
-          <img
-            src={member.avatarUrl}
-            alt={member.name}
-            className="w-14 h-14 rounded-full object-cover mx-auto mb-2 border-2 border-white/60 shadow-sm"
-          />
-        ) : (
-          <div
-            className={cn(
-              "w-14 h-14 rounded-full mx-auto mb-2 flex items-center justify-center text-white font-bold text-lg bg-gradient-to-br shadow-sm",
-              getMemberColor(member.name)
-            )}
-          >
-            {firstLetter}
-          </div>
-        )}
+        <div
+          className={cn(
+            "w-14 h-14 rounded-full mx-auto mb-2 flex items-center justify-center text-white font-bold text-lg bg-gradient-to-br shadow-sm",
+            getMemberColor(member.name)
+          )}
+        >
+          {firstLetter}
+        </div>
         <p className="text-sm font-semibold text-gray-800 leading-tight line-clamp-2">{member.name}</p>
         <p className="text-xs text-sky-600 mt-1 bg-sky-50 inline-block px-2 py-0.5 rounded-full border border-sky-100">
           {member.divisionRole}
