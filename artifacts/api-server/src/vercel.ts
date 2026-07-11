@@ -1,7 +1,7 @@
 import type { IncomingMessage, ServerResponse } from "http";
-import app from "../artifacts/api-server/src/app";
-import { ensureMembersSeeded, ensureSeeded } from "../artifacts/api-server/src/lib/auth";
-import { logger } from "../artifacts/api-server/src/lib/logger";
+import app from "./app";
+import { ensureMembersSeeded, ensureSeeded } from "./lib/auth";
+import { logger } from "./lib/logger";
 
 let bootstrapPromise: Promise<void> | null = null;
 

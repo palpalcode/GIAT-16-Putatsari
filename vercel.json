@@ -1,10 +1,10 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "installCommand": "pnpm install --frozen-lockfile",
-  "buildCommand": "PORT=3000 BASE_PATH=/ pnpm --filter @workspace/kkn-website run build",
+  "buildCommand": "pnpm --filter @workspace/api-server run build && PORT=3000 BASE_PATH=/ pnpm --filter @workspace/kkn-website run build",
   "outputDirectory": "artifacts/kkn-website/dist/public",
   "functions": {
-    "api/**/*.ts": {
+    "api/**/*.js": {
       "maxDuration": 300
     }
   },
