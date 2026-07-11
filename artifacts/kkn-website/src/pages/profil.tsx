@@ -13,6 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Loader2, Camera, UserCircle, ShieldCheck, KeyRound, Eye, EyeOff } from "lucide-react";
 import { cn, getMemberColor } from "@/lib/utils";
 import { Link } from "wouter";
+import { uploadToObjectUrl } from "@/lib/upload";
 
 function PasswordInput({
   value,
@@ -103,11 +104,7 @@ export default function ProfilPage() {
         data: { name: file.name, size: file.size, contentType: file.type },
       });
 
-      await fetch(urlResp.uploadURL, {
-        method: "PUT",
-        headers: { "Content-Type": file.type },
-        body: file,
-      });
+      await uploadToObjectUrl(urlResp.uploadURL, file);
 
       const objectPath = urlResp.objectPath;
       await updateAvatar.mutateAsync({ id: memberId, data: { avatarUrl: `/api/storage${objectPath}` } });

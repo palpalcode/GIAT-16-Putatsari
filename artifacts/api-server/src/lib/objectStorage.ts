@@ -1,4 +1,4 @@
-import { Storage, File } from "@google-cloud/storage";
+import { Storage, type File } from "@google-cloud/storage";
 import { Readable } from "stream";
 import { randomUUID } from "crypto";
 import {
@@ -10,6 +10,7 @@ import {
 } from "./objectAcl";
 
 const REPLIT_SIDECAR_ENDPOINT = "http://127.0.0.1:1106";
+const DEFAULT_SUPABASE_BUCKET = "kkn-putatsari-uploads";
 
 export const objectStorageClient = new Storage({
   credentials: {
@@ -37,8 +38,48 @@ export class ObjectNotFoundError extends Error {
   }
 }
 
+type UploadMetadata = {
+  name?: string;
+  size?: number;
+  contentType?: string;
+};
+
+type SupabaseStorageConfig = {
+  storageUrl: string;
+  serviceRoleKey: string;
+  bucketName: string;
+};
+
+export type StoredObject =
+  | {
+      provider: "replit";
+      file: File;
+    }
+  | {
+      provider: "supabase";
+      objectName: string;
+      isPublic: boolean;
+    };
+
 export class ObjectStorageService {
   constructor() {}
+
+  private getSupabaseStorageConfig(): SupabaseStorageConfig | null {
+    const supabaseUrl = process.env.SUPABASE_URL?.replace(/\/+$/, "");
+    const serviceRoleKey =
+      process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.SUPABASE_SERVICE_KEY;
+    const bucketName = process.env.SUPABASE_STORAGE_BUCKET ?? DEFAULT_SUPABASE_BUCKET;
+
+    if (!supabaseUrl || !serviceRoleKey) {
+      return null;
+    }
+
+    return {
+      storageUrl: `${supabaseUrl}/storage/v1`,
+      serviceRoleKey,
+      bucketName,
+    };
+  }
 
   getPublicObjectSearchPaths(): Array<string> {
     const pathsStr = process.env.PUBLIC_OBJECT_SEARCH_PATHS || "";
@@ -47,10 +88,14 @@ export class ObjectStorageService {
         pathsStr
           .split(",")
           .map((path) => path.trim())
-          .filter((path) => path.length > 0)
+        .filter((path) => path.length > 0)
       )
     );
     if (paths.length === 0) {
+      if (this.getSupabaseStorageConfig()) {
+        return ["public"];
+      }
+
       throw new Error(
         "PUBLIC_OBJECT_SEARCH_PATHS not set. Create a bucket in 'Object Storage' " +
           "tool and set PUBLIC_OBJECT_SEARCH_PATHS env var (comma-separated paths)."
@@ -70,8 +115,21 @@ export class ObjectStorageService {
     return dir;
   }
 
-  async searchPublicObject(filePath: string): Promise<File | null> {
+  async searchPublicObject(filePath: string): Promise<StoredObject | null> {
+    const supabaseConfig = this.getSupabaseStorageConfig();
+
     for (const searchPath of this.getPublicObjectSearchPaths()) {
+      if (supabaseConfig) {
+        const objectName = joinObjectPath(
+          normalizeSupabaseSearchPath(searchPath, supabaseConfig.bucketName),
+          filePath,
+        );
+        if (await supabaseObjectExists(supabaseConfig, objectName)) {
+          return { provider: "supabase", objectName, isPublic: true };
+        }
+        continue;
+      }
+
       const fullPath = `${searchPath}/${filePath}`;
 
       const { bucketName, objectName } = parseObjectPath(fullPath);
@@ -80,19 +138,49 @@ export class ObjectStorageService {
 
       const [exists] = await file.exists();
       if (exists) {
-        return file;
+        return { provider: "replit", file };
       }
     }
 
     return null;
   }
 
-  async downloadObject(file: File, cacheTtlSec: number = 3600): Promise<Response> {
-    const [metadata] = await file.getMetadata();
-    const aclPolicy = await getObjectAclPolicy(file);
+  async downloadObject(object: StoredObject, cacheTtlSec: number = 3600): Promise<Response> {
+    if (object.provider === "supabase") {
+      const supabaseConfig = this.getSupabaseStorageConfig();
+      if (!supabaseConfig) {
+        throw new Error("Supabase Storage is not configured");
+      }
+
+      const response = await fetch(supabaseObjectUrl(supabaseConfig, object.objectName), {
+        headers: getSupabaseHeaders(supabaseConfig),
+        signal: AbortSignal.timeout(30_000),
+      });
+
+      if (response.status === 404) {
+        throw new ObjectNotFoundError();
+      }
+      if (!response.ok) {
+        throw new Error(`Failed to download object: ${response.status}`);
+      }
+
+      const headers = new Headers(response.headers);
+      headers.set(
+        "Cache-Control",
+        `${object.isPublic ? "public" : "private"}, max-age=${cacheTtlSec}`,
+      );
+
+      return new Response(response.body, {
+        status: response.status,
+        headers,
+      });
+    }
+
+    const [metadata] = await object.file.getMetadata();
+    const aclPolicy = await getObjectAclPolicy(object.file);
     const isPublic = aclPolicy?.visibility === "public";
 
-    const nodeStream = file.createReadStream();
+    const nodeStream = object.file.createReadStream();
     const webStream = Readable.toWeb(nodeStream) as ReadableStream;
 
     const headers: Record<string, string> = {
@@ -106,7 +194,14 @@ export class ObjectStorageService {
     return new Response(webStream, { headers });
   }
 
-  async getObjectEntityUploadURL(): Promise<string> {
+  async getObjectEntityUploadURL(metadata: UploadMetadata = {}): Promise<string> {
+    const supabaseConfig = this.getSupabaseStorageConfig();
+    const entityId = createObjectEntityId(metadata);
+
+    if (supabaseConfig) {
+      return createSupabaseSignedUploadURL(supabaseConfig, entityId);
+    }
+
     const privateObjectDir = this.getPrivateObjectDir();
     if (!privateObjectDir) {
       throw new Error(
@@ -115,8 +210,7 @@ export class ObjectStorageService {
       );
     }
 
-    const objectId = randomUUID();
-    const fullPath = `${privateObjectDir}/uploads/${objectId}`;
+    const fullPath = `${privateObjectDir}/${entityId}`;
 
     const { bucketName, objectName } = parseObjectPath(fullPath);
 
@@ -128,7 +222,7 @@ export class ObjectStorageService {
     });
   }
 
-  async getObjectEntityFile(objectPath: string): Promise<File> {
+  async getObjectEntityFile(objectPath: string): Promise<StoredObject> {
     if (!objectPath.startsWith("/objects/")) {
       throw new ObjectNotFoundError();
     }
@@ -139,6 +233,15 @@ export class ObjectStorageService {
     }
 
     const entityId = parts.slice(1).join("/");
+    const supabaseConfig = this.getSupabaseStorageConfig();
+
+    if (supabaseConfig) {
+      if (!(await supabaseObjectExists(supabaseConfig, entityId))) {
+        throw new ObjectNotFoundError();
+      }
+      return { provider: "supabase", objectName: entityId, isPublic: false };
+    }
+
     let entityDir = this.getPrivateObjectDir();
     if (!entityDir.endsWith("/")) {
       entityDir = `${entityDir}/`;
@@ -151,10 +254,18 @@ export class ObjectStorageService {
     if (!exists) {
       throw new ObjectNotFoundError();
     }
-    return objectFile;
+    return { provider: "replit", file: objectFile };
   }
 
   normalizeObjectEntityPath(rawPath: string): string {
+    const supabaseConfig = this.getSupabaseStorageConfig();
+    if (supabaseConfig && rawPath.startsWith(supabaseConfig.storageUrl)) {
+      const objectName = parseSupabaseObjectName(rawPath, supabaseConfig);
+      if (objectName) {
+        return `/objects/${objectName}`;
+      }
+    }
+
     if (!rawPath.startsWith("https://storage.googleapis.com/")) {
       return rawPath;
     }
@@ -175,6 +286,82 @@ export class ObjectStorageService {
     return `/objects/${entityId}`;
   }
 
+  async uploadObjectEntity(
+    body: Buffer,
+    metadata: UploadMetadata = {},
+  ): Promise<string> {
+    const supabaseConfig = this.getSupabaseStorageConfig();
+    const entityId = createObjectEntityId(metadata);
+
+    if (supabaseConfig) {
+      const response = await fetch(supabaseObjectUrl(supabaseConfig, entityId), {
+        method: "POST",
+        headers: {
+          ...getSupabaseHeaders(supabaseConfig),
+          "Content-Type": metadata.contentType ?? "application/octet-stream",
+          "cache-control": "max-age=3600",
+          "x-upsert": "false",
+        },
+        body,
+        signal: AbortSignal.timeout(30_000),
+      });
+
+      if (!response.ok) {
+        const text = await response.text().catch(() => "");
+        throw new Error(`Failed to upload object: ${response.status} ${text}`);
+      }
+
+      return `/objects/${entityId}`;
+    }
+
+    const privateObjectDir = this.getPrivateObjectDir();
+    const fullPath = `${privateObjectDir}/${entityId}`;
+    const { bucketName, objectName } = parseObjectPath(fullPath);
+    const file = objectStorageClient.bucket(bucketName).file(objectName);
+    await file.save(body, {
+      contentType: metadata.contentType ?? "application/octet-stream",
+      resumable: false,
+    });
+
+    return `/objects/${entityId}`;
+  }
+
+  async deleteObjectEntity(objectPath: string): Promise<void> {
+    if (!objectPath.startsWith("/objects/")) {
+      return;
+    }
+
+    const entityId = objectPath.slice("/objects/".length);
+    const supabaseConfig = this.getSupabaseStorageConfig();
+
+    if (supabaseConfig) {
+      const response = await fetch(
+        `${supabaseConfig.storageUrl}/object/${encodeURIComponent(supabaseConfig.bucketName)}`,
+        {
+          method: "DELETE",
+          headers: {
+            ...getSupabaseHeaders(supabaseConfig),
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ prefixes: [entityId] }),
+          signal: AbortSignal.timeout(30_000),
+        },
+      );
+
+      if (!response.ok && response.status !== 404) {
+        throw new Error(`Failed to delete object: ${response.status}`);
+      }
+      return;
+    }
+
+    const privateDir = this.getPrivateObjectDir();
+    const fullPath = `${privateDir}/${entityId}`;
+    const { bucketName, objectName } = parseObjectPath(fullPath);
+    await objectStorageClient.bucket(bucketName).file(objectName).delete({
+      ignoreNotFound: true,
+    });
+  }
+
   async trySetObjectEntityAclPolicy(
     rawPath: string,
     aclPolicy: ObjectAclPolicy
@@ -185,7 +372,9 @@ export class ObjectStorageService {
     }
 
     const objectFile = await this.getObjectEntityFile(normalizedPath);
-    await setObjectAclPolicy(objectFile, aclPolicy);
+    if (objectFile.provider === "replit") {
+      await setObjectAclPolicy(objectFile.file, aclPolicy);
+    }
     return normalizedPath;
   }
 
@@ -195,12 +384,16 @@ export class ObjectStorageService {
     requestedPermission,
   }: {
     userId?: string;
-    objectFile: File;
+    objectFile: StoredObject;
     requestedPermission?: ObjectPermission;
   }): Promise<boolean> {
+    if (objectFile.provider === "supabase") {
+      return objectFile.isPublic || Boolean(userId);
+    }
+
     return canAccessObject({
       userId,
-      objectFile,
+      objectFile: objectFile.file,
       requestedPermission: requestedPermission ?? ObjectPermission.READ,
     });
   }
@@ -225,6 +418,158 @@ function parseObjectPath(path: string): {
     bucketName,
     objectName,
   };
+}
+
+function createObjectEntityId(metadata: UploadMetadata = {}): string {
+  return `uploads/${randomUUID()}${getFileExtension(metadata)}`;
+}
+
+function getFileExtension({ name, contentType }: UploadMetadata): string {
+  const fromName = name?.match(/\.[a-zA-Z0-9]{1,8}$/)?.[0]?.toLowerCase();
+  if (fromName) {
+    return fromName;
+  }
+
+  switch (contentType) {
+    case "image/jpeg":
+    case "image/jpg":
+      return ".jpg";
+    case "image/png":
+      return ".png";
+    case "image/webp":
+      return ".webp";
+    case "image/gif":
+      return ".gif";
+    case "application/pdf":
+      return ".pdf";
+    default:
+      return "";
+  }
+}
+
+function joinObjectPath(...parts: string[]): string {
+  return parts
+    .map((part) => part.replace(/^\/+|\/+$/g, ""))
+    .filter(Boolean)
+    .join("/");
+}
+
+function encodeObjectName(objectName: string): string {
+  return objectName
+    .replace(/^\/+/, "")
+    .split("/")
+    .map((part) => encodeURIComponent(part))
+    .join("/");
+}
+
+function decodeObjectName(objectName: string): string {
+  return objectName
+    .replace(/^\/+/, "")
+    .split("/")
+    .map((part) => decodeURIComponent(part))
+    .join("/");
+}
+
+function normalizeSupabaseSearchPath(searchPath: string, bucketName: string): string {
+  const trimmed = searchPath.replace(/^\/+|\/+$/g, "");
+  if (trimmed === bucketName) {
+    return "";
+  }
+  if (trimmed.startsWith(`${bucketName}/`)) {
+    return trimmed.slice(bucketName.length + 1);
+  }
+  return trimmed;
+}
+
+function getSupabaseHeaders(config: SupabaseStorageConfig): Record<string, string> {
+  return {
+    apikey: config.serviceRoleKey,
+    Authorization: `Bearer ${config.serviceRoleKey}`,
+  };
+}
+
+function supabaseObjectUrl(config: SupabaseStorageConfig, objectName: string): string {
+  return `${config.storageUrl}/object/${encodeURIComponent(config.bucketName)}/${encodeObjectName(objectName)}`;
+}
+
+async function supabaseObjectExists(
+  config: SupabaseStorageConfig,
+  objectName: string,
+): Promise<boolean> {
+  const response = await fetch(supabaseObjectUrl(config, objectName), {
+    method: "HEAD",
+    headers: getSupabaseHeaders(config),
+    signal: AbortSignal.timeout(30_000),
+  });
+
+  if (response.ok) {
+    return true;
+  }
+  if (response.status === 400 || response.status === 404) {
+    return false;
+  }
+
+  throw new Error(`Failed to check object existence: ${response.status}`);
+}
+
+async function createSupabaseSignedUploadURL(
+  config: SupabaseStorageConfig,
+  objectName: string,
+): Promise<string> {
+  const response = await fetch(
+    `${config.storageUrl}/object/upload/sign/${encodeURIComponent(config.bucketName)}/${encodeObjectName(objectName)}`,
+    {
+      method: "POST",
+      headers: {
+        ...getSupabaseHeaders(config),
+        "Content-Type": "application/json",
+      },
+      body: "{}",
+      signal: AbortSignal.timeout(30_000),
+    },
+  );
+
+  if (!response.ok) {
+    const text = await response.text().catch(() => "");
+    throw new Error(`Failed to create Supabase signed upload URL: ${response.status} ${text}`);
+  }
+
+  const data = (await response.json()) as {
+    url?: string;
+    signedURL?: string;
+    signedUrl?: string;
+  };
+  const signedPath = data.url ?? data.signedURL ?? data.signedUrl;
+  if (!signedPath) {
+    throw new Error("Supabase did not return a signed upload URL");
+  }
+
+  if (signedPath.startsWith("http://") || signedPath.startsWith("https://")) {
+    return signedPath;
+  }
+
+  return `${config.storageUrl}${signedPath}`;
+}
+
+function parseSupabaseObjectName(
+  rawPath: string,
+  config: SupabaseStorageConfig,
+): string | null {
+  const url = new URL(rawPath);
+  const storagePath = new URL(config.storageUrl).pathname.replace(/\/+$/, "");
+  const bucketPart = encodeURIComponent(config.bucketName);
+  const possiblePrefixes = [
+    `${storagePath}/object/upload/sign/${bucketPart}/`,
+    `${storagePath}/object/${bucketPart}/`,
+  ];
+
+  for (const prefix of possiblePrefixes) {
+    if (url.pathname.startsWith(prefix)) {
+      return decodeObjectName(url.pathname.slice(prefix.length));
+    }
+  }
+
+  return null;
 }
 
 async function signObjectURL({

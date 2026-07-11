@@ -24,6 +24,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Plus, Pencil, Trash2, Download, Camera, X, ImageIcon, Loader2, ChevronLeft, ChevronRight, ZoomIn, FileText, FileType } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { cn, TEAM_MEMBERS } from "@/lib/utils";
+import { uploadToObjectUrl } from "@/lib/upload";
 
 type ProgramInfo = { id: number; programName: string; leader: string };
 
@@ -32,14 +33,36 @@ type PhotoUploadState = { file: File; uploading: boolean; error?: string; fileNa
 const BASE_URL = (import.meta as any).env?.BASE_URL ?? "/";
 
 async function uploadPhotoToLogbook(file: File, logbookEntryId: number): Promise<LogbookPhoto> {
-  const fd = new FormData();
-  fd.append("logbookEntryId", String(logbookEntryId));
-  fd.append("file", file, file.name);
-  const res = await fetch(`${BASE_URL}api/logbook/photos`, {
+  const uploadUrlRes = await fetch(`${BASE_URL}api/storage/uploads/request-url`, {
     method: "POST",
     credentials: "include",
-    body: fd,
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      name: file.name,
+      size: file.size,
+      contentType: file.type || "application/octet-stream",
+    }),
   });
+
+  if (!uploadUrlRes.ok) {
+    const body = await uploadUrlRes.json().catch(() => ({}));
+    throw new Error((body as any).error || "Gagal meminta URL upload");
+  }
+
+  const uploadData = await uploadUrlRes.json() as { uploadURL: string; objectPath: string };
+  await uploadToObjectUrl(uploadData.uploadURL, file);
+
+  const res = await fetch(`${BASE_URL}api/logbook/photos/from-upload`, {
+    method: "POST",
+    credentials: "include",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      logbookEntryId,
+      storageKey: uploadData.objectPath,
+      fileName: file.name,
+    }),
+  });
+
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
     throw new Error((body as any).error || "Gagal mengupload foto");

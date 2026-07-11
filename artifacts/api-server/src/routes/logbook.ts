@@ -1,6 +1,5 @@
 import { Router } from "express";
 import multer from "multer";
-import { randomUUID } from "crypto";
 import { db } from "@workspace/db";
 import { logbookEntriesTable, logbookPhotosTable, programSchedulesTable } from "@workspace/db";
 import { eq, desc, inArray, and, gte, lte } from "drizzle-orm";
@@ -9,7 +8,7 @@ import {
   CreateLogbookEntryBody,
   UpdateLogbookEntryBody,
 } from "@workspace/api-zod";
-import { objectStorageClient } from "../lib/objectStorage";
+import { ObjectStorageService } from "../lib/objectStorage";
 import {
   Document,
   Packer,
@@ -26,6 +25,7 @@ import {
 import PDFDocument from "pdfkit";
 
 const router = Router();
+const objectStorageService = new ObjectStorageService();
 
 const ALLOWED_MIMES = new Set(["image/jpeg", "image/jpg", "image/png", "image/webp"]);
 const MAX_BYTES = 10 * 1024 * 1024;
@@ -42,27 +42,9 @@ const upload = multer({
   },
 });
 
-function parseStoragePath(path: string): { bucketName: string; objectName: string } {
-  const normalized = path.startsWith("/") ? path.slice(1) : path;
-  const parts = normalized.split("/");
-  return { bucketName: parts[0], objectName: parts.slice(1).join("/") };
-}
-
-function storageKeyToGcsPath(storageKey: string): { bucketName: string; objectName: string } | null {
-  const privateDir = process.env["PRIVATE_OBJECT_DIR"];
-  if (!privateDir) return null;
-  if (!storageKey.startsWith("/objects/")) return null;
-  const entityId = storageKey.slice("/objects/".length);
-  const fullPath = `${privateDir}/${entityId}`;
-  return parseStoragePath(fullPath);
-}
-
 async function deleteFromStorage(storageKey: string, log: { warn: (...args: any[]) => void }): Promise<void> {
   try {
-    const parsed = storageKeyToGcsPath(storageKey);
-    if (!parsed) return;
-    const file = objectStorageClient.bucket(parsed.bucketName).file(parsed.objectName);
-    await file.delete({ ignoreNotFound: true });
+    await objectStorageService.deleteObjectEntity(storageKey);
   } catch (err) {
     log.warn({ err, storageKey }, "Failed to delete object from storage (non-fatal)");
   }
@@ -232,22 +214,13 @@ router.post(
         return;
       }
 
-      const privateDir = process.env["PRIVATE_OBJECT_DIR"];
-      if (!privateDir) {
-        res.status(500).json({ error: "Object storage tidak dikonfigurasi" });
-        return;
-      }
+      const storageKey = await objectStorageService.uploadObjectEntity(file.buffer, {
+        name: file.originalname,
+        size: file.size,
+        contentType: file.mimetype,
+      });
 
-      const objectId = randomUUID();
-      const fullPath = `${privateDir}/uploads/${objectId}`;
-      const { bucketName, objectName } = parseStoragePath(fullPath);
-      const storageKey = `/objects/uploads/${objectId}`;
-
-      const bucket = objectStorageClient.bucket(bucketName);
-      const gcsFile = bucket.file(objectName);
-      await gcsFile.save(file.buffer, { contentType: file.mimetype, resumable: false });
-
-      const fileName = file.originalname || `photo_${objectId}`;
+      const fileName = file.originalname || "photo";
       const [row] = await db
         .insert(logbookPhotosTable)
         .values({ logbookEntryId, storageKey, fileName })
@@ -261,6 +234,41 @@ router.post(
     }
   },
 );
+
+// POST /logbook/photos/from-upload - saves metadata after direct signed upload
+router.post("/logbook/photos/from-upload", requireKetSek, async (req, res) => {
+  try {
+    const logbookEntryId = Number(req.body?.logbookEntryId);
+    const storageKey = String(req.body?.storageKey ?? req.body?.objectPath ?? "");
+    const fileName = String(req.body?.fileName ?? "").trim();
+
+    if (!logbookEntryId || isNaN(logbookEntryId)) {
+      res.status(400).json({ error: "logbookEntryId diperlukan" });
+      return;
+    }
+    if (!storageKey.startsWith("/objects/uploads/")) {
+      res.status(400).json({ error: "storageKey tidak valid" });
+      return;
+    }
+    if (!fileName) {
+      res.status(400).json({ error: "fileName diperlukan" });
+      return;
+    }
+
+    await objectStorageService.getObjectEntityFile(storageKey);
+
+    const [row] = await db
+      .insert(logbookPhotosTable)
+      .values({ logbookEntryId, storageKey, fileName })
+      .returning();
+
+    const url = `/api/storage${storageKey}`;
+    res.status(201).json({ ...row, url, createdAt: row.createdAt.toISOString() });
+  } catch (err) {
+    req.log.error(err);
+    res.status(500).json({ error: "Gagal menyimpan metadata foto" });
+  }
+});
 
 // DELETE /logbook/photos/:id — removes from object storage then from DB
 router.delete("/logbook/photos/:id", requireKetSek, async (req, res) => {
