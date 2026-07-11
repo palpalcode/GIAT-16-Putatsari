@@ -19,5 +19,5 @@ function bootstrap() {
 
 export default async function handler(req: IncomingMessage, res: ServerResponse) {
   await bootstrap();
-  return app(req, res);
+  return app.handle(req, res);
 }
