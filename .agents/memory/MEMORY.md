@@ -1,2 +1,0 @@
-- [Attendance relocation](attendance-relocation.md) — moved from Our Life tab to Dashboard + Our Work page; extracted into reusable `AttendanceWidget` component.
-- [Excel export](excel-export.md) — backend generates multi-week XLSX workbooks via `xlsx` library; each sheet = 1 week with member rows and daily status columns.
